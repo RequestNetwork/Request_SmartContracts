@@ -1,0 +1,144 @@
+{
+  "contract_name": "Invoice",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "seller",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "pay",
+      "outputs": [],
+      "payable": true,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "accept",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "abort",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "refuse",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "buyer",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "amount",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "state",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "getAmount",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "name": "_buyer",
+          "type": "address"
+        },
+        {
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [],
+      "name": "InvoiceAccepted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [],
+      "name": "InvoiceRefused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [],
+      "name": "InvoicePayed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [],
+      "name": "InvoiceAborted",
+      "type": "event"
+    }
+  ],
+  "unlinked_binary": "0x6060604052341561000c57fe5b6040516040806104e48339810160405280516020909101515b60018054600160a060020a03338116600160a060020a031992831617909255600280549285169290911691909117905560008190555b50505b6104778061006d6000396000f3006060604052361561007d5763ffffffff60e060020a60003504166308551a53811461007f5780631b9265b8146100ab5780632852b71c146100b557806335a063b4146100c757806362c69b80146100d95780637150d8ae146100eb578063aa8c217c14610117578063c19d93fb14610139578063d321fe291461016d575bfe5b341561008757fe5b61008f61018f565b60408051600160a060020a039092168252519081900360200190f35b6100b361019e565b005b34156100bd57fe5b6100b3610271565b005b34156100cf57fe5b6100b3610301565b005b34156100e157fe5b6100b3610391565b005b34156100f357fe5b61008f61041f565b60408051600160a060020a039092168252519081900360200190f35b341561011f57fe5b61012761042e565b60408051918252519081900360200190f35b341561014157fe5b610149610434565b6040518082600481111561015957fe5b60ff16815260200191505060405180910390f35b341561017557fe5b610127610444565b60408051918252519081900360200190f35b600154600160a060020a031681565b6001805b60025460a060020a900460ff1660048111156101ba57fe5b146101c55760006000fd5b60025433600160a060020a039081169116146101e15760006000fd5b6000543414806101f15760006000fd5b600280546003919060a060020a60ff02191660a060020a835b021790555060015460008054604051600160a060020a039093169281156108fc0292818181858888f19350505050151561024057fe5b6040517fa8cf04ad86eee8f32bff39a53992ea59619006f8c2eeaa5a4019998c65784fbf90600090a15b5b505b5b50565b6000805b60025460a060020a900460ff16600481111561028d57fe5b146102985760006000fd5b60025433600160a060020a039081169116146102b45760006000fd5b600280546001919060a060020a60ff02191660a060020a835b02179055506040517fdae18c703bd13ae88f3f00634dbae2018df71852694d261548e55d8b7a277cc490600090a15b5b5b50565b60015433600160a060020a0390811691161461031d5760006000fd5b6000805b60025460a060020a900460ff16600481111561033957fe5b146103445760006000fd5b6040517f8e6f38c353c6a4800f1f529915164eb8828fc86c937dbf3b6e5b9087afa4599a90600090a1600280546004919060a060020a60ff02191660a060020a835b02179055505b5b505b565b6000805b60025460a060020a900460ff1660048111156103ad57fe5b146103b85760006000fd5b60025433600160a060020a039081169116146103d45760006000fd5b60028054819060a060020a60ff02191660a060020a825b02179055506040517f40e0643fb8e41be15f3931915fd0b041cb205842123c5b7ac5003df65523718190600090a15b5b5b50565b600254600160a060020a031681565b60005481565b60025460a060020a900460ff1681565b6000545b905600a165627a7a72305820411e840474e423edda423d930b5e7099fcfc4dfcd7b51823ccb4a591daf8a3a60029",
+  "networks": {},
+  "schema_version": "0.0.5",
+  "updated_at": 1499698880947
+}
