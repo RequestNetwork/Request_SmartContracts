@@ -46,7 +46,6 @@ contract Invoice {
         condition(msg.value == amount)
         payable
     {
-        amount = msg.value;
         state = State.Payed;
         seller.transfer(amount);
         InvoicePayed();

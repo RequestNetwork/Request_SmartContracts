@@ -1,3 +1,5 @@
+return;
+
 var ListInvoices = artifacts.require("./Invoices.sol");
 
 contract('Invoices', function(accounts) {
@@ -10,22 +12,186 @@ contract('Invoices', function(accounts) {
   var amount2 = 9999;
 
   // who can do what ----------------------------------------
-  it("should be acceptable only by buyer", function() {
+  it("should be acceptable only by buyer1", function() {
     var contract;
 
     return ListInvoices.deployed().then(function(instance) {
       contract=instance;
       return contract.createInvoice(buyer1, amount1, {from:seller1});
-    }).then(function(invoiceID) {
-      console.log(invoiceID)
-      return contract.createInvoice(buyer1, amount1, {from:seller1});
-    }).then(function(invoiceID1) {
-      console.log(invoiceID1)
-      return contract.createInvoice(buyer1, amount1, {from:seller1});
-    }).then(function(invoiceID2) {
-      console.log(invoiceID2)
-      return contract.createInvoice.call(buyer1, amount1, {from:seller1});
+    }).then(function(res) {
+      console.log('res');
+      console.log(res);
+      (res.logs || []).forEach(function(l) {
+        assert.equal(l.event, "InvoiceCreated", "InvoiceCreated must be trigger");
+        assert.equal(l.args.invoiceID.valueOf(), "0", "event should give invoideID: 0");
+        assert.equal(l.args.seller, seller1, "event should give seller as second arg");
+        assert.equal(l.args.buyer, buyer1, "event should give buyer as third arg");
+      });
+      return contract.accept(0, {from:seller1});
+    }).then(function() {
+      assert(false, "seller should not accept, throw was expected");
+    }).catch(function(error) {
+      if( error.toString() == "AssertionError: seller should not accept, throw was expected" ) {  
+        throw error;
+      } else if(error.toString().indexOf("invalid opcode") == -1) {
+        assert(false, error.toString());
+      } 
+      return contract.accept(0, {from:random_guy});
+    }).then(function() {
+        assert(false, "random_guy should not accept, throw was expected");
+    }).catch(function(error) {
+      if( error.toString() == "AssertionError: random_guy should not accept, throw was expected" ) {  
+        throw error;
+      } else if(error.toString().indexOf("invalid opcode") == -1) {
+        assert(false, error.toString());
+      } 
+      return contract.accept(0, {from:buyer2});
+    }).then(function() {
+        assert(false, "buyer2 should not accept, throw was expected");
+    }).catch(function(error) {
+      if( error.toString() == "AssertionError: buyer2 should not accept, throw was expected" ) {  
+        throw error;
+      } else if(error.toString().indexOf("invalid opcode") == -1) {
+        assert(false, error.toString());
+      } 
+      return contract.accept(0, {from:buyer1});
+    }).then(function(res) {
+      assert.equal(res.logs.length, 1, "event must be trigger");
+      (res.logs || []).forEach(function(l) {
+        assert.equal(l.event, "InvoiceAccepted", "InvoiceAccepted must be trigger");
+        assert.equal(l.args.invoiceID.valueOf(), "0", "event should give invoideID: 0");
+      });
     });
+  });
+
+  it("should be refusable only by buyer1", function() {
+    var contract;
+
+    return ListInvoices.deployed().then(function(instance) {
+      contract=instance;
+      return contract.createInvoice(buyer1, amount1, {from:seller1});
+    }).then(function(res) {
+      (res.logs || []).forEach(function(l) {
+        assert.equal(l.event, "InvoiceCreated", "InvoiceCreated must be trigger");
+        assert.equal(l.args.invoiceID.valueOf(), "1", "event should give invoideID: 1");
+        assert.equal(l.args.seller, seller1, "event should give seller as second arg");
+        assert.equal(l.args.buyer, buyer1, "event should give buyer as third arg");
+      });
+      return contract.refuse(1, {from:seller1});
+    }).then(function() {
+      assert(false, "seller should not refuse, throw was expected");
+    }).catch(function(error) {
+      if( error.toString() == "AssertionError: seller should not refuse, throw was expected" ) {  
+        throw error;
+      } else if(error.toString().indexOf("invalid opcode") == -1) {
+        assert(false, error.toString());
+      } 
+      return contract.refuse(1, {from:random_guy});
+    }).then(function() {
+        assert(false, "random_guy should not refuse, throw was expected");
+    }).catch(function(error) {
+      if( error.toString() == "AssertionError: random_guy should not refuse, throw was expected" ) {  
+        throw error;
+      } else if(error.toString().indexOf("invalid opcode") == -1) {
+        assert(false, error.toString());
+      } 
+      return contract.refuse(1, {from:buyer2});
+    }).then(function() {
+        assert(false, "buyer2 should not refuse, throw was expected");
+    }).catch(function(error) {
+      if( error.toString() == "AssertionError: buyer2 should not refuse, throw was expected" ) {  
+        throw error;
+      } else if(error.toString().indexOf("invalid opcode") == -1) {
+        assert(false, error.toString());
+      } 
+      return contract.refuse(1, {from:buyer1});
+    }).then(function(res) {
+      assert.equal(res.logs.length, 1, "event must be trigger");
+      (res.logs || []).forEach(function(l) {
+        assert.equal(l.event, "InvoiceRefused", "InvoiceRefused must be trigger");
+        assert.equal(l.args.invoiceID.valueOf(), "1", "event should give invoideID: 1");
+      });
+    });
+  });
+
+  it("should be abortable only by seller1", function() {
+    var contract;
+
+    return ListInvoices.deployed().then(function(instance) {
+      contract=instance;
+      return contract.createInvoice(buyer1, amount1, {from:seller1});
+    }).then(function(res) {
+      (res.logs || []).forEach(function(l) {
+        assert.equal(l.event, "InvoiceCreated", "InvoiceCreated must be trigger");
+        assert.equal(l.args.invoiceID.valueOf(), "2", "event should give invoideID: 2");
+        assert.equal(l.args.seller, seller1, "event should give seller as second arg");
+        assert.equal(l.args.buyer, buyer1, "event should give buyer as third arg");
+      });
+      return contract.abort(2, {from:buyer1});
+    }).then(function() {
+      assert(false, "buyer1 should not abort, throw was expected");
+    }).catch(function(error) {
+      if( error.toString() == "AssertionError: buyer1 should not abort, throw was expected" ) {  
+        throw error;
+      } else if(error.toString().indexOf("invalid opcode") == -1) {
+        assert(false, error.toString());
+      } 
+      return contract.abort(2, {from:random_guy});
+    }).then(function() {
+        assert(false, "random_guy should not abort, throw was expected");
+    }).catch(function(error) {
+      if( error.toString() == "AssertionError: random_guy should not abort, throw was expected" ) {  
+        throw error;
+      } else if(error.toString().indexOf("invalid opcode") == -1) {
+        assert(false, error.toString());
+      } 
+      return contract.abort(2, {from:seller2});
+    }).then(function() {
+        assert(false, "seller2 should not abort, throw was expected");
+    }).catch(function(error) {
+      if( error.toString() == "AssertionError: seller2 should not abort, throw was expected" ) {  
+        throw error;
+      } else if(error.toString().indexOf("invalid opcode") == -1) {
+        assert(false, error.toString());
+      } 
+      return contract.abort(2, {from:seller1});
+    }).then(function(res) {
+      assert.equal(res.logs.length, 1, "event must be trigger");
+      (res.logs || []).forEach(function(l) {
+        assert.equal(l.event, "InvoiceAborted", "InvoiceAborted must be trigger");
+        assert.equal(l.args.invoiceID.valueOf(), "2", "event should give invoideID: 2");
+      });
+    });
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /*      console.log('invoiceID')
@@ -42,7 +208,6 @@ contract('Invoices', function(accounts) {
       console.log(invoiceID)
       // assert.equal(invoiceID.valueOf(), 2, "2 must be the first invoiceID");
     });*/
-  });
 /*
 /*
   it("should be refusable only by buyer", function() {

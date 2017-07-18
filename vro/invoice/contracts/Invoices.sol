@@ -22,7 +22,7 @@ contract Invoices {
     address public admin;
 
     // the events triggeagle
-    event InvoiceCreated(uint invoiceID, address buyer);
+    event InvoiceCreated(uint invoiceID, address seller, address buyer);
     event InvoiceAccepted(uint invoiceID);
     event InvoiceRefused(uint invoiceID);
     event InvoiceAborted(uint invoiceID);
@@ -38,7 +38,7 @@ contract Invoices {
     function createInvoice(address _buyer, uint _amount) returns (uint) {
         uint invoiceID = numInvoices++; // get the current num as ID and increment it
         invoices[invoiceID] = Invoice(msg.sender, _buyer, _amount, State.Created); // create invoice
-        InvoiceCreated(invoiceID, _buyer); // we "publish" this invoice - should we let _buyer here?
+        InvoiceCreated(invoiceID, msg.sender, _buyer); // we "publish" this invoice - should we let _buyer here?
         return invoiceID;
     }
 
