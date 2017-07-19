@@ -4,6 +4,7 @@ pragma solidity ^0.4.11;
 contract Invoices {
     // state of an invoice
     enum State { Created, Accepted, Refused, Payed, Aborted }
+    enum ConflictType { Seller, Buyer, Unknown }
 
     // What is an invoice
     struct Invoice {
@@ -27,6 +28,7 @@ contract Invoices {
     event InvoiceRefused(uint invoiceID);
     event InvoiceAborted(uint invoiceID);
     event InvoicePayed(uint invoiceID);
+    event InvoiceConflict(uint invoiceID);
 
     // contract constructor
     function Invoices() {

@@ -17,25 +17,25 @@ contract('Invoices', function(accounts) {
     var contrat;
     return OneInvoice.new(buyer1, amount1, {from:seller1}).then(function(instance) {
       contrat=instance;
-      return instance.accept({from:buyer1});
-    }).then(function(res) {
-      return contrat.pay({value:amount1,from:buyer1});
-    }).then(function(res) {
-      console.log('res ------------------- ');
-      console.log(res.receipt.gasUsed);
-      return OneInvoice.new(buyer1, amount3, {from:seller1}).then(function(instance) {
-        contrat=instance;
-        return instance.accept({from:buyer1});
-      }).then(function(res) {
-        return contrat.pay({value:amount3,from:buyer1});
-      }).then(function(res) {
-        console.log('res ------------------- ');
-        console.log(res.receipt.gasUsed);
-      });
+      return instance.accept.call({from:buyer1});
+    // }).then(function(res) {
+    //   return contrat.pay({value:amount1,from:buyer1});
+    // }).then(function(res) {
+    //   console.log('res ------------------- ');
+    //   console.log(res.receipt.gasUsed);
+    //   return OneInvoice.new(buyer1, amount3, {from:seller1}).then(function(instance) {
+    //     contrat=instance;
+    //     return instance.accept({from:buyer1});
+    //   }).then(function(res) {
+    //     return contrat.pay({value:amount3,from:buyer1});
+    //   }).then(function(res) {
+    //     console.log('res ------------------- ');
+    //     console.log(res.receipt.gasUsed);
+    //   });
     });
 
   });
-
+/*
 
   // who can do what ----------------------------------------
   it("should be acceptable only by buyer1", function() {
@@ -89,7 +89,7 @@ contract('Invoices', function(accounts) {
 
   });
 
-
+*/
 /*
   // who can do what ----------------------------------------
   it("should be acceptable only by buyer1", function() {
