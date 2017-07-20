@@ -7,7 +7,10 @@ var StandardRequestFactory = artifacts.require("../contracts/StandardRequestFact
 module.exports = function(deployer) {
 
   deployer.deploy(Request);
-  deployer.deploy(RequestFactory);
-  deployer.deploy(StandardRequest);
-  deployer.deploy(StandardRequestFactory);
+  // deployer.deploy(RequestFactory);
+  // deployer.deploy(StandardRequest);
+  // deployer.deploy(StandardRequestFactory);
+  // deployer.deploy(Request).then(function() {
+  // 	return deployer.deploy(RequestFactory, Request.address);
+  // });	
 };
