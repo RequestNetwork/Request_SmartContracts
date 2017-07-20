@@ -38,7 +38,7 @@ contract Request {
      */
      function acceptOrReject(bool accept) public; 
      function cancel() public; 
-     function pay() public;
+     function pay() public payable;
      //detect a payment?
 
 }

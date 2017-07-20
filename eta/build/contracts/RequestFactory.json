@@ -1,0 +1,48 @@
+{
+  "contract_name": "RequestFactory",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "createRequest",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "creator",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "request",
+          "type": "address"
+        }
+      ],
+      "name": "RequestCreation",
+      "type": "event"
+    }
+  ],
+  "unlinked_binary": "0x",
+  "networks": {},
+  "schema_version": "0.0.5",
+  "updated_at": 1500536332481
+}

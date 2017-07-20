@@ -1,5 +1,5 @@
 pragma solidity 0.4 .11;
-import "../Request.sol";
+import "./Request.sol";
 
 
 
@@ -41,12 +41,11 @@ contract StandardRequest is Request {
     // Validate inputs
     require(_amount > 0); 
 
-    creator = _creator; //Can this be called by something else thatn the standardrequestFactory?
+    creator = _creator; //Can this be called by anything else than standard request factory?
     createdAtBlock = block.number;
     recipient = _recipient;
     amount = _amount;
     status = Status.RequestCreated;
-    RequestCreated();
   }
 
 
@@ -60,7 +59,7 @@ contract StandardRequest is Request {
       } else {
         status = Status.RequestRejected;
       }
-      RequestAcceptedOrRejected(_acceptOrReject);
+      RequestAcceptedOrRejected(_accept);
     }
 
 
@@ -77,9 +76,9 @@ contract StandardRequest is Request {
   isRecipient
   payable {
   	require(status == Status.RequestCreated || status == Status.RequestAccepted);
-  	require(msg.value == _amount); //TODO : Only accept perfect amount for now... Also, verify that if not correct, reimburse. 
+  	require(msg.value == amount); //TODO : Only accept perfect amount for now... Also, verify that if not correct, reimburse. 
   	
-  	recipient.transfer(_amount);
+  	recipient.transfer(amount);
   	status = Status.RequestPaid;
   	RequestPaid();
 

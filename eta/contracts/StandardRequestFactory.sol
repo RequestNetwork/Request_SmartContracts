@@ -1,6 +1,6 @@
 pragma solidity 0.4.11;
-import "../RequestFactory.sol";
-import "../StandardRequest.sol";
+import "./RequestFactory.sol";
+import "./StandardRequest.sol";
 
 
 /// @title Request factory contract - Allows to create request contracts

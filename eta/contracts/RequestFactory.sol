@@ -1,5 +1,5 @@
 pragma solidity 0.4.11;
-import "../Request.sol";
+import "./Request.sol";
 
 
 /// @title Abstract request factory contract - Functions to be implemented by request factories

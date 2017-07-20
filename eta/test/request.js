@@ -1,12 +1,14 @@
-// var MetaCoin = artifacts.require("./MetaCoin.sol");
+var StandardRequest = artifacts.require("../contracts/StandardRequest.sol");
+var StandardRequestFactory = artifacts.require("../contracts/StandardRequestFactory.sol");
 
-// contract('MetaCoin', function(accounts) {
-//   it("should put 10000 MetaCoin in the first account", function() {
-//     return MetaCoin.deployed().then(function(instance) {
-//       return instance.getBalance.call(accounts[0]);
-//     }).then(function(balance) {
-//       assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
-//     });
+contract('Request', function(accounts) {
+  it("should create a request", function() {
+    return StandardRequestFactory.deployed().then(function(instance) {
+     	return instance.createRequest(0xE030f8C5b965728438053BA8e84117798A958F89, 10);
+       
+    }).then(function(balance) {
+      assert.equal(1, 1, "1=1");
+    });
 //   });
 //   it("should call a function that depends on a linked library", function() {
 //     var meta;
@@ -59,5 +61,5 @@
 //       assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
 //       assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
 //     });
-//   });
-// });
+  });
+});
