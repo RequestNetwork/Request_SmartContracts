@@ -6,7 +6,7 @@ import './Administrable.sol';
 contract RequestCore is Administrable{
 
     // state of an RequestgetSystemState
-    enum State { Created, Accepted, Rejected, Paid, Completed, Canceled }
+    enum State { Created, Accepted, Declined, Paid, Completed, Canceled }
 
     // What is an Request
     struct Request {
@@ -27,7 +27,7 @@ contract RequestCore is Administrable{
     // events of request
     event LogRequestCreated(uint requestID, address payee, address payer);
     event LogRequestAccepted(uint requestID);
-    event LogRequestRejected(uint requestID);
+    event LogRequestDeclined(uint requestID);
     event LogRequestCanceled(uint requestID);
     event LogRequestPayment(uint requestID, uint amountPaid);
     event LogRequestPaid(uint requestID);
@@ -62,15 +62,15 @@ contract RequestCore is Administrable{
         LogRequestAccepted(_requestID);
     }
    
-    // the payer can reject an Request
-    function reject(uint _requestID)
+    // the payer can decline an Request
+    function decline(uint _requestID)
         systemIsWorking
     {
         Request storage c = requests[_requestID];
         require(c.state==State.Created); // state must be created only
-        require(c.UntrustedSubContract==msg.sender); // only subContract can reject
-        c.state = State.Rejected;
-        LogRequestRejected(_requestID);
+        require(c.UntrustedSubContract==msg.sender); // only subContract can decline
+        c.state = State.Declined;
+        LogRequestDeclined(_requestID);
     }
 
 

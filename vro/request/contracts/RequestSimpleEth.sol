@@ -30,12 +30,12 @@ contract RequestSimpleEth{
         requestSystem.accept(requestId);
     }
 
-    // the payer can reject an Request
-    function reject()
+    // the payer can decline an Request
+    function decline()
         systemIsWorking
         onlyRequestPayer
     {
-        requestSystem.reject(requestId);
+        requestSystem.decline(requestId);
     }
 
     // the payee can Cancel an Request if just creted
