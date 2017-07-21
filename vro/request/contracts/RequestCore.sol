@@ -13,7 +13,7 @@ contract RequestCore is Administrable{
         address payee;
         address payer;
         uint amountExpected;
-        address UntrustedSubContract;
+        address subContract;
         uint amountPaid;
         uint amountRefunded;
         State state;
@@ -37,16 +37,17 @@ contract RequestCore is Administrable{
 
     // contract constructor
     function RequestCore() Administrable() {
-        numRequests = 0;
+        numRequests = 1;
     }
 
     // create an Request
-    function createRequest(address _payee, address _payer, uint _amountExpected, address _untrustedSubContract) 
+    function createRequest(address _payee, address _payer, uint _amountExpected, address _subContract) 
         systemIsWorking 
+        isTrustedContract(_subContract)
         returns (uint) 
     {
         uint requestID = numRequests++; // get the current num as ID and increment it
-        requests[requestID] = Request(_payee, _payer, _amountExpected, _untrustedSubContract==0?address(this):_untrustedSubContract, 0, 0, State.Created); // create Request
+        requests[requestID] = Request(_payee, _payer, _amountExpected, _subContract==0?address(this):_subContract, 0, 0, State.Created); // create Request
         LogRequestCreated(requestID, _payee, _payer); // we "publish" this Request - should we let _payer here?
         return requestID;
     }
@@ -57,7 +58,7 @@ contract RequestCore is Administrable{
     {
         Request storage c = requests[_requestID];
         require(c.state==State.Created); // state must be created only
-        require(c.UntrustedSubContract==msg.sender); // only subContract can accept
+        require(c.subContract==msg.sender); // only subContract can accept
         c.state = State.Accepted;
         LogRequestAccepted(_requestID);
     }
@@ -68,7 +69,7 @@ contract RequestCore is Administrable{
     {
         Request storage c = requests[_requestID];
         require(c.state==State.Created); // state must be created only
-        require(c.UntrustedSubContract==msg.sender); // only subContract can decline
+        require(c.subContract==msg.sender); // only subContract can decline
         c.state = State.Declined;
         LogRequestDeclined(_requestID);
     }
@@ -80,7 +81,7 @@ contract RequestCore is Administrable{
     {
         Request storage c = requests[_requestID];
         require(c.state==State.Created); // state must be created only
-        require(c.UntrustedSubContract==msg.sender); // only subContract can cancel
+        require(c.subContract==msg.sender); // only subContract can cancel
         c.state = State.Canceled;
         LogRequestCanceled(_requestID);
     }   
@@ -90,7 +91,7 @@ contract RequestCore is Administrable{
         systemIsWorking
     {   
         Request storage c = requests[_requestID];
-        require(c.UntrustedSubContract==msg.sender); // only subContract can declare payment
+        require(c.subContract==msg.sender); // only subContract can declare payment
         require(c.state==State.Accepted); // state must be accepted only
         require(_amount > 0 && _amount+c.amountPaid > c.amountPaid && _amount+c.amountPaid <= c.amountExpected); // value must be greater than 0 and all the payments should not overpass the amountExpected
 
@@ -108,7 +109,7 @@ contract RequestCore is Administrable{
         systemIsWorking
     {   
         Request storage c = requests[_requestID];
-        require(c.UntrustedSubContract==msg.sender); // only subContract can declare refund
+        require(c.subContract==msg.sender); // only subContract can declare refund
         require(c.state==State.Paid); // state must be paid only
         require(_amount > 0 && _amount+c.amountRefunded > c.amountRefunded && _amount+c.amountRefunded <= c.amountPaid); // value must be greater than 0 and all the payments should not overpass the amountPaid
 
@@ -120,7 +121,7 @@ contract RequestCore is Administrable{
         systemIsWorking
     {
         Request storage c = requests[_requestID];
-        require(c.UntrustedSubContract==msg.sender); // only subContract can manage this
+        require(c.subContract==msg.sender); // only subContract can manage this
         require(c.state==State.Paid); // state must be paid only
         c.state=State.Completed;
         LogRequestCompleted(_requestID);
@@ -152,7 +153,7 @@ contract RequestCore is Administrable{
         systemIsWorking
         returns(address)
     {
-        return requests[_requestID].UntrustedSubContract;
+        return requests[_requestID].subContract;
     }
     
     function getAmountPaid(uint _requestID)

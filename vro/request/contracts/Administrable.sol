@@ -74,18 +74,25 @@ contract Administrable {
     }
 
     // getter system
-    function isTrustedContract(address _contractAddress) 
+    function statusContract(address _contractAddress) 
         systemIsWorking
         returns(uint8) 
     {
         return trustedSubContracts[_contractAddress];
     }
 
+
+
     function getSystemState() returns(SystemState) {
         return systemState;
     }
 
     // Modifier system
+    modifier isTrustedContract(address _contractAddress) {
+        require(statusContract(_contractAddress) == 1);
+        _;
+    }
+
     modifier systemIsWorking() {
         require(systemState==SystemState.Working);
         _;

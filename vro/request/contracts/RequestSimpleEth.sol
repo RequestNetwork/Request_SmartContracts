@@ -13,12 +13,17 @@ contract RequestSimpleEth{
     RequestCore public requestSystem;
 
     // contract constructor
-    function RequestSimpleEth(address _requestSystemAddress, address _payee, address _payer, uint _amountExpected) 
-        condition(_payee==msg.sender)
+    function RequestSimpleEth(address _requestSystemAddress) 
     {
         requestSystem= RequestCore(_requestSystemAddress);
         requestSystemAddress=_requestSystemAddress;
+    }
 
+    function createRequest(address _payee, address _payer, uint _amountExpected) 
+        requestNotCreated()
+        condition(_payee==msg.sender)
+        systemIsWorking
+    {
         requestId=requestSystem.createRequest(_payee, _payer, _amountExpected, this);
     }
 
@@ -70,6 +75,11 @@ contract RequestSimpleEth{
     //modifier
     modifier condition(bool c) {
         require(c);
+        _;
+    }
+    
+    modifier requestNotCreated() {
+        require(requestId==0);
         _;
     }
     
