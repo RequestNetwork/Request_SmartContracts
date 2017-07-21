@@ -18,8 +18,8 @@ contract Administrable {
     event LogSystemPaused();
     event LogSystemResumed();
     event LogSystemDeprecated();
-    event LogSystemNewTrustedContracted(address contract);
-    event LogSystemRemoveTrustedContracted(address contract);
+    event LogSystemNewTrustedContracted(address newContract);
+    event LogSystemRemoveTrustedContracted(address oldContract);
 
     function Administrable() {
         trustedAdmin = msg.sender;
