@@ -3,7 +3,7 @@ pragma solidity ^0.4.11;
 import './RequestCore.sol';
 
 // many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs
-contract RequestSimpleEth{
+contract RequestListEth{
 
     // _requestId in requestSystem
     // uint public _requestId;
@@ -13,16 +13,14 @@ contract RequestSimpleEth{
     RequestCore public requestSystem;
 
     // contract constructor
-    function RequestSimpleEth(address _requestSystemAddress) 
+    function RequestListEth(address _requestSystemAddress) 
     {
         requestSystem= RequestCore(_requestSystemAddress);
         requestSystemAddress=_requestSystemAddress;
     }
 
-    function createRequest(address _payee, address _payer, uint _amountExpected) 
-        requestNotCreated()
+    function createRequest(address _payee, address _payer, uint _amountExpected)
         condition(_payee==msg.sender)
-        systemIsWorking
         returns(uint)
     {
         return requestSystem.createRequest(_payee, _payer, _amountExpected, this);
@@ -30,15 +28,13 @@ contract RequestSimpleEth{
 
     // the payer can accept an Request 
     function accept(uint _requestId) 
-        systemIsWorking
-        onlyRequestPayer(uin_requestId)
+        onlyRequestPayer(_requestId)
     {
         requestSystem.accept(_requestId);
     }
 
     // the payer can decline an Request
     function decline(uint _requestId)
-        systemIsWorking
         onlyRequestPayer(_requestId)
     {
         requestSystem.decline(_requestId);
@@ -46,7 +42,6 @@ contract RequestSimpleEth{
 
     // the payee can Cancel an Request if just creted
     function cancel(uint _requestId)
-        systemIsWorking
         onlyRequestPayee(_requestId)
     {
         requestSystem.cancel(_requestId);
@@ -54,7 +49,6 @@ contract RequestSimpleEth{
 
     // The payer pay the Request with ether
     function pay(uint _requestId)
-        systemIsWorking
         onlyRequestPayer(_requestId)
         payable
     {
@@ -63,7 +57,6 @@ contract RequestSimpleEth{
 
     // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
     function withdraw(uint _requestId)
-        systemIsWorking
         onlyRequestPayee(_requestId)
     {
         requestSystem.complete(_requestId);
@@ -76,16 +69,6 @@ contract RequestSimpleEth{
     //modifier
     modifier condition(bool c) {
         require(c);
-        _;
-    }
-    
-    modifier requestNotCreated() {
-        require(_requestId==0);
-        _;
-    }
-    
-    modifier systemIsWorking() {
-        require(requestSystem.getSystemState()==Administrable.SystemState.Working);
         _;
     }
     

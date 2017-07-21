@@ -18,8 +18,8 @@ contract Administrable {
     event LogSystemPaused();
     event LogSystemResumed();
     event LogSystemDeprecated();
-    event LogSystemNewTrustedContracted();
-    event LogSystemRemoveTrustedContracted();
+    event LogSystemNewTrustedContracted(address contract);
+    event LogSystemRemoveTrustedContracted(address contract);
 
     function Administrable() {
         trustedAdmin = msg.sender;
@@ -60,7 +60,7 @@ contract Administrable {
     {
         require(trustedAdmin==msg.sender);
         trustedSubContracts[_newContractAddress] = 1;
-        LogSystemNewTrustedContracted();
+        LogSystemNewTrustedContracted(_newContractAddress);
     }
 
     // remove trusted contract
@@ -70,7 +70,7 @@ contract Administrable {
         require(trustedAdmin==msg.sender);
         require(trustedSubContracts[_oldTrustedContractAddress] != 0);
         trustedSubContracts[_oldTrustedContractAddress] = 0;
-        LogSystemRemoveTrustedContracted();
+        LogSystemRemoveTrustedContracted(_oldTrustedContractAddress);
     }
 
     // getter system
@@ -79,12 +79,6 @@ contract Administrable {
         returns(uint8) 
     {
         return trustedSubContracts[_contractAddress];
-    }
-
-
-
-    function getSystemState() returns(SystemState) {
-        return systemState;
     }
 
     // Modifier system
