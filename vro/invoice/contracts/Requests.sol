@@ -48,7 +48,12 @@ contract Administrable {
         systemState = SystemState.Deprecated;
         LogSystemDeprecated();
     }
-
+    
+    // getter system
+    function getSystemState() returns(SystemState) {
+        return systemState;
+    }
+    
     // Modifier system
     modifier systemIsWorking() {
         require(systemState==SystemState.Working);
@@ -80,7 +85,7 @@ contract Requests is Administrable{
     uint public numRequests; //should be replaced by something else (hash?)
 
     // mapping of all the Requests
-    mapping(uint => Request) public Requests;
+    mapping(uint => Request) public requests;
 
     // events of request
     event LogRequestCreated(uint requestID, address seller, address buyer);
@@ -104,7 +109,7 @@ contract Requests is Administrable{
         returns (uint) 
     {
         uint requestID = numRequests++; // get the current num as ID and increment it
-        Requests[requestID] = Request(msg.sender, _buyer, _amountExpected, _untrustedSubContract==0?address(this):_untrustedSubContract, 0, State.Created, ConflictType.Nothing); // create Request
+        requests[requestID] = Request(msg.sender, _buyer, _amountExpected, _untrustedSubContract==0?address(this):_untrustedSubContract, 0, State.Created, ConflictType.Nothing); // create Request
         LogRequestCreated(requestID, msg.sender, _buyer); // we "publish" this Request - should we let _buyer here?
         return requestID;
     }
@@ -113,7 +118,7 @@ contract Requests is Administrable{
     function accept(uint _requestID) 
         systemIsWorking
     {
-        Request storage c = Requests[_requestID];
+        Request storage c = requests[_requestID];
         require(c.state==State.Created); // state must be created only
         require(c.buyer==msg.sender); // only buyer can accept
         c.state = State.Accepted;
@@ -124,7 +129,7 @@ contract Requests is Administrable{
     function refuse(uint _requestID)
         systemIsWorking
     {
-        Request storage c = Requests[_requestID];
+        Request storage c = requests[_requestID];
         require(c.state==State.Created); // state must be created only
         require(c.buyer==msg.sender); // only buyer can refuse
         c.state = State.Refused;
@@ -133,12 +138,12 @@ contract Requests is Administrable{
 
 
     // the seller can Cancel an Request if just creted
-    function Cancel(uint _requestID)
+    function cancel(uint _requestID)
         systemIsWorking
     {
-        Request storage c = Requests[_requestID];
+        Request storage c = requests[_requestID];
         require(c.state==State.Created); // state must be created only
-        require(c.seller==msg.sender); // only seller can Cancel
+        require(c.seller==msg.sender || c.UntrustedSubContract==msg.sender); // only seller can Cancel or subContract
         c.state = State.Canceled;
         LogRequestCanceled(_requestID);
     }   
@@ -149,10 +154,11 @@ contract Requests is Administrable{
         systemIsWorking
         payable
     {
-        Request storage c = Requests[_requestID];
+        Request storage c = requests[_requestID];
         require(c.UntrustedSubContract==address(this)); // only if no subContract, the buyer can pay in ether
         require(c.state==State.Accepted); // state must be accepted only
         require(c.buyer==msg.sender); // only buyer can pay
+        // TODO: Someone can force amount on the contract and it can occur mispayment replace "<=" by a mechanism of reimboursment (?)
         require(msg.value > 0 && msg.value+c.amountPaid > c.amountPaid && msg.value+c.amountPaid <= c.amountExpected); // value must be greater than 0 and all the payments should not overpass the amountExpected
 
         payment(_requestID, msg.value);
@@ -162,7 +168,7 @@ contract Requests is Administrable{
     function withdraw(uint _requestID)
         systemIsWorking
     {
-        Request storage c = Requests[_requestID];
+        Request storage c = requests[_requestID];
         require(c.UntrustedSubContract==address(this)); // only if no subContract, the buyer can pay in ether
         require(c.state==State.Paid); // state must be accepted only
         require(c.seller==msg.sender); // only buyer can pay
@@ -178,8 +184,8 @@ contract Requests is Administrable{
     function payment(uint _requestID, uint _amount)
         systemIsWorking
     {   
-        Request storage c = Requests[_requestID];
-        require(c.UntrustedSubContract==msg.sender || c.UntrustedSubContract==address(this)); // only subContract can manage this
+        Request storage c = requests[_requestID];
+        require(c.UntrustedSubContract==msg.sender || (c.UntrustedSubContract==address(this) && msg.sender==c.buyer)); // only subContract can manage this
         require(c.state==State.Accepted); // state must be accepted only
         require(_amount > 0 && _amount+c.amountPaid > c.amountPaid && _amount+c.amountPaid <= c.amountExpected); // value must be greater than 0 and all the payments should not overpass the amountExpected
 
@@ -191,11 +197,11 @@ contract Requests is Administrable{
             LogRequestPaid(_requestID);
         }
     }
-
+    
     function conflict(uint _requestID, ConflictType _conflict)
         systemIsWorking
     {   
-        Request storage c = Requests[_requestID];
+        Request storage c = requests[_requestID];
         require(c.UntrustedSubContract==msg.sender); // only subContract can manage this
         require(c.state==State.Accepted || c.state==State.Paid || c.state==State.Conflict); // state must be accepted or paid or conflict only
         c.conflictType = _conflict;
@@ -206,11 +212,62 @@ contract Requests is Administrable{
     function complete(uint _requestID) 
         systemIsWorking
     {
-        Request storage c = Requests[_requestID];
-        require(c.UntrustedSubContract==msg.sender || c.UntrustedSubContract==address(this)); // only subContract can manage this
+        Request storage c = requests[_requestID];
+        require(c.UntrustedSubContract==msg.sender || (c.UntrustedSubContract==address(this) && msg.sender==c.seller)); // only subContract can manage this
         require(c.state==State.Paid || c.state==State.Conflict); // state must be paid or conflict only
         c.state=State.Completed;
         LogRequestCompleted(_requestID);
     }
+ 
+    // request getters
+    function getSeller(uint _requestID)
+        systemIsWorking
+        returns(address)
+    {
+        return requests[_requestID].seller;
+    }
+    
+    function getBuyer(uint _requestID)
+        systemIsWorking
+        returns(address)
+    {
+        return requests[_requestID].buyer;
+    }
+    
+    function getAmountExpected(uint _requestID)
+        systemIsWorking
+        returns(uint)
+    {
+        return requests[_requestID].amountExpected;
+    }
+    
+    function getSubContract(uint _requestID)
+        systemIsWorking
+        returns(address)
+    {
+        return requests[_requestID].UntrustedSubContract;
+    }
+    
+    function getAmountPaid(uint _requestID)
+        systemIsWorking
+        returns(uint)
+    {
+        return requests[_requestID].amountPaid;
+    }
+      
+    function getState(uint _requestID)
+        systemIsWorking
+        returns(State)
+    {
+        return requests[_requestID].state;
+    }
+          
+    function getConflictType(uint _requestID)
+        systemIsWorking
+        returns(ConflictType)
+    {
+        return requests[_requestID].conflictType;
+    }
+    
 }
 

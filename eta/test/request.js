@@ -1,3 +1,4 @@
+return;
 var StandardRequest = artifacts.require("../contracts/StandardRequest.sol");
 var StandardRequestFactory = artifacts.require("../contracts/StandardRequestFactory.sol");
 
