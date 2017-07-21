@@ -10,8 +10,8 @@ contract RequestCore is Administrable{
 
     // What is an Request
     struct Request {
-        address seller;
-        address buyer;
+        address payee;
+        address payer;
         uint amountExpected;
         address UntrustedSubContract;
         uint amountPaid;
@@ -25,7 +25,7 @@ contract RequestCore is Administrable{
     mapping(uint => Request) public requests;
 
     // events of request
-    event LogRequestCreated(uint requestID, address seller, address buyer);
+    event LogRequestCreated(uint requestID, address payee, address payer);
     event LogRequestAccepted(uint requestID);
     event LogRequestRejected(uint requestID);
     event LogRequestCanceled(uint requestID);
@@ -41,17 +41,17 @@ contract RequestCore is Administrable{
     }
 
     // create an Request
-    function createRequest(address _sender, address _buyer, uint _amountExpected, address _untrustedSubContract) 
+    function createRequest(address _payee, address _payer, uint _amountExpected, address _untrustedSubContract) 
         systemIsWorking 
         returns (uint) 
     {
         uint requestID = numRequests++; // get the current num as ID and increment it
-        requests[requestID] = Request(_sender, _buyer, _amountExpected, _untrustedSubContract==0?address(this):_untrustedSubContract, 0, 0, State.Created); // create Request
-        LogRequestCreated(requestID, _sender, _buyer); // we "publish" this Request - should we let _buyer here?
+        requests[requestID] = Request(_payee, _payer, _amountExpected, _untrustedSubContract==0?address(this):_untrustedSubContract, 0, 0, State.Created); // create Request
+        LogRequestCreated(requestID, _payee, _payer); // we "publish" this Request - should we let _payer here?
         return requestID;
     }
 
-    // the buyer can accept an Request 
+    // the payer can accept an Request 
     function accept(uint _requestID) 
         systemIsWorking
     {
@@ -62,7 +62,7 @@ contract RequestCore is Administrable{
         LogRequestAccepted(_requestID);
     }
    
-    // the buyer can reject an Request
+    // the payer can reject an Request
     function reject(uint _requestID)
         systemIsWorking
     {
@@ -74,7 +74,7 @@ contract RequestCore is Administrable{
     }
 
 
-    // the seller can Cancel an Request if just creted
+    // the payee can Cancel an Request if just creted
     function cancel(uint _requestID)
         systemIsWorking
     {
@@ -127,18 +127,18 @@ contract RequestCore is Administrable{
     }
  
     // request getters
-    function getSeller(uint _requestID)
+    function getPayee(uint _requestID)
         systemIsWorking
         returns(address)
     {
-        return requests[_requestID].seller;
+        return requests[_requestID].payee;
     }
     
-    function getBuyer(uint _requestID)
+    function getPayer(uint _requestID)
         systemIsWorking
         returns(address)
     {
-        return requests[_requestID].buyer;
+        return requests[_requestID].payer;
     }
     
     function getAmountExpected(uint _requestID)

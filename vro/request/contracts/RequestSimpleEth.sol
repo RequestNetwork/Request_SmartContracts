@@ -13,55 +13,55 @@ contract RequestSimpleEth{
     RequestCore public requestSystem;
 
     // contract constructor
-    function RequestSimpleEth(address _requestSystemAddress, address _sender, address _buyer, uint _amountExpected) 
-        condition(_sender==msg.sender)
+    function RequestSimpleEth(address _requestSystemAddress, address _payee, address _payer, uint _amountExpected) 
+        condition(_payee==msg.sender)
     {
         requestSystem= RequestCore(_requestSystemAddress);
         requestSystemAddress=_requestSystemAddress;
 
-        requestId=requestSystem.createRequest(_sender, _buyer, _amountExpected, this);
+        requestId=requestSystem.createRequest(_payee, _payer, _amountExpected, this);
     }
 
-    // the buyer can accept an Request 
+    // the payer can accept an Request 
     function accept() 
         systemIsWorking
-        onlyRequestBuyer
+        onlyRequestPayer
     {
         requestSystem.accept(requestId);
     }
 
-    // the buyer can reject an Request
+    // the payer can reject an Request
     function reject()
         systemIsWorking
-        onlyRequestBuyer
+        onlyRequestPayer
     {
         requestSystem.reject(requestId);
     }
 
-    // the seller can Cancel an Request if just creted
+    // the payee can Cancel an Request if just creted
     function cancel()
         systemIsWorking
-        onlyRequestSeller
+        onlyRequestPayee
     {
         requestSystem.cancel(requestId);
     }   
 
-    // The buyer pay the Request with ether
+    // The payer pay the Request with ether
     function pay()
         systemIsWorking
-        onlyRequestBuyer
+        onlyRequestPayer
         payable
     {
         requestSystem.payment(requestId, msg.value);
     }
 
-    // The buyer pay the Request with ether - available only if subContract is the system itself (no subcontract)
+    // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
     function withdraw()
         systemIsWorking
-        onlyRequestSeller
+        onlyRequestPayee
     {
         requestSystem.complete(requestId);
-        requestSystem.getSeller(requestId).transfer(requestSystem.getAmountPaid(requestId));
+        requestSystem.getPayee(requestId).transfer(requestSystem.getAmountPaid(requestId));
     }
 
 
@@ -78,13 +78,13 @@ contract RequestSimpleEth{
         _;
     }
     
-    modifier onlyRequestBuyer() {
-        require(requestSystem.getBuyer(requestId)==msg.sender);
+    modifier onlyRequestPayer() {
+        require(requestSystem.getPayer(requestId)==msg.sender);
         _;
     }
     
-    modifier onlyRequestSeller() {
-        require(requestSystem.getSeller(requestId)==msg.sender);
+    modifier onlyRequestPayee() {
+        require(requestSystem.getPayee(requestId)==msg.sender);
         _;
     }
 }
