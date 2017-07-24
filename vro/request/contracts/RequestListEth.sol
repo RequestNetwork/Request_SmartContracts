@@ -9,14 +9,12 @@ contract RequestListEth{
     // uint public _requestId;
 
     // address of the contract of the request system
-    address public requestCoreAddress;
     RequestCore public requestCore;
 
     // contract constructor
     function RequestListEth(address _requestCoreAddress) 
     {
         requestCore=RequestCore(_requestCoreAddress);
-        requestCoreAddress=_requestCoreAddress;
     }
 
     function createRequest(address _payer, uint _amountExpected)
@@ -89,7 +87,6 @@ contract RequestListEth{
         require(requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender);
         _;
     }
-
 
     modifier onlyRequestState(uint _requestId, RequestCore.State state) {
         require(requestCore.getState(_requestId)==state);
