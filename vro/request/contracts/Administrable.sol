@@ -3,7 +3,7 @@ pragma solidity ^0.4.11;
 
 contract Administrable {
     // state of the system
-    enum SystemState { Pause, Working, Deprecated }
+    enum SystemState { Paused, Working, Deprecated }
 
     // Contract admin for now only the creator 
     address public trustedAdmin;
@@ -23,16 +23,16 @@ contract Administrable {
 
     function Administrable() {
         trustedAdmin = msg.sender;
-        systemState = SystemState.Pause;
+        systemState = SystemState.Paused;
     }
     // sub
     // Admin function ----------------------
     // pause system by admin
-    function adminPause()
+    function adminPaused()
     {
         require(trustedAdmin==msg.sender);
         require(systemState==SystemState.Working); // state must be created only
-        systemState = SystemState.Pause;
+        systemState = SystemState.Paused;
         LogSystemPaused();
     }
 
@@ -40,7 +40,7 @@ contract Administrable {
     function adminResume()
     {
         require(trustedAdmin==msg.sender);
-        require(systemState==SystemState.Pause || systemState==SystemState.Deprecated); // state must be created only
+        require(systemState==SystemState.Paused || systemState==SystemState.Deprecated); // state must be created only
         systemState = SystemState.Working;
         LogSystemResumed();
     }
@@ -49,7 +49,7 @@ contract Administrable {
     function adminDeprecate()
     {
         require(trustedAdmin==msg.sender);
-        require(systemState==SystemState.Pause || systemState==SystemState.Working); // state must be created only
+        require(systemState==SystemState.Paused || systemState==SystemState.Working); // state must be created only
         systemState = SystemState.Deprecated;
         LogSystemDeprecated();
     }

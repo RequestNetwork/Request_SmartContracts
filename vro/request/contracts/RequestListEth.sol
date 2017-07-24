@@ -5,62 +5,65 @@ import './RequestCore.sol';
 // many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs
 contract RequestListEth{
 
-    // _requestId in requestSystem
+    // _requestId in requestCore
     // uint public _requestId;
 
     // address of the contract of the request system
-    address public requestSystemAddress;
-    RequestCore public requestSystem;
+    address public requestCoreAddress;
+    RequestCore public requestCore;
 
     // contract constructor
-    function RequestListEth(address _requestSystemAddress) 
+    function RequestListEth(address _requestCoreAddress) 
     {
-        requestSystem= RequestCore(_requestSystemAddress);
-        requestSystemAddress=_requestSystemAddress;
+        requestCore=RequestCore(_requestCoreAddress);
+        requestCoreAddress=_requestCoreAddress;
     }
 
-    function createRequest(address _payee, address _payer, uint _amountExpected)
-        condition(_payee==msg.sender)
+    function createRequest(address _payer, uint _amountExpected)
         returns(uint)
     {
-        return requestSystem.createRequest(_payee, _payer, _amountExpected, this);
+        return requestCore.createRequest(msg.sender, _payer, _amountExpected);
     }
 
     // the payer can accept an Request 
     function accept(uint _requestId) 
         onlyRequestPayer(_requestId)
+        onlyRequestState(_requestId, RequestCore.State.Created)
     {
-        requestSystem.accept(_requestId);
+        requestCore.accept(_requestId);
     }
 
     // the payer can decline an Request
     function decline(uint _requestId)
         onlyRequestPayer(_requestId)
+        onlyRequestState(_requestId, RequestCore.State.Created)
     {
-        requestSystem.decline(_requestId);
+        requestCore.decline(_requestId);
     }
 
     // the payee can Cancel an Request if just creted
     function cancel(uint _requestId)
         onlyRequestPayee(_requestId)
+        onlyRequestState(_requestId, RequestCore.State.Created)
     {
-        requestSystem.cancel(_requestId);
+        requestCore.cancel(_requestId);
     }   
 
     // The payer pay the Request with ether
     function pay(uint _requestId)
         onlyRequestPayer(_requestId)
+        onlyRequestState(_requestId, RequestCore.State.Accepted)
         payable
     {
-        requestSystem.payment(_requestId, msg.value);
+        requestCore.payment(_requestId, msg.value);
     }
 
     // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
     function withdraw(uint _requestId)
-        onlyRequestPayee(_requestId)
+        onlyRequestPayeeOrPayer(_requestId)
+        onlyRequestState(_requestId, RequestCore.State.Completed)
     {
-        requestSystem.complete(_requestId);
-        requestSystem.getPayee(_requestId).transfer(requestSystem.getAmountPaid(_requestId));
+        requestCore.getPayee(_requestId).transfer(requestCore.getAmountPaid(_requestId));
     }
 
 
@@ -73,13 +76,26 @@ contract RequestListEth{
     }
     
     modifier onlyRequestPayer(uint _requestId) {
-        require(requestSystem.getPayer(_requestId)==msg.sender);
+        require(requestCore.getPayer(_requestId)==msg.sender);
         _;
     }
     
     modifier onlyRequestPayee(uint _requestId) {
-        require(requestSystem.getPayee(_requestId)==msg.sender);
+        require(requestCore.getPayee(_requestId)==msg.sender);
         _;
     }
+
+    modifier onlyRequestPayeeOrPayer(uint _requestId) {
+        require(requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender);
+        _;
+    }
+
+
+    modifier onlyRequestState(uint _requestId, RequestCore.State state) {
+        require(requestCore.getState(_requestId)==state);
+        _;
+    }
+
+
 }
 
