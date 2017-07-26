@@ -91,7 +91,7 @@ contract RequestListEscrowEth {
         inEscrowState(_requestId, EscrowState.Accepted)
         paymentCompleteToEscrow(_requestId)
     {
-        // declare the refund
+        // declare the payment
         requestCore.payment(_requestId, escrows[_requestId].amountPaid);
 
         escrows[_requestId].state = EscrowState.Released;
