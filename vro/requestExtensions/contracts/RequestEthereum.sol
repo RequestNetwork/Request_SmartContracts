@@ -115,7 +115,7 @@ contract RequestEthereum{
         }
         if(isOK) 
         {
-            // requestCore.refund(_requestId, _amount);
+            requestCore.refund(_requestId, _amount); // TODO HOW TO DIFERENCIATE REAL REFUND and REFUND FOR EXTENSION ?
             ethToWithdraw[_requestId][requestCore.getPayer(_requestId)] = _amount;
         }
     }
