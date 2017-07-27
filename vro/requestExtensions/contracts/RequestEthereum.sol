@@ -1,7 +1,7 @@
 pragma solidity ^0.4.11;
 
 import './RequestCore.sol';
-import './RequestExtensionInterface.sol';
+import './RequestInterface.sol';
 
 // many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs
 contract RequestEthereum{
@@ -14,18 +14,13 @@ contract RequestEthereum{
     {
         requestCore=RequestCore(_requestCoreAddress);
     }
-    function createRequest(address _payer, uint _amountExpected, address[10] _extensions, /*address[10][10] _extensionParamsAddress*/ )
+    function createRequest(address _payer, uint _amountExpected, address[10] _extensions, bytes32[10] _extensionParams0 )
         returns(uint)
     {
         uint requestId= requestCore.createRequest(msg.sender, _payer, _amountExpected, _extensions);
 
-        for (uint i = 0; i < _extensions.length && _extensions[i]!=0; i++) 
-        {
-            RequestExtensionInterface extension = RequestExtensionInterface(_extensions[i]);
-
-             address[10] test = [_payer];
-            extension.createRequest(requestId, test);
-        }
+        RequestInterface extension0 = RequestInterface(_extensions[0]);
+        extension0.createRequest(requestId, _extensionParams0);
 
         return requestId;
     }
@@ -38,15 +33,15 @@ contract RequestEthereum{
         address[10] memory extensions = requestCore.getExtensions(_requestId);
 
         var isOK = true;
-        for (uint i = 0; i < extensions.length && extensions[i]!=0; i++) 
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
         {
-            RequestExtensionInterface extension = RequestExtensionInterface(extensions[i]);
-            isOK = extension.accept(_requestId);
+            RequestInterface extension = RequestInterface(extensions[i]);
+            isOK = isOK && extension.accept(_requestId);
         }
         if(isOK) 
         {
             requestCore.accept(_requestId);
-        }       
+        }  
     }
 
     // the payer can decline an Request
@@ -56,11 +51,16 @@ contract RequestEthereum{
     {
         address[10] memory extensions = requestCore.getExtensions(_requestId);
 
-        for (uint i = 0; i < extensions.length && extensions[i]!=0; i++) 
+        var isOK = true;
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
         {
-            require(extensions[i].call(bytes4(keccak256("refuse(uint256)")), _requestId));
+            RequestInterface extension = RequestInterface(extensions[i]);
+            isOK = isOK && extension.decline(_requestId);
         }
-        requestCore.decline(_requestId);
+        if(isOK) 
+        {
+            requestCore.decline(_requestId);
+        }  
     }
 
 
@@ -71,28 +71,55 @@ contract RequestEthereum{
     {
         address[10] memory extensions = requestCore.getExtensions(_requestId);
 
-        for (uint i = 0; i < extensions.length && extensions[i]!=0; i++) 
+        var isOK = true;
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
         {
-            require(extensions[i].call(bytes4(keccak256("cancel(uint256)")), _requestId));
+            RequestInterface extension = RequestInterface(extensions[i]);
+            isOK = isOK && extension.cancel(_requestId);
         }
-        requestCore.cancel(_requestId);
-    }   
+        if(isOK) 
+        {
+            requestCore.cancel(_requestId);
+        }
+    }
 
+    function payment(uint _requestId, uint _amount)
+        onlyRequestExtensions(_requestId)
+    {
+        paymentInternal(_requestId, _amount);
+    }
 
+        // Other function
     // The payer pay the Request with ether
     function pay(uint _requestId)
         onlyRequestPayer(_requestId)
-        onlyRequestState(_requestId, RequestCore.State.Accepted)
         payable
+    {
+        paymentInternal(_requestId, msg.value);
+    }
+
+        // internal function
+    function  paymentInternal(uint _requestId, uint _amount)
+        internal
+        onlyRequestState(_requestId, RequestCore.State.Accepted)
     {
         address[10] memory extensions = requestCore.getExtensions(_requestId);
 
-        for (uint i = 0; i < extensions.length && extensions[i]!=0; i++) 
+        var isOK = true;
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
         {
-            require(extensions[i].call(bytes4(keccak256("payment(uint256,uint256)")), _requestId));
+            if(msg.sender != extensions[i]) {
+                RequestInterface extension = RequestInterface(extensions[i]);
+                isOK = isOK && extension.payment(_requestId, _amount);  
+            }
         }
-        requestCore.payment(_requestId, msg.value);
+        if(isOK) 
+        {
+            requestCore.payment(_requestId, _amount);
+        }
     }
+
+
 
 /*
     // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
@@ -129,6 +156,17 @@ contract RequestEthereum{
 
     modifier onlyRequestState(uint _requestId, RequestCore.State state) {
         require(requestCore.getState(_requestId)==state);
+        _;
+    }
+
+    modifier onlyRequestExtensions(uint _requestId) {
+        address[10] memory extensions = requestCore.getExtensions(_requestId);
+        bool found = false;
+        for (uint i = 0; !found && i < extensions.length && extensions[i]!=0; i++) 
+        {
+            found= msg.sender==extensions[i] ;
+        }
+        require(found);
         _;
     }
 
