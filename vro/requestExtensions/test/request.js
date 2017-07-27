@@ -88,20 +88,38 @@ contract('RequestCore', function(accounts) {
 		 }).then(function(res) {
 		//   return requestExtensionEscrow.escrows.call(1);
 		// }).then(function(res) {
-		// 	console.log('res')
-		// 	console.log(res)
-		  return requestExtensionEscrow.releaseToSeller(1, {from:escrow1});
+			console.log('res')
+			console.log(res)
+		  return requestExtensionEscrow.refundToBuyer(1, {from:escrow1});
 		}).then(function(res) {
 		  return requestExtensionEscrow.escrows.call(1)
 		 }).then(function(res) {
 		 	console.log('escrows')
 		 	console.log(res)
-		  return requestEthereum.pay(1, {from:buyer1, value:amount1});
-		}).then(function(res) {
-		  return requestExtensionEscrow.escrows.call(1)
-		 }).then(function(res) {
-		 	console.log('escrows 22')
-		 	console.log(res)		  
+		//   return requestEthereum.pay(1, {from:buyer1, value:amount1});
+		// }).then(function(res) {
+		// 	return web3.eth.getBalance(buyer1)
+		// }).then(function(res) {
+		//  	console.log('getBalance buyer1')
+		//  	console.log(res)
+		// 	return requestEthereum.ethToWithdraw.call(1,buyer1)
+		// }).then(function(res) {
+		//  	console.log('ethToWithdraw')
+		//  	console.log(res)
+		//  	return requestEthereum.withdraw(1, buyer1)
+		// }).then(function(res) {
+		// 	return requestEthereum.ethToWithdraw.call(1,buyer1)
+		// }).then(function(res) {
+		//  	console.log('ethToWithdraw 2')
+		//  	console.log(res)
+		// 	return web3.eth.getBalance(buyer1)
+		// }).then(function(res) {
+		//  	console.log('getBalance2 buyer1')
+		//  	console.log(res)
+		//   return requestExtensionEscrow.escrows.call(1)
+		//  }).then(function(res) {
+		//  	console.log('escrows 22')
+		//  	console.log(res)		  
 		});
 	});
 

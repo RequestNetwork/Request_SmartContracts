@@ -9,6 +9,13 @@ contract RequestEthereum{
     // RequestCore object
     RequestCore public requestCore;
 
+    // Ethereum available to withdraw
+    struct EthToWithdraw {
+        uint amount;
+        address recipient;
+    }
+    mapping(uint => mapping(address => uint)) public ethToWithdraw;
+
     // contract constructor
     function RequestEthereum(address _requestCoreAddress) 
     {
@@ -66,16 +73,19 @@ contract RequestEthereum{
 
     // the payee can Cancel an Request if just creted
     function cancel(uint _requestId)
-        onlyRequestPayee(_requestId)
-        onlyRequestState(_requestId, RequestCore.State.Created)
+        condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
+        // onlyRequestPayee(_requestId)
+        // onlyRequestState(_requestId, RequestCore.State.Created)
     {
         address[10] memory extensions = requestCore.getExtensions(_requestId);
 
         var isOK = true;
         for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
         {
-            RequestInterface extension = RequestInterface(extensions[i]);
-            isOK = isOK && extension.cancel(_requestId);
+            if(msg.sender != extensions[i]) {
+                RequestInterface extension = RequestInterface(extensions[i]);
+                isOK = isOK && extension.cancel(_requestId);
+            }
         }
         if(isOK) 
         {
@@ -88,6 +98,28 @@ contract RequestEthereum{
     {
         paymentInternal(_requestId, _amount);
     }
+
+    // it is an order
+    function refund(uint _requestId, uint _amount)
+        onlyRequestExtensions(_requestId)
+    {
+        address[10] memory extensions = requestCore.getExtensions(_requestId);
+
+        var isOK = true;
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        {
+            if(msg.sender != extensions[i]) {
+                RequestInterface extension = RequestInterface(extensions[i]);
+                isOK = isOK && extension.refund(_requestId, _amount);  
+            }
+        }
+        if(isOK) 
+        {
+            // requestCore.refund(_requestId, _amount);
+            ethToWithdraw[_requestId][requestCore.getPayer(_requestId)] = _amount;
+        }
+    }
+
 
         // Other function
     // The payer pay the Request with ether
@@ -116,21 +148,18 @@ contract RequestEthereum{
         if(isOK) 
         {
             requestCore.payment(_requestId, _amount);
+            ethToWithdraw[_requestId][requestCore.getPayee(_requestId)] = _amount;
         }
     }
 
-
-
-/*
     // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
-    function withdraw(uint _requestId)
-        onlyRequestPayeeOrPayer(_requestId)
-        onlyRequestState(_requestId, RequestCore.State.Completed)
+    function withdraw(uint _requestId, address UntrustedRecipient)
     {
-        requestCore.getPayee(_requestId).transfer(requestCore.getAmountPaid(_requestId));
+        uint amount = ethToWithdraw[_requestId][UntrustedRecipient];
+        require(amount>0);
+        ethToWithdraw[_requestId][UntrustedRecipient] = 0;
+        UntrustedRecipient.transfer(amount);
     }
-
-*/
 
 
     //modifier
@@ -159,14 +188,19 @@ contract RequestEthereum{
         _;
     }
 
-    modifier onlyRequestExtensions(uint _requestId) {
+
+    function isOnlyRequestExtensions(uint _requestId) internal returns(bool){
         address[10] memory extensions = requestCore.getExtensions(_requestId);
         bool found = false;
         for (uint i = 0; !found && i < extensions.length && extensions[i]!=0; i++) 
         {
             found= msg.sender==extensions[i] ;
         }
-        require(found);
+        return found;
+    }
+
+    modifier onlyRequestExtensions(uint _requestId) {
+        require(isOnlyRequestExtensions(_requestId));
         _;
     }
 

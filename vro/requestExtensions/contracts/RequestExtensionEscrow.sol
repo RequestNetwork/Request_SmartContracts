@@ -11,9 +11,9 @@ contract RequestExtensionEscrow {
     struct RequestEscrow {
         address subContract;
         address escrow;
-        bytes32 escrow32;
         EscrowState state;
         uint amountPaid;
+        uint amountRefunded;
     }
     mapping(uint => RequestEscrow) public escrows;
 
@@ -33,7 +33,7 @@ contract RequestExtensionEscrow {
         isSubContractTrusted(msg.sender)
         returns(bool)
     {
-        escrows[_requestId] = RequestEscrow(msg.sender, address(_params[0]), _params[0], EscrowState.Created, 0); // create RequestEscrow
+        escrows[_requestId] = RequestEscrow(msg.sender, address(_params[0]), EscrowState.Created, 0,0); // create RequestEscrow
         return true;
     }
 
@@ -57,30 +57,33 @@ contract RequestExtensionEscrow {
         return true;
     }   
 
-    function payment(uint _requestId, uint _amount)
-        isSubContractTrusted(msg.sender)
+    // we just register the refund
+    function refund(uint _requestId, uint _amount)
+        isSubContractRight(_requestId)
         returns(bool)
     {
-        require(_amount > 0 && _amount+escrows[_requestId].amountPaid > escrows[_requestId].amountPaid && _amount+escrows[_requestId].amountPaid <= requestCore.getAmountExpected(_requestId)); // value must be greater than 0 and all the payments should not overpass the amountExpected
+        require(_amount > 0 && _amount+escrows[_requestId].amountRefunded > escrows[_requestId].amountRefunded && _amount+escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded >= _amount);
+
+        escrows[_requestId].amountRefunded += _amount;
+        
+        return true;
+    }
+
+    function payment(uint _requestId, uint _amount)
+        isSubContractRight(_requestId)
+        returns(bool)
+    {
+        require(_amount > 0 && _amount+escrows[_requestId].amountPaid > escrows[_requestId].amountPaid && _amount+escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded <= requestCore.getAmountExpected(_requestId)); // value must be greater than 0 and all the payments should not overpass the amountExpected
 
         escrows[_requestId].amountPaid += _amount;
         LogRequestEscrowPayment(_requestId, _amount);
 
-        if(escrows[_requestId].amountPaid == requestCore.getAmountExpected(_requestId)) {
+        if(isPaymentCompleteToEscrow(_requestId)) {
             LogRequestEscrowPaid(_requestId);
         }
 
         return isPaymentCompleteToEscrow(_requestId) && isEscrowReleasedPayment(_requestId);
     }
-
-    // function refund(uint _requestId, uint _amount)
-    //     returns(bool)
-    // {
-    //     // nothing to do
-    //     return true;
-    // }
-
-
 
         // Escrow Function
     // escrow can release the payment to the seller
@@ -94,30 +97,32 @@ contract RequestExtensionEscrow {
 
         if(isPaymentCompleteToEscrow(_requestId)) {
             RequestInterface subContract = RequestInterface(escrows[_requestId].subContract);
-            subContract.payment(_requestId, escrows[_requestId].amountPaid);
+            subContract.payment(_requestId, escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded);
         }
     }
 
     // escrow can refund the payment to the buyer
-    // function refundToBuyer(uint _requestId)
-    //     onlyRequestEscrow(_requestId)
-    //     isEscrowCreated(_requestId)
-    //     onlyRequestState(_requestId, RequestCore.State.Accepted)
-    // {
-    //     // Refund the money
-    //     escrows[_requestId].state = EscrowState.Refunded;
- 
-    //     RequestInterface subContract = RequestInterface(escrows[_requestId].subContract);
-    //     subContract.refund(_requestId, escrows[_requestId].amountPaid); 
+    function refundToBuyer(uint _requestId)
+        onlyRequestEscrow(_requestId)
+        isEscrowCreated(_requestId)
+        onlyRequestState(_requestId, RequestCore.State.Accepted)
+    {
+        // Refund the money
+        escrows[_requestId].state = EscrowState.Refunded;
+        uint amountToRefund = escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded;
+        escrows[_requestId].amountRefunded = escrows[_requestId].amountPaid;
 
-    // }
+        RequestInterface subContract = RequestInterface(escrows[_requestId].subContract);
+        subContract.refund(_requestId, amountToRefund); 
+        subContract.cancel(_requestId); 
+    }
 
 
 
     // internal function 
     function isPaymentCompleteToEscrow(uint _requestId) internal returns(bool) 
     {
-        return escrows[_requestId].amountPaid == requestCore.getAmountExpected(_requestId);
+        return escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded == requestCore.getAmountExpected(_requestId);
     }
 
     function isEscrowReleasedPayment(uint _requestId) internal returns(bool) 
@@ -171,6 +176,12 @@ contract RequestExtensionEscrow {
         require(requestCore.getStatusContract(subContract)==1);
         _;
     }
+
+    modifier isSubContractRight(uint _requestId)
+    {
+        require(escrows[_requestId].subContract == msg.sender);
+        _;
+    }   
 
     modifier isEscrowCreated(uint _requestId)
     {
