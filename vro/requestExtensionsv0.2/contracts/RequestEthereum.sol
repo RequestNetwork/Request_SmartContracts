@@ -16,11 +16,13 @@ contract RequestEthereum{
     }
     mapping(uint => mapping(address => uint)) public ethToWithdraw;
 
+
     // contract constructor
     function RequestEthereum(address _requestCoreAddress) 
     {
         requestCore=RequestCore(_requestCoreAddress);
     }
+
     function createRequest(address _payer, uint _amountExpected, address[10] _extensions, bytes32[10] _extensionParams0 )
         returns(uint)
     {
@@ -32,10 +34,12 @@ contract RequestEthereum{
         return requestId;
     }
 
+    // ---- INTERFACE FUNCTIONS ------------------------------------------------------------------------------------
     // the payer can accept an Request 
     function accept(uint _requestId) 
         onlyRequestPayer(_requestId)
         onlyRequestState(_requestId, RequestCore.State.Created)
+        returns(bool)
     {
         address[10] memory extensions = requestCore.getExtensions(_requestId);
 
@@ -49,14 +53,14 @@ contract RequestEthereum{
         {
             requestCore.accept(_requestId);
         }  
+        return isOk;
     }
-
-
 
     // the payer can decline an Request
     function decline(uint _requestId)
         onlyRequestPayer(_requestId)
         onlyRequestState(_requestId, RequestCore.State.Created)
+        returns(bool)
     {
         address[10] memory extensions = requestCore.getExtensions(_requestId);
 
@@ -70,23 +74,49 @@ contract RequestEthereum{
         {
             requestCore.decline(_requestId);
         }  
+        return isOk;
     }
 
     function payment(uint _requestId, uint _amount)
         onlyRequestExtensions(_requestId)
+        returns(bool)
     {
-        paymentInternal(_requestId, _amount);
+        return paymentInternal(_requestId, _amount);
     }
 
     function doSendFund(uint _requestId, address _recipient, uint _amount)
         onlyRequestExtensions(_requestId)
+        returns(bool)
     {
-        doSendFundInternal(_requestId, _recipient, _amount);
+        return doSendFundInternal(_requestId, _recipient, _amount);
     }
 
 
+    function cancel(uint _requestId)
+        condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
+        returns(bool)
+    {
+        address[10] memory extensions = requestCore.getExtensions(_requestId);
 
-        // Other function
+        var isOK = true;
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        {
+            if(msg.sender != extensions[i]) {
+                RequestInterface extension = RequestInterface(extensions[i]);
+                isOK = isOK && extension.cancel(_requestId);
+            }
+        }
+        if(isOK) 
+        {
+            requestCore.cancel(_requestId);
+        }
+        return isOk;
+    }
+
+    // ----------------------------------------------------------------------------------------
+
+
+    // ---- CONTRACT FUNCTIONS ------------------------------------------------------------------------------------
     // The payer pay the Request with ether
     function pay(uint _requestId)
         onlyRequestPayer(_requestId)
@@ -95,9 +125,19 @@ contract RequestEthereum{
         paymentInternal(_requestId, msg.value);
     }
 
-        // internal function
-    function  paymentInternal(uint _requestId, uint _amount)
-        internal
+    // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
+    function withdraw(uint _requestId, address UntrustedRecipient)
+    {
+        uint amount = ethToWithdraw[_requestId][UntrustedRecipient];
+        require(amount>0);
+        ethToWithdraw[_requestId][UntrustedRecipient] = 0;
+        UntrustedRecipient.transfer(amount);
+    }
+    // ----------------------------------------------------------------------------------------
+
+
+    // ---- INTERNAL FUNCTIONS ------------------------------------------------------------------------------------
+    function  paymentInternal(uint _requestId, uint _amount) internal
         onlyRequestState(_requestId, RequestCore.State.Accepted)
     {
         address[10] memory extensions = requestCore.getExtensions(_requestId);
@@ -116,6 +156,7 @@ contract RequestEthereum{
             // payment done, the money is ready to withdraw by the payee
             doSendFundInternal(_requestId, requestCore.getPayee(_requestId), _amount);
         }
+        return isOK;
     }
 
     function doSendFundInternal(uint _requestId, address _recipient, uint _amount) internal
@@ -131,35 +172,18 @@ contract RequestEthereum{
             }
             if(isOK) 
             {
+                // sending fund means make it availbale to withdraw here
                 ethToWithdraw[_requestId][_recipient] = _amount;
             }   
+            return isOK;
         }  
+        return true;
     }
+    // ----------------------------------------------------------------------------------------
 
 
 
-    // the payee can Cancel an Request if just creted
-    function cancel(uint _requestId)
-        condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
-    {
-        address[10] memory extensions = requestCore.getExtensions(_requestId);
-
-        var isOK = true;
-        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
-        {
-            if(msg.sender != extensions[i]) {
-                RequestInterface extension = RequestInterface(extensions[i]);
-                isOK = isOK && extension.cancel(_requestId);
-            }
-        }
-        if(isOK) 
-        {
-            requestCore.cancel(_requestId);
-        }
-    }
-
-
-    // it is an order
+    // TODO !
     // function refund(uint _requestId, uint _amount)
     //     onlyRequestExtensions(_requestId)
     // {
@@ -184,14 +208,6 @@ contract RequestEthereum{
 
 
 
-    // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
-    function withdraw(uint _requestId, address UntrustedRecipient)
-    {
-        uint amount = ethToWithdraw[_requestId][UntrustedRecipient];
-        require(amount>0);
-        ethToWithdraw[_requestId][UntrustedRecipient] = 0;
-        UntrustedRecipient.transfer(amount);
-    }
 
 
     //modifier

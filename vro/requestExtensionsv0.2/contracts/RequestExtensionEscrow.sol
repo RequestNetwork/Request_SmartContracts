@@ -29,6 +29,7 @@ contract RequestExtensionEscrow {
         requestCore= RequestCore(_requestCoreAddress);
     }
 
+    // ---- INTERFACE FUNCTIONS ------------------------------------------------------------------------------------
     function createRequest(uint _requestId, bytes32[10] _params)
         isSubContractTrusted(msg.sender)
         returns(bool)
@@ -36,32 +37,6 @@ contract RequestExtensionEscrow {
         escrows[_requestId] = RequestEscrow(msg.sender, address(_params[0]), EscrowState.Created, 0,0); // create RequestEscrow
         return true;
     }
-
-
-    function accept(uint _requestId) returns(bool)
-    {
-        // nothing to do
-        return true;
-    }
-
-    function decline(uint _requestId) returns(bool)
-    {
-        // nothing to do
-        return true;
-
-    }
-
-    function cancel(uint _requestId) returns(bool)
-    {
-        // nothing to do
-        return true;
-    }   
-
-    function refund(uint _requestId, uint _amount) returns(bool)
-    {
-        // nothing to do
-        return true;
-    }   
 
 
     // we just register the refund if it's to the payer
@@ -93,8 +68,9 @@ contract RequestExtensionEscrow {
 
         return isPaymentCompleteToEscrow(_requestId) && isEscrowReleasedPayment(_requestId);
     }
-
-        // Escrow Function
+    // ----------------------------------------------------------------------------------------
+    
+    // ---- ESCROW FUNCTIONS ------------------------------------------------------------------------------------
     // escrow can release the payment to the seller
     function releaseToSeller(uint _requestId)
         onlyRequestEscrow(_requestId)
@@ -125,7 +101,7 @@ contract RequestExtensionEscrow {
         if(amountToRefund>0) subContract.doSendFund(_requestId, requestCore.getPayer(_requestId), amountToRefund); 
         subContract.cancel(_requestId); 
     }
-
+    // ----------------------------------------------------------------------------------------
 
 
     // internal function 
