@@ -30,7 +30,7 @@ contract RequestExtensionTax {
         isSubContractTrusted(msg.sender)
         returns(bool)
     {
-        taxs[_requestId] = RequestTax(msg.sender, address(_params[0]), uint16(_params[1]), 0); // create RequestTax
+        taxs[_requestId] = RequestTax(msg.sender, address(_params[0]), uint16(_params[1])); // create RequestTax
         return true;
     }
 
@@ -44,10 +44,12 @@ contract RequestExtensionTax {
         if(_amount > 0 && _recipient == requestCore.getPayee(_requestId)) {
 
             uint amountToTaxer = (_amount*taxs[_requestId].perTenThousand)/10000;
-            uint amountToPayee = _amount-valueToTaxer;
+            uint amountToPayee = _amount-amountToTaxer;
 
             require(amountToTaxer+amountToPayee == _amount); // avoid overflow
-            require(_amount-valueToTaxer < _amount); // avoid underflow
+            require(_amount-amountToTaxer < _amount); // avoid underflow
+            
+            RequestInterface subContract = RequestInterface(taxs[_requestId].subContract);
             
             subContract.doSendFund(_requestId, requestCore.getPayee(_requestId), amountToPayee);
             subContract.doSendFund(_requestId, taxs[_requestId].taxer, amountToTaxer);
@@ -98,7 +100,7 @@ contract RequestExtensionTax {
 
     modifier isSubContractRight(uint _requestId)
     {
-        require(escrows[_requestId].subContract == msg.sender);
+        require(taxs[_requestId].subContract == msg.sender);
         _;
     }   
 }

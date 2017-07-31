@@ -53,7 +53,7 @@ contract RequestEthereum{
         {
             requestCore.accept(_requestId);
         }  
-        return isOk;
+        return isOK;
     }
 
     // the payer can decline an Request
@@ -74,7 +74,7 @@ contract RequestEthereum{
         {
             requestCore.decline(_requestId);
         }  
-        return isOk;
+        return isOK;
     }
 
     function payment(uint _requestId, uint _amount)
@@ -110,7 +110,7 @@ contract RequestEthereum{
         {
             requestCore.cancel(_requestId);
         }
-        return isOk;
+        return isOK;
     }
 
     // ----------------------------------------------------------------------------------------
@@ -139,6 +139,7 @@ contract RequestEthereum{
     // ---- INTERNAL FUNCTIONS ------------------------------------------------------------------------------------
     function  paymentInternal(uint _requestId, uint _amount) internal
         onlyRequestState(_requestId, RequestCore.State.Accepted)
+        returns(bool)
     {
         address[10] memory extensions = requestCore.getExtensions(_requestId);
 
@@ -160,6 +161,7 @@ contract RequestEthereum{
     }
 
     function doSendFundInternal(uint _requestId, address _recipient, uint _amount) internal
+        returns(bool)
     {
         if(_amount > 0) { // sending 0 doesn't make sense
             address[10] memory extensions = requestCore.getExtensions(_requestId);
