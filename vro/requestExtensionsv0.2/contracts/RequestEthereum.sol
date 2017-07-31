@@ -4,7 +4,7 @@ import './RequestCore.sol';
 import './RequestInterface.sol';
 
 // many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs
-contract RequestEthereum{
+contract RequestEthereum {
 
     // RequestCore object
     RequestCore public requestCore;
@@ -23,7 +23,7 @@ contract RequestEthereum{
         requestCore=RequestCore(_requestCoreAddress);
     }
 
-    function createRequest(address _payer, uint _amountExpected, address[10] _extensions, bytes32[10] _extensionParams0 )
+    function createRequest(address _payer, uint _amountExpected, address[10] _extensions, bytes32[10] _extensionParams0, bytes32[10] _extensionParams1  )
         returns(uint)
     {
         uint requestId= requestCore.createRequest(msg.sender, _payer, _amountExpected, _extensions);
@@ -31,6 +31,10 @@ contract RequestEthereum{
         RequestInterface extension0 = RequestInterface(_extensions[0]);
         extension0.createRequest(requestId, _extensionParams0);
 
+        if(_extensions[1]!=0) {
+            RequestInterface extension1 = RequestInterface(_extensions[1]);
+            extension1.createRequest(requestId, _extensionParams1);
+        }
         return requestId;
     }
 

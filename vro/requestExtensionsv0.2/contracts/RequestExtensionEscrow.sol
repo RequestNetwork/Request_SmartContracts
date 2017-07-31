@@ -4,7 +4,7 @@ import './RequestCore.sol';
 import './RequestInterface.sol';
 
 // many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs
-contract RequestExtensionEscrow {
+contract RequestExtensionEscrow is RequestInterface {
     enum EscrowState { Created, Refunded, Released }
 
     // mapping of requestId => escrow
