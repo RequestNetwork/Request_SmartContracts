@@ -33,6 +33,7 @@ contract('RequestCore', function(accounts) {
 	var amount2 = 9999;
 
 
+	var gasConsumption = 0;
 	// who can do what ----------------------------------------
 	it("Escrow should work", function() {
 		var requestCore;
@@ -42,7 +43,7 @@ contract('RequestCore', function(accounts) {
 
 		return RequestCore.deployed().then(function(coreInstance) {
 			requestCore=coreInstance;
-
+			
 			var eventsrequestCore = requestCore.allEvents({fromBlock: 0, toBlock: 'latest'});
 			eventsrequestCore.watch(function(error, result){
 			   console.log('-----------------------------------------------')
@@ -107,17 +108,31 @@ contract('RequestCore', function(accounts) {
 		  return requestCore.adminAddTrustedExtension(requestExtensionTax.address, {from:admin});
 		}).then(function() {
 
+			var extensions = [];
+			var params = [];
+			var numberExtension = 0;
 
+			// for escrow
+			extensions.push(requestExtensionEscrow.address);
+			params[numberExtension++] = [addressToByte32str(escrow1)]
 
+			// for tax
+			extensions.push(requestExtensionTax.address);
+			params[numberExtension++] = [addressToByte32str(taxer1), integerToByte32str(2000) ]
 
-		  var params0 = [addressToByte32str(escrow1)];
-		  var params1 = [addressToByte32str(taxer1), integerToByte32str(2000) ];
-		  console.log(params1);
-		  return requestEthereum.createRequest(buyer1, amount1, [requestExtensionEscrow.address,requestExtensionTax.address], params0, params1, {from:seller1});
+			for(;numberExtension<2; numberExtension++) {
+				params[numberExtension] = [];
+			}
+
+		  console.log("extensions");
+		  console.log(extensions);
+		  console.log("params");
+		  console.log(params);
+
+		  return requestEthereum.createRequest(buyer1, amount1, extensions, params[0], params[1], {from:seller1});
 		  // return requestEthereum.createRequest(buyer1, amount1, [requestExtensionTax.address], params1, params1, {from:seller1});
 		}).then(function(res) { 
-		  // console.log("res.receipt.logs");
-		  // console.log(res.receipt.logs);
+		  gasConsumption += res.receipt.gasUsed;
 		  // (res.logs || []).forEach(function(l) {
 		  //   assert.equal(l.event, "LogRequestCreated", "LogRequestCreated must be trigger");
 		  //   assert.equal(l.args.requestId.valueOf(), "1", "event should give invoideID: 1");
@@ -125,17 +140,20 @@ contract('RequestCore', function(accounts) {
 		  //   assert.equal(l.args.buyer, buyer1, "event should give buyer as third arg");
 		  // });
 		  return requestEthereum.accept(1, {from:buyer1});  
-		 }).then(function(res) {
+		}).then(function(res) { 
+		  gasConsumption += res.receipt.gasUsed;
 		//   return requestExtensionEscrow.escrows.call(1);
 		// }).then(function(res) {
 			// console.log('res')
 			// console.log(res)
 		  return requestEthereum.pay(1, {from:buyer1, value:amount1});
-		}).then(function(res) {
-		//   return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
+		}).then(function(res) { 
+		  gasConsumption += res.receipt.gasUsed;
+		  return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
 		// }).then(function(res) {
-		  return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
-		}).then(function(res) {
+		  // return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
+		}).then(function(res) { 
+		  gasConsumption += res.receipt.gasUsed;
 		 //  return requestExtensionEscrow.escrows.call(1)
 		 // }).then(function(res) {
 		 // 	console.log('escrows')
@@ -157,7 +175,8 @@ contract('RequestCore', function(accounts) {
 		}).then(function(res) {
 		 	console.log('ethToWithdraw taxer1')
 		 	console.log(res)
-
+		 	console.log('gasConsumption')
+		 	console.log(gasConsumption)
 		// 	return requestEthereum.ethToWithdraw.call(1,buyer1)
 		// }).then(function(res) {
 		//  	console.log('ethToWithdraw 2')

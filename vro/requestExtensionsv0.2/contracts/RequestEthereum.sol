@@ -28,8 +28,10 @@ contract RequestEthereum {
     {
         uint requestId= requestCore.createRequest(msg.sender, _payer, _amountExpected, _extensions);
 
-        RequestInterface extension0 = RequestInterface(_extensions[0]);
-        extension0.createRequest(requestId, _extensionParams0);
+        if(_extensions[0]!=0) {
+            RequestInterface extension0 = RequestInterface(_extensions[0]);
+            extension0.createRequest(requestId, _extensionParams0);
+        }
 
         if(_extensions[1]!=0) {
             RequestInterface extension1 = RequestInterface(_extensions[1]);
