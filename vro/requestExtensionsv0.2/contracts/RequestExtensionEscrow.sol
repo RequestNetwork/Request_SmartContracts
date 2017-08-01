@@ -72,7 +72,7 @@ contract RequestExtensionEscrow is RequestInterface {
     
     // ---- ESCROW FUNCTIONS ------------------------------------------------------------------------------------
     // escrow can release the payment to the seller
-    function releaseToSeller(uint _requestId)
+    function releaseToPayee(uint _requestId)
         onlyRequestEscrow(_requestId)
         inEscrowState(_requestId, EscrowState.Created)
         onlyRequestState(_requestId, RequestCore.State.Accepted)
