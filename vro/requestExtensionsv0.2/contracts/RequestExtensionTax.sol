@@ -53,8 +53,8 @@ contract RequestExtensionTax is RequestInterface{
             
             RequestInterface subContract = RequestInterface(taxs[_requestId].subContract);
             
-            // subContract.doSendFund(_requestId, requestCore.getPayee(_requestId), amountToPayee);
-            // subContract.doSendFund(_requestId, taxs[_requestId].taxer, amountToTaxer);
+            subContract.doSendFund(_requestId, requestCore.getPayee(_requestId), amountToPayee);
+            subContract.doSendFund(_requestId, taxs[_requestId].taxer, amountToTaxer);
             LogRequestTaxPaid(_requestId, amountToTaxer);
 
             return false; // refuse the previous sending fund.

@@ -173,8 +173,10 @@ contract RequestEthereum {
             var isOK = true;
             for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
             {
-                RequestInterface extension = RequestInterface(extensions[i]);
-                isOK = isOK && extension.doSendFund(_requestId, _recipient, _amount);
+                if(msg.sender != extensions[i]) {
+                    RequestInterface extension = RequestInterface(extensions[i]);
+                    isOK = isOK && extension.doSendFund(_requestId, _recipient, _amount);
+                }
             }
             if(isOK) 
             {

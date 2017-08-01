@@ -128,8 +128,8 @@ contract('RequestCore', function(accounts) {
 		 }).then(function(res) {
 		//   return requestExtensionEscrow.escrows.call(1);
 		// }).then(function(res) {
-			console.log('res')
-			console.log(res)
+			// console.log('res')
+			// console.log(res)
 		  return requestEthereum.pay(1, {from:buyer1, value:amount1});
 		}).then(function(res) {
 		  // return requestExtensionEscrow.releaseToSeller(1, {from:escrow1});
@@ -144,10 +144,18 @@ contract('RequestCore', function(accounts) {
 		//  	console.log(res)
 			return requestEthereum.ethToWithdraw.call(1,buyer1)
 		}).then(function(res) {
-		 	console.log('ethToWithdraw')
+		 	console.log('ethToWithdraw buyer1')
 		 	console.log(res)
-		//  	return requestEthereum.withdraw(1, buyer1)
-		// }).then(function(res) {
+
+			return requestEthereum.ethToWithdraw.call(1,seller1)
+		}).then(function(res) {
+		 	console.log('ethToWithdraw seller1')
+		 	console.log(res)
+			return requestEthereum.ethToWithdraw.call(1,taxer1)
+		}).then(function(res) {
+		 	console.log('ethToWithdraw taxer1')
+		 	console.log(res)
+
 		// 	return requestEthereum.ethToWithdraw.call(1,buyer1)
 		// }).then(function(res) {
 		//  	console.log('ethToWithdraw 2')
