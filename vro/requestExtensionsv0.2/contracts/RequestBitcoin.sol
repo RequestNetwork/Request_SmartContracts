@@ -4,22 +4,37 @@ import './RequestCore.sol';
 import './RequestInterface.sol';
 
 // many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs
-contract RequestEthereum {
+contract RequestBitcoin {
+
+    // enum Callback { Payment };
 
     // RequestCore object
     RequestCore public requestCore;
-    mapping(uint => mapping(address => uint)) public ethToWithdraw;
+    address public oracleBitcoin;
 
+    // Ethereum available to withdraw
+    struct BitCoinRequest {
+        bytes20 addressBitcoinPayee;
+        bytes32[] paymentsTxid;
+    }
+    mapping(uint => BitCoinRequest) public bitCoinLedger;
+
+    // Oracle Event
+    event OracleRequestFundReception(uint requestId, address recipient, bytes20 addressBitcoin);
+    event OracleResponseFundReception(uint requestId, bytes data);
 
     // contract constructor
-    function RequestEthereum(address _requestCoreAddress) 
+    function RequestBitcoin(address _requestCoreAddress, address _oracleBitcoin) 
     {
         requestCore=RequestCore(_requestCoreAddress);
+        oracleBitcoin = _oracleBitcoin;
     }
 
-    function createRequest(address _payer, uint _amountExpected, address[10] _extensions, bytes32[10] _extensionParams0, bytes32[10] _extensionParams1  )
+    function createRequest(address _payer, uint _amountExpected, address[10] _extensions, bytes32[10] _extensionParams0, bytes32[10] _extensionParams1, bytes20 _addressBitcoinPayee)
+        onlyIfaddressBitcoinPayeeIsRight(_addressBitcoinPayee)
         returns(uint)
     {
+
         uint requestId= requestCore.createRequest(msg.sender, _payer, _amountExpected, _extensions);
 
         if(_extensions[0]!=0) {
@@ -31,10 +46,13 @@ contract RequestEthereum {
             RequestInterface extension1 = RequestInterface(_extensions[1]);
             extension1.createRequest(requestId, _extensionParams1);
         }
+
+        bitCoinLedger[requestId].addressBitcoinPayee = bytes20(_addressBitcoinPayee);
+
         return requestId;
     }
 
-    // ---- INTERFACE FUNCTIONS ------------------------------------------------------------------------------------
+    // ---- INTERFACE FUNCTIONS ---------------------------------------
     // the payer can accept an Request 
     function accept(uint _requestId) 
         onlyRequestPayer(_requestId)
@@ -77,20 +95,6 @@ contract RequestEthereum {
         return isOK;
     }
 
-    function payment(uint _requestId, uint _amount)
-        onlyRequestExtensions(_requestId)
-        returns(bool)
-    {
-        return paymentInternal(_requestId, _amount);
-    }
-
-    function doSendFund(uint _requestId, address _recipient, uint _amount)
-        onlyRequestExtensions(_requestId)
-        returns(bool)
-    {
-        return doSendFundInternal(_requestId, _recipient, _amount);
-    }
-
 
     function cancel(uint _requestId)
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
@@ -113,30 +117,64 @@ contract RequestEthereum {
         return isOK;
     }
 
-    // ----------------------------------------------------------------------------------------
 
-
-    // ---- CONTRACT FUNCTIONS ------------------------------------------------------------------------------------
-    // The payer pay the Request with ether
-    function pay(uint _requestId)
-        onlyRequestPayer(_requestId)
-        payable
+    function payment(uint _requestId, uint _amount)
+        // onlyRequestExtensions(_requestId)
+        onlyRequestState(_requestId, RequestCore.State.Accepted)
+        returns(bool)
     {
-        paymentInternal(_requestId, msg.value);
+        if(isOnlyRequestExtensions(_requestId)) {
+            paymentInternal(_requestId, _amount);    
+        } else if (requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender) {
+            requestOracleFundReception(_requestId, requestCore.getPayee(_requestId), bitCoinLedger[_requestId].addressBitcoinPayee);
+        } else {
+            require(false); // avoid throw, better ?
+        }
+        
     }
 
-    // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
-    function withdraw(uint _requestId, address UntrustedRecipient)
-    {
-        uint amount = ethToWithdraw[_requestId][UntrustedRecipient];
-        require(amount>0);
-        ethToWithdraw[_requestId][UntrustedRecipient] = 0;
-        UntrustedRecipient.transfer(amount);
-    }
-    // ----------------------------------------------------------------------------------------
+    // function doSendFund(uint _requestId, address _recipient, uint _amount)
+    //     onlyRequestExtensions(_requestId)
+    //     returns(bool)
+    // {
+    //     return doSendFundInternal(_requestId, _recipient, _amount);
+    // }
 
 
-    // ---- INTERNAL FUNCTIONS ------------------------------------------------------------------------------------
+
+    // ---- CONTRACT FUNCTIONS ---------------------------------------
+    // ask Oracle
+        function requestOracleFundReception(uint _requestId, address _recipient, bytes20 _addressBitcoin) internal {
+            OracleRequestFundReception(_requestId, _recipient, _addressBitcoin);
+        }
+
+            
+        event LogTest(address recipient, bytes32 txid, uint256 amount);
+
+        function oracleFundReception(uint _requestId, bytes _data)  
+            onlyBitcoinOracle
+        {
+            OracleResponseFundReception(_requestId, _data);
+            var recipient = address(extractBytes20(_data,0));
+            var addressBitcoin = extractBytes20(_data,20);
+            var txid = extractBytes32(_data,40);
+            var amount = uint256(extractBytes32(_data,72));
+
+            LogTest(recipient, txid, amount);
+            // TODO check if addressBitcoin is own by recipient
+            if(recipient == requestCore.getPayee(_requestId)) {
+                bitCoinLedger[_requestId].paymentsTxid.push(txid);
+                paymentInternal(_requestId, amount);
+            } else {
+                require(false); // TODO temp require (and to avoid throw;)
+            }
+            
+        }
+
+    // -------------------------------------------
+
+
+    // ---- INTERNAL FUNCTIONS ---------------------------------------    
     function  paymentInternal(uint _requestId, uint _amount) internal
         onlyRequestState(_requestId, RequestCore.State.Accepted)
         returns(bool)
@@ -154,37 +192,25 @@ contract RequestEthereum {
         if(isOK) 
         {
             requestCore.payment(_requestId, _amount);
-            // payment done, the money is ready to withdraw by the payee
-            doSendFundInternal(_requestId, requestCore.getPayee(_requestId), _amount);
         }
         return isOK;
     }
 
-    function doSendFundInternal(uint _requestId, address _recipient, uint _amount) internal
-        returns(bool)
-    {
-        if(_amount > 0) { // sending 0 doesn't make sense
-            address[10] memory extensions = requestCore.getExtensions(_requestId);
-
-            var isOK = true;
-            for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
-            {
-                if(msg.sender != extensions[i]) {
-                    RequestInterface extension = RequestInterface(extensions[i]);
-                    isOK = isOK && extension.doSendFund(_requestId, _recipient, _amount);
-                }
-            }
-            if(isOK) 
-            {
-                // sending fund means make it availbale to withdraw here
-                ethToWithdraw[_requestId][_recipient] = _amount;
-            }   
-            return isOK;
-        }  
-        return true;
+    function extractBytes32(bytes data, uint pos) 
+        constant internal
+        returns (bytes32 result)
+    { 
+        for (uint i=0; i<32;i++) result^=(bytes32(0xff00000000000000000000000000000000000000000000000000000000000000)&data[i+pos])>>(i*8);
     }
-    // ----------------------------------------------------------------------------------------
 
+    function extractBytes20(bytes data, uint pos) 
+        constant internal
+        returns (bytes20 result)
+    { 
+        for (uint i=0; i<20;i++) result^=(bytes20(0xff00000000000000000000000000000000000000)&data[i+pos])>>(i*8);
+    }
+    // -------------------------------------------
+ 
 
 
     // TODO !
@@ -220,6 +246,11 @@ contract RequestEthereum {
         _;
     }
     
+    modifier onlyBitcoinOracle() {
+        require(oracleBitcoin==msg.sender);
+        _;
+    }
+
     modifier onlyRequestPayer(uint _requestId) {
         require(requestCore.getPayer(_requestId)==msg.sender);
         _;
@@ -256,6 +287,10 @@ contract RequestEthereum {
         _;
     }
 
+    modifier onlyIfaddressBitcoinPayeeIsRight(bytes20 addressbitcoin) {
+        // TODO CHECK If addressBitcoin is in the user register
+        _;
+    }
 
 }
 
