@@ -17,7 +17,7 @@ contract RequestBitcoin {
         bytes20 addressBitcoinPayee;
     }
     struct BitcoinPayments {
-        bytes32 paymentsTxid;
+        bytes32 txId;
         bytes20 addressBitcoinPayments;
         uint256 amount;
     }
@@ -155,7 +155,7 @@ contract RequestBitcoin {
             OracleRequestFundReception(_requestId, _recipient, _addressBitcoin);
         }
 
-        event LogTest(address recipient, bytes32 txid, uint256 amount); // to delete
+        event LogTest(address recipient, bytes32 txId, uint256 amount); // to delete
 
         function oracleFundReception(uint _requestId, bytes _data)  
             onlyBitcoinOracle
@@ -163,14 +163,19 @@ contract RequestBitcoin {
             OracleResponseFundReception(_requestId, _data);
             address recipient = address(extractBytes20(_data,0));
             bytes20 addressBitcoinPayee = extractBytes20(_data,20);
+            // check if the address payee is the right one 
+            require(addressBitcoinPayee == bitCoinLedger[_requestId].addressBitcoinPayee);
+
             bytes20 addressBitcoinPayer = extractBytes20(_data,40);
-            bytes32 txid = extractBytes32(_data,60);
+            bytes32 txId = extractBytes32(_data,60);
+            // check if the txId have not been register yet
+            require(!txIdAlreadyStored(_requestId, txId));
             uint256 amount = uint256(extractBytes32(_data,92));
 
-            LogTest(recipient, txid, amount);
+            LogTest(recipient, txId, amount);
             // TODO check if addressBitcoin is own by recipient
             if(recipient == requestCore.getPayee(_requestId)) {
-                bitcoinPaymentsHistory[_requestId].push(BitcoinPayments(txid,addressBitcoinPayer,amount));
+                bitcoinPaymentsHistory[_requestId].push(BitcoinPayments(txId,addressBitcoinPayer,amount));
                 paymentInternal(_requestId, amount);
             } else {
                 require(false); // TODO temp require (and to avoid throw;)
@@ -285,6 +290,15 @@ contract RequestBitcoin {
         for (uint i = 0; !found && i < extensions.length && extensions[i]!=0; i++) 
         {
             found= msg.sender==extensions[i] ;
+        }
+        return found;
+    }
+
+    function txIdAlreadyStored(uint _requestId, bytes32 _txId) internal returns(bool){
+        bool found = false;
+        for (uint32 i = 0; !found && i < bitcoinPaymentsHistory[_requestId].length; i++) 
+        {
+            found= bitcoinPaymentsHistory[_requestId][i].txId == _txId;
         }
         return found;
     }
