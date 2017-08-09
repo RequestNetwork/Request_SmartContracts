@@ -45,5 +45,12 @@ contract RequestInterface {
         // nothing to do
         return true;
     } 
+
+
+     function fundMovement(uint _requestId, address recipient, uint _amount) returns(bool)
+    {
+        // nothing to do
+        return true;
+    } 
 }
 

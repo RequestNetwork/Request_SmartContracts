@@ -17,6 +17,7 @@ contract RequestBitcoin {
         bytes20 addressBitcoinPayee;
     }
     struct BitcoinPayments {
+        address recipient;
         bytes32 txId;
         bytes20 addressBitcoinPayments;
         uint256 amount;
@@ -27,6 +28,9 @@ contract RequestBitcoin {
     // Oracle Event
     event OracleRequestFundReception(uint requestId, address recipient, bytes20 addressBitcoin);
     event OracleResponseFundReception(uint requestId, bytes data);
+
+    // BitcoinRequest Event 
+    event LogUnknownFund(uint requestId, address recipient, bytes32 _txId);
 
     // contract constructor
     function RequestBitcoin(address _requestCoreAddress, address _oracleBitcoin) 
@@ -122,23 +126,40 @@ contract RequestBitcoin {
         return isOK;
     }
 
-
     function payment(uint _requestId, uint _amount)
         // onlyRequestExtensions(_requestId)
         onlyRequestState(_requestId, RequestCore.State.Accepted)
         returns(bool)
     {
         // from extension do the job (?)
-        if(isOnlyRequestExtensions(_requestId)) {
-            paymentInternal(_requestId, _amount);    
+        //if(isOnlyRequestExtensions(_requestId)) {
+            // paymentInternal(_requestId, _amount);    
         // if from payee or payer, ask oracle
-        } else if (requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender) {
+        //} else 
+        if (requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender) {
             requestOracleFundReception(_requestId, requestCore.getPayee(_requestId), bitCoinLedger[_requestId].addressBitcoinPayee);
         } else {
             require(false); // avoid throw, better ?
         }
         
     }
+
+    // function refund(uint _requestId, uint _amount)
+    //     // onlyRequestExtensions(_requestId)
+    //     onlyRequestState(_requestId, RequestCore.State.Accepted)
+    //     returns(bool)
+    // {
+    //     // from extension do the job (?)
+    //     if(isOnlyRequestExtensions(_requestId)) {
+    //         // TODO paymentInternal(_requestId, _amount);     !!!!!!!!!!!!!!!!!
+    //     // if from payee or payer, ask oracle
+    //     } else if (requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender) {
+    //         requestOracleFundReception(_requestId, requestCore.getPayer(_requestId), 0);
+    //     } else {
+    //         require(false); // avoid throw, better ?
+    //     }
+        
+    // }
 
     // function doSendFund(uint _requestId, address _recipient, uint _amount)
     //     onlyRequestExtensions(_requestId)
@@ -151,61 +172,32 @@ contract RequestBitcoin {
 
     // ---- CONTRACT FUNCTIONS ---------------------------------------
     // ask Oracle
-        function requestOracleFundReception(uint _requestId, address _recipient, bytes20 _addressBitcoin) internal {
-            OracleRequestFundReception(_requestId, _recipient, _addressBitcoin);
-        }
+    function requestOracleFundReception(uint _requestId, address _recipient, bytes20 _addressBitcoin) internal {
+        OracleRequestFundReception(_requestId, _recipient, _addressBitcoin);
+    }
 
-        event LogTest(address recipient, bytes32 txId, uint256 amount); // to delete
+    event LogTest(address recipient, bytes32 txId, uint256 amount); // to delete
 
-        function oracleFundReception(uint _requestId, bytes _data)  
-            onlyBitcoinOracle
-        {
-            OracleResponseFundReception(_requestId, _data);
-            address recipient = address(extractBytes20(_data,0));
-            bytes20 addressBitcoinPayee = extractBytes20(_data,20);
-            // check if the address payee is the right one 
-            require(addressBitcoinPayee == bitCoinLedger[_requestId].addressBitcoinPayee);
-
-            bytes20 addressBitcoinPayer = extractBytes20(_data,40);
-            bytes32 txId = extractBytes32(_data,60);
-            // check if the txId have not been register yet
-            require(!txIdAlreadyStored(_requestId, txId));
-            uint256 amount = uint256(extractBytes32(_data,92));
-
-            LogTest(recipient, txId, amount);
-            // TODO check if addressBitcoin is own by recipient
-            if(recipient == requestCore.getPayee(_requestId)) {
-                bitcoinPaymentsHistory[_requestId].push(BitcoinPayments(txId,addressBitcoinPayer,amount));
-                paymentInternal(_requestId, amount);
-            } else {
-                require(false); // TODO temp require (and to avoid throw;)
-            }
-            
-        }
-
-    // -------------------------------------------
-
-
-    // ---- INTERNAL FUNCTIONS ---------------------------------------    
-    function  paymentInternal(uint _requestId, uint _amount) internal
-        onlyRequestState(_requestId, RequestCore.State.Accepted)
-        returns(bool)
+    function oracleFundReception(uint _requestId, bytes _data)  
+        onlyBitcoinOracle
     {
-        address[10] memory extensions = requestCore.getExtensions(_requestId);
+        OracleResponseFundReception(_requestId, _data);
+        address recipient = address(extractBytes20(_data,0));
+        bytes20 addressBitcoinPayee = extractBytes20(_data,20);
+        // check if the address payee is the right one 
+        require(addressBitcoinPayee == bitCoinLedger[_requestId].addressBitcoinPayee);
 
-        var isOK = true;
-        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
-        {
-            if(msg.sender != extensions[i]) {
-                RequestInterface extension = RequestInterface(extensions[i]);
-                isOK = isOK && extension.payment(_requestId, _amount);  
-            }
-        }
-        if(isOK) 
-        {
-            requestCore.payment(_requestId, _amount);
-        }
-        return isOK;
+        bytes20 addressBitcoinPayer = extractBytes20(_data,40);
+        bytes32 txId = extractBytes32(_data,60);
+        // check if the txId have not been register yet
+        require(!txIdAlreadyStored(_requestId, txId));
+        uint256 amount = uint256(extractBytes32(_data,92));
+
+        LogTest(recipient, txId, amount);
+        // TODO check if addressBitcoin is own by recipient
+        
+        bitcoinPaymentsHistory[_requestId].push(BitcoinPayments(recipient, txId,addressBitcoinPayer,amount));
+        fundMovementInternal(recipient, _requestId, amount, txId);
     }
 
     function extractBytes32(bytes data, uint pos) 
@@ -221,6 +213,61 @@ contract RequestBitcoin {
     { 
         for (uint i=0; i<20;i++) result^=(bytes20(0xff00000000000000000000000000000000000000)&data[i+pos])>>(i*8);
     }
+    // -------------------------------------------
+
+
+    // ---- INTERNAL FUNCTIONS ---------------------------------------    
+
+
+    
+    
+    function  fundMovementInternal(address _recipient, uint _requestId, uint _amount, bytes32 _txId) internal
+        onlyRequestState(_requestId, RequestCore.State.Accepted)
+    {
+        address[10] memory extensions = requestCore.getExtensions(_requestId);
+
+        var notIntercepted = true;
+        for (uint i = 0; notIntercepted && i < extensions.length && extensions[i]!=0; i++) 
+        {
+            if(msg.sender != extensions[i]) {
+                RequestInterface extension = RequestInterface(extensions[i]);
+                notIntercepted = extension.fundMovement(_requestId, _recipient, _amount);  
+            }
+        }
+
+        if(notIntercepted) {
+            if(_recipient == requestCore.getPayee(_requestId)) {
+                requestCore.payment(_requestId, _amount);
+            } else if(_recipient == requestCore.getPayee(_requestId)) {
+                requestCore.refund(_requestId, _amount);
+            } else {
+                LogUnknownFund(_requestId, _recipient, _txId);
+            }
+        }
+    }
+
+    /*
+    function  paymentInternal(address recipient, uint _requestId, uint _amount) internal
+        onlyRequestState(_requestId, RequestCore.State.Accepted)
+        returns(bool)
+    {
+        address[10] memory extensions = requestCore.getExtensions(_requestId);
+
+        var isOK = true;
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        {
+            if(msg.sender != extensions[i]) {
+                RequestInterface extension = RequestInterface(extensions[i]);
+                isOK = isOK && extension.payment(recipient, _requestId, _amount);  
+            }
+        }
+        if(isOK) 
+        {
+            requestCore.payment(_requestId, _amount);
+        }
+        return isOK;
+    }
+*/
     // -------------------------------------------
  
 
