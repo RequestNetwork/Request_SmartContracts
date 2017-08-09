@@ -19,6 +19,7 @@ contract RequestBitcoin {
     struct BitcoinPayments {
         bytes32 paymentsTxid;
         bytes20 addressBitcoinPayments;
+        uint256 amount;
     }
     mapping(uint => BitCoinRequest) public bitCoinLedger;
     mapping(uint => BitcoinPayments[]) public bitcoinPaymentsHistory;
@@ -162,14 +163,14 @@ contract RequestBitcoin {
             OracleResponseFundReception(_requestId, _data);
             address recipient = address(extractBytes20(_data,0));
             bytes20 addressBitcoinPayee = extractBytes20(_data,20);
-            bytes20 addressBitcoinPayer = extractBytes20(_data,20);
-            bytes32 txid = extractBytes32(_data,72);
+            bytes20 addressBitcoinPayer = extractBytes20(_data,40);
+            bytes32 txid = extractBytes32(_data,60);
             uint256 amount = uint256(extractBytes32(_data,92));
 
             LogTest(recipient, txid, amount);
             // TODO check if addressBitcoin is own by recipient
             if(recipient == requestCore.getPayee(_requestId)) {
-                bitcoinPaymentsHistory[_requestId].push(BitcoinPayments(txid,addressBitcoinPayer));
+                bitcoinPaymentsHistory[_requestId].push(BitcoinPayments(txid,addressBitcoinPayer,amount));
                 paymentInternal(_requestId, amount);
             } else {
                 require(false); // TODO temp require (and to avoid throw;)
