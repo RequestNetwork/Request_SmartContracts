@@ -132,15 +132,22 @@ contract('RequestCore', function(accounts) {
 			   if(result.event == 'OracleRequestFundReception') {
 			   		var reqId = result.args.requestId;
 			   		var recipient = result.args.recipient.replace('0x','');
-			   		var addressBitcoin = result.args.addressBitcoin.replace('0x','');
+			   		var addressBitcoinPayee = result.args.addressBitcoin.replace('0x','');
+			   		var addressBitcoinPayer = "1010101010134567891324567891234510101010"; // faked one
 			   		var txId = "0101010101013456789132456789123456789123456789123456789101010101"; // faked one
 			   		var amount = integerToByte32str(amount1).replace('0x',''); // faked one
 
-			   		var data = '0x'+recipient+addressBitcoin+txId+amount;
-
+			   		var data = '0x'+recipient+addressBitcoinPayee+addressBitcoinPayer+txId+amount;
 
 			   		requestBitcoin.oracleFundReception(reqId, data, {from:oracleBitCoin}).then(function() {
-			   			console.log("oracleFundReception done!")
+						return requestBitcoin.bitCoinLedger.call(1)
+					}).then(function(res) {
+					 	console.log('bitCoinLedger 222222222222222222')
+					 	console.log(res)
+						return requestBitcoin.bitcoinPaymentsHistory.call(1,0)
+					}).then(function(res) {
+					 	console.log('bitcoinPaymentsHistory 1 0')
+					 	console.log(res)
 			   		});
 			   }
 			});
@@ -226,6 +233,10 @@ contract('RequestCore', function(accounts) {
 		//  }).then(function(res) {
 		//  	console.log('escrows 22')
 		//  	console.log(res)	
+			return requestBitcoin.bitCoinLedger.call(1)
+		}).then(function(res) {
+		 	console.log('bitCoinLedger 1')
+		 	console.log(res)
 
 		 	console.log('gasConsumption')
 		 	console.log(gasConsumption)	  

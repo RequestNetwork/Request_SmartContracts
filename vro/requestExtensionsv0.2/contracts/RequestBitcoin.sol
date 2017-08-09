@@ -15,9 +15,13 @@ contract RequestBitcoin {
     // Ethereum available to withdraw
     struct BitCoinRequest {
         bytes20 addressBitcoinPayee;
-        bytes32[] paymentsTxid;
+    }
+    struct BitcoinPayments {
+        bytes32 paymentsTxid;
+        bytes20 addressBitcoinPayments;
     }
     mapping(uint => BitCoinRequest) public bitCoinLedger;
+    mapping(uint => BitcoinPayments[]) public bitcoinPaymentsHistory;
 
     // Oracle Event
     event OracleRequestFundReception(uint requestId, address recipient, bytes20 addressBitcoin);
@@ -123,8 +127,10 @@ contract RequestBitcoin {
         onlyRequestState(_requestId, RequestCore.State.Accepted)
         returns(bool)
     {
+        // from extension do the job (?)
         if(isOnlyRequestExtensions(_requestId)) {
             paymentInternal(_requestId, _amount);    
+        // if from payee or payer, ask oracle
         } else if (requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender) {
             requestOracleFundReception(_requestId, requestCore.getPayee(_requestId), bitCoinLedger[_requestId].addressBitcoinPayee);
         } else {
@@ -148,22 +154,22 @@ contract RequestBitcoin {
             OracleRequestFundReception(_requestId, _recipient, _addressBitcoin);
         }
 
-            
-        event LogTest(address recipient, bytes32 txid, uint256 amount);
+        event LogTest(address recipient, bytes32 txid, uint256 amount); // to delete
 
         function oracleFundReception(uint _requestId, bytes _data)  
             onlyBitcoinOracle
         {
             OracleResponseFundReception(_requestId, _data);
-            var recipient = address(extractBytes20(_data,0));
-            var addressBitcoin = extractBytes20(_data,20);
-            var txid = extractBytes32(_data,40);
-            var amount = uint256(extractBytes32(_data,72));
+            address recipient = address(extractBytes20(_data,0));
+            bytes20 addressBitcoinPayee = extractBytes20(_data,20);
+            bytes20 addressBitcoinPayer = extractBytes20(_data,20);
+            bytes32 txid = extractBytes32(_data,72);
+            uint256 amount = uint256(extractBytes32(_data,92));
 
             LogTest(recipient, txid, amount);
             // TODO check if addressBitcoin is own by recipient
             if(recipient == requestCore.getPayee(_requestId)) {
-                bitCoinLedger[_requestId].paymentsTxid.push(txid);
+                bitcoinPaymentsHistory[_requestId].push(BitcoinPayments(txid,addressBitcoinPayer));
                 paymentInternal(_requestId, amount);
             } else {
                 require(false); // TODO temp require (and to avoid throw;)
