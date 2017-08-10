@@ -90,7 +90,7 @@ contract RequestCore is Administrable{
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare payment
-        require(_amount > 0 && _amount+c.amountPaid > c.amountPaid && _amount+c.amountPaid <= c.amountExpected); // value must be greater than 0 and all the payments should not overpass the amountExpected
+        require(_amount > 0 && _amount+c.amountPaid > c.amountPaid); // value must be greater than 0 and all the payments should not overpass the amountExpected
 
         c.amountPaid += _amount;
         LogRequestPayment(_requestId, _amount);
@@ -107,7 +107,7 @@ contract RequestCore is Administrable{
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare refund
-        require(_amount > 0 && _amount+c.amountRefunded > c.amountRefunded && _amount+c.amountRefunded <= c.amountPaid); // value must be greater than 0 and all the payments should not overpass the amountPaid
+        require(_amount > 0 && _amount+c.amountRefunded > c.amountRefunded); // value must be greater than 0 and all the payments should not overpass the amountPaid
 
         c.amountRefunded += _amount;
         LogRequestRefunded(_requestId, _amount);

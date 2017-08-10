@@ -164,8 +164,14 @@ contract RequestBitcoin {
     // useless ?
     function fundOrder(uint _requestId, address _from, address _to, uint _amount) returns(bool)
     {
-        // if(_to==requestCore.getPayee(_requestId))
-        requestOracleFundReception(_requestId, _from, _to, 0);
+        bytes20 bitcoinAdressTo = 0;
+        if(_to==requestCore.getPayee(_requestId)) {
+            bitcoinAdressTo = bitCoinLedger[_requestId].addressBitcoinPayee;
+        } else if(_to==requestCore.getPayer(_requestId)) {
+            bitcoinAdressTo = bitCoinLedger[_requestId].addressBitcoinPayer;
+        }
+
+        requestOracleFundReception(_requestId, _from, _to, bitcoinAdressTo);
         return true;
     } 
 
@@ -201,7 +207,7 @@ contract RequestBitcoin {
         OracleRequestFundReception(_requestId, _from, _to, _addressBitcoinTo);
     }
 
-    event LogTest(address from, address to, bytes20 toBitcoin,bytes32 txId, uint256 amount); // to delete
+    event LogTest(address from, address to, bytes20 toBitcoin,bytes32 txId, uint256 amount); // todo delete
 
     function oracleFundReception(uint _requestId, bytes _data)  
         // onlyBitcoinOracle
@@ -222,9 +228,8 @@ contract RequestBitcoin {
 
         // TODO check if toBitcoin is own by to WITH REGISTER TODO
 
-        // bitcoinTxsHistory[_requestId].push(BitcoinTx(from, to, txId, toBitcoin, amount));
+        bitcoinTxsHistory[_requestId].push(BitcoinTx(from, to, txId, toBitcoin, amount));
         fundMovementInternal(_requestId, from, to, amount, txId);
-
     }
 
     function extractBytes32(bytes data, uint pos) 
@@ -244,12 +249,12 @@ contract RequestBitcoin {
 
 
     // ---- INTERNAL FUNCTIONS ---------------------------------------    
-    
     function  fundMovementInternal(uint _requestId, address _from, address _to, uint _amount, bytes32 _txId) internal
         onlyRequestState(_requestId, RequestCore.State.Accepted)
     {
-        address[10] memory extensions = requestCore.getExtensions(_requestId);
 
+        address[10] memory extensions = requestCore.getExtensions(_requestId);
+        
         var notIntercepted = true;
         for (uint i = 0; notIntercepted && i < extensions.length && extensions[i]!=0; i++) 
         {
@@ -258,12 +263,12 @@ contract RequestBitcoin {
                 notIntercepted = extension.fundMovement(_requestId, _from, _to, _amount);  
             }
         }
-
+  
         if(notIntercepted) {
             if(_to == requestCore.getPayee(_requestId)) {
                 requestCore.payment(_requestId, _amount);
-            } else if(_to == requestCore.getPayee(_requestId)) {
-                requestCore.refund(_requestId, _amount);
+            } else if(_to == requestCore.getPayer(_requestId)) {
+               requestCore.refund(_requestId, _amount);
             } else {
                 LogUnknownFund(_requestId, _to, _txId);
             }
