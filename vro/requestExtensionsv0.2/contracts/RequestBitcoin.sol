@@ -15,18 +15,20 @@ contract RequestBitcoin {
     // Ethereum available to withdraw
     struct BitCoinRequest {
         bytes20 addressBitcoinPayee;
+        bytes20 addressBitcoinPayer;
     }
-    struct BitcoinPayments {
-        address recipient;
+    struct BitcoinTx {
+        address from;
+        address to;
         bytes32 txId;
-        bytes20 addressBitcoinPayments;
+        bytes20 addressBitcoinTo;
         uint256 amount;
     }
     mapping(uint => BitCoinRequest) public bitCoinLedger;
-    mapping(uint => BitcoinPayments[]) public bitcoinPaymentsHistory;
+    mapping(uint => BitcoinTx[]) public bitcoinTxsHistory;
 
     // Oracle Event
-    event OracleRequestFundReception(uint requestId, address recipient, bytes20 addressBitcoin);
+    event OracleRequestFundReception(uint requestId, address from, address to, bytes20 addressBitcoinTo);
     event OracleResponseFundReception(uint requestId, bytes data);
 
     // BitcoinRequest Event 
@@ -39,7 +41,7 @@ contract RequestBitcoin {
         oracleBitcoin = _oracleBitcoin;
     }
 
-    function createRequest(address _payer, uint _amountExpected, address[10] _extensions, bytes32[10] _extensionParams0, bytes32[10] _extensionParams1, bytes20 _addressBitcoinPayee)
+    function createRequest(address _payer, uint _amountExpected, address[10] _extensions, bytes32[10] _extensionParams0, bytes32[10] _extensionParams1, bytes20 _addressBitcoinPayee, bytes20 _addressBitcoinPayer)
         onlyIfaddressBitcoinPayeeIsRight(_addressBitcoinPayee)
         returns(uint)
     {
@@ -56,7 +58,8 @@ contract RequestBitcoin {
             extension1.createRequest(requestId, _extensionParams1);
         }
 
-        bitCoinLedger[requestId].addressBitcoinPayee = bytes20(_addressBitcoinPayee);
+        bitCoinLedger[requestId].addressBitcoinPayee = _addressBitcoinPayee;
+        bitCoinLedger[requestId].addressBitcoinPayer = _addressBitcoinPayer;
 
         return requestId;
     }
@@ -126,8 +129,7 @@ contract RequestBitcoin {
         return isOK;
     }
 
-    function payment(uint _requestId, uint _amount)
-        // onlyRequestExtensions(_requestId)
+    function paymentBitcoin(uint _requestId, address to, bytes20 addressBitoinTo)
         onlyRequestState(_requestId, RequestCore.State.Accepted)
         returns(bool)
     {
@@ -137,12 +139,35 @@ contract RequestBitcoin {
         // if from payee or payer, ask oracle
         //} else 
         if (requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender) {
-            requestOracleFundReception(_requestId, requestCore.getPayee(_requestId), bitCoinLedger[_requestId].addressBitcoinPayee);
+            requestOracleFundReception(_requestId, 0, to, addressBitoinTo);
         } else {
             require(false); // avoid throw, better ?
-        }
-        
+        }   
     }
+
+    // function refund(uint _requestId, uint _amount)
+    //     onlyRequestState(_requestId, RequestCore.State.Accepted)
+    //     returns(bool)
+    // {
+    //     // from extension do the job (?)
+    //     //if(isOnlyRequestExtensions(_requestId)) {
+    //         // refundInternal(_requestId, _amount);    
+    //     // if from payee or payer, ask oracle
+    //     //} else 
+    //     if (requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender) {
+    //         requestOracleFundReception(_requestId, 0, requestCore.getPayer(_requestId), bitCoinLedger[_requestId].addressBitcoinPayer);
+    //     } else {
+    //         require(false); // avoid throw, better ?
+    //     }   
+    // }
+
+    // useless ?
+    function fundOrder(uint _requestId, address _from, address _to, uint _amount) returns(bool)
+    {
+        // if(_to==requestCore.getPayee(_requestId))
+        requestOracleFundReception(_requestId, _from, _to, 0);
+        return true;
+    } 
 
     // function refund(uint _requestId, uint _amount)
     //     // onlyRequestExtensions(_requestId)
@@ -172,32 +197,34 @@ contract RequestBitcoin {
 
     // ---- CONTRACT FUNCTIONS ---------------------------------------
     // ask Oracle
-    function requestOracleFundReception(uint _requestId, address _recipient, bytes20 _addressBitcoin) internal {
-        OracleRequestFundReception(_requestId, _recipient, _addressBitcoin);
+    function requestOracleFundReception(uint _requestId, address _from, address _to, bytes20 _addressBitcoinTo) internal {
+        OracleRequestFundReception(_requestId, _from, _to, _addressBitcoinTo);
     }
 
-    event LogTest(address recipient, bytes32 txId, uint256 amount); // to delete
+    event LogTest(address from, address to, bytes20 toBitcoin,bytes32 txId, uint256 amount); // to delete
 
     function oracleFundReception(uint _requestId, bytes _data)  
-        onlyBitcoinOracle
+        // onlyBitcoinOracle
     {
         OracleResponseFundReception(_requestId, _data);
-        address recipient = address(extractBytes20(_data,0));
-        bytes20 addressBitcoinPayee = extractBytes20(_data,20);
+        address from = address(extractBytes20(_data,0));
+        address to = address(extractBytes20(_data,20));
+        bytes20 toBitcoin = extractBytes20(_data,40);
         // check if the address payee is the right one 
-        require(addressBitcoinPayee == bitCoinLedger[_requestId].addressBitcoinPayee);
+        // require(toBitcoin == bitCoinLedger[_requestId].addressBitcoinPayee);
 
-        bytes20 addressBitcoinPayer = extractBytes20(_data,40);
         bytes32 txId = extractBytes32(_data,60);
         // check if the txId have not been register yet
         require(!txIdAlreadyStored(_requestId, txId));
         uint256 amount = uint256(extractBytes32(_data,92));
 
-        LogTest(recipient, txId, amount);
-        // TODO check if addressBitcoin is own by recipient
-        
-        bitcoinPaymentsHistory[_requestId].push(BitcoinPayments(recipient, txId,addressBitcoinPayer,amount));
-        fundMovementInternal(recipient, _requestId, amount, txId);
+        LogTest(from, to, toBitcoin, txId, amount);
+
+        // TODO check if toBitcoin is own by to WITH REGISTER TODO
+
+        // bitcoinTxsHistory[_requestId].push(BitcoinTx(from, to, txId, toBitcoin, amount));
+        fundMovementInternal(_requestId, from, to, amount, txId);
+
     }
 
     function extractBytes32(bytes data, uint pos) 
@@ -217,11 +244,8 @@ contract RequestBitcoin {
 
 
     // ---- INTERNAL FUNCTIONS ---------------------------------------    
-
-
     
-    
-    function  fundMovementInternal(address _recipient, uint _requestId, uint _amount, bytes32 _txId) internal
+    function  fundMovementInternal(uint _requestId, address _from, address _to, uint _amount, bytes32 _txId) internal
         onlyRequestState(_requestId, RequestCore.State.Accepted)
     {
         address[10] memory extensions = requestCore.getExtensions(_requestId);
@@ -231,17 +255,17 @@ contract RequestBitcoin {
         {
             if(msg.sender != extensions[i]) {
                 RequestInterface extension = RequestInterface(extensions[i]);
-                notIntercepted = extension.fundMovement(_requestId, _recipient, _amount);  
+                notIntercepted = extension.fundMovement(_requestId, _from, _to, _amount);  
             }
         }
 
         if(notIntercepted) {
-            if(_recipient == requestCore.getPayee(_requestId)) {
+            if(_to == requestCore.getPayee(_requestId)) {
                 requestCore.payment(_requestId, _amount);
-            } else if(_recipient == requestCore.getPayee(_requestId)) {
+            } else if(_to == requestCore.getPayee(_requestId)) {
                 requestCore.refund(_requestId, _amount);
             } else {
-                LogUnknownFund(_requestId, _recipient, _txId);
+                LogUnknownFund(_requestId, _to, _txId);
             }
         }
     }
@@ -343,9 +367,9 @@ contract RequestBitcoin {
 
     function txIdAlreadyStored(uint _requestId, bytes32 _txId) internal returns(bool){
         bool found = false;
-        for (uint32 i = 0; !found && i < bitcoinPaymentsHistory[_requestId].length; i++) 
+        for (uint32 i = 0; !found && i < bitcoinTxsHistory[_requestId].length; i++) 
         {
-            found= bitcoinPaymentsHistory[_requestId][i].txId == _txId;
+            found= bitcoinTxsHistory[_requestId][i].txId == _txId;
         }
         return found;
     }

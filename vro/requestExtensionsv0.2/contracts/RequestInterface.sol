@@ -47,7 +47,13 @@ contract RequestInterface {
     } 
 
 
-     function fundMovement(uint _requestId, address recipient, uint _amount) returns(bool)
+    function fundMovement(uint _requestId, address from, address to, uint _amount) returns(bool)
+    {
+        // nothing to do
+        return true;
+    } 
+
+    function fundOrder(uint _requestId, address from, address to, uint _amount) returns(bool)
     {
         // nothing to do
         return true;

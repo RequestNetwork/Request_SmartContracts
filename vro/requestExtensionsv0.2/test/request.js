@@ -51,6 +51,10 @@ contract('RequestCore', function(accounts) {
 	var amount1 = 1000000000000;
 	var amount2 = 9999;
 
+	// for bitcoin
+	var addressBitcoinPayee = '0x1111118f017bfb2bb0c03fa73e4b3ef7e3111111'; // fake one
+	var addressBitcoinPayer = '0x1222228f017bfb2bb0c03fa73e4b3ef7e3222222'; // fake one
+	var addressBitcoinEscrow = '0x1333338f017bfb2bb0c03fa73e4b3ef7e3333333'; // fake one
 
 	var gasConsumption = 0;
 
@@ -131,36 +135,38 @@ contract('RequestCore', function(accounts) {
 			   console.log('-----------------------------------------------')
 			   if(result.event == 'OracleRequestFundReception') {
 			   		var reqId = result.args.requestId;
-			   		var recipient = result.args.recipient.replace('0x','');
-			   		var addressBitcoinPayee = result.args.addressBitcoin.replace('0x','');
-			   		var addressBitcoinPayer = "1010101010134567891324567891234510101010"; // faked one
+			   		var from = result.args.from.replace('0x','');
+			   		var to = result.args.to.replace('0x','');
+			   		var addressBitcoinTo = result.args.addressBitcoinTo.replace('0x','');
+			   		// var addressBitcoinFrom = "1010101010134567891324567891234510101010"; // faked one
 			   		var txId = "0101010101013456789132456789123456789123456789123456789101010101"; // faked one
 			   		var amount = integerToByte32str(amount1/2).replace('0x',''); // faked one
-
-			   		var data = '0x'+recipient+addressBitcoinPayee+addressBitcoinPayer+txId+amount;
+			   		// console.log("'0x'+from+to+addressBitcoinTo+txId+amount");
+			   		console.log('0x'+from+to+addressBitcoinTo+txId+amount);
+			   		var data = '0x'+from+to+addressBitcoinTo+txId+amount;
 
 			   		requestBitcoin.oracleFundReception(reqId, data, {from:oracleBitCoin}).then(function() {
-						return requestBitcoin.bitCoinLedger.call(1)
-					}).then(function(res) {
-					 	console.log('bitCoinLedger 222222222222222222')
-					 	console.log(res)
-						return requestBitcoin.bitcoinPaymentsHistory.call(1,0)
-					}).then(function(res) {
-					 	console.log('bitcoinPaymentsHistory 1 0')
-					 	console.log(res)
+						// return requestBitcoin.bitCoinLedger.call(1)
+					// }).then(function(res) {
+					//  	console.log('bitCoinLedger 222222222222222222')
+					//  	console.log(res)
+					// 	return requestBitcoin.bitcoinTxsHistory.call(1,0)
+					// }).then(function(res) {
+					//  	console.log('bitcoinTxsHistory 1 0')
+					//  	console.log(res)
 
 					 	txId = "0101010101013456789132456789123456789123456789123456789101010102"; 
-					 	data = '0x'+recipient+addressBitcoinPayee+addressBitcoinPayer+txId+amount;
-				   		requestBitcoin.oracleFundReception(reqId, data, {from:oracleBitCoin}).then(function() {
-							return requestBitcoin.bitCoinLedger.call(1)
-						}).then(function(res) {
-						 	console.log('bitCoinLedger 222222222222222222 333333333333333333333333')
-						 	console.log(res)
-							return requestBitcoin.bitcoinPaymentsHistory.call(1,0)
-						}).then(function(res) {
-						 	console.log('bitcoinPaymentsHistory 1 0 3333333333333333333333')
-						 	console.log(res)
-				   		});
+					 	data = '0x'+from+to+addressBitcoinTo+txId+amount;
+				  //  		requestBitcoin.oracleFundReception(reqId, data, {from:oracleBitCoin}).then(function() {
+						// 	return requestBitcoin.bitCoinLedger.call(1)
+						// }).then(function(res) {
+						//  	console.log('bitCoinLedger 222222222222222222 333333333333333333333333')
+						//  	console.log(res)
+						// 	return requestBitcoin.bitcoinTxsHistory.call(1,0)
+						// }).then(function(res) {
+						//  	console.log('bitcoinTxsHistory 1 0 3333333333333333333333')
+						//  	console.log(res)
+				  //  		});
 			   		});
 			   }
 			});
@@ -181,8 +187,8 @@ contract('RequestCore', function(accounts) {
 			var numberExtension = 0;
 
 			// // for escrow
-			// extensions.push(requestExtensionEscrow.address);
-			// params[numberExtension++] = [addressToByte32str(escrow1)]
+			extensions.push(requestExtensionEscrow.address);
+			params[numberExtension++] = [addressToByte32str(escrow1),addressToByte32str(escrow1)] // escrow and escrow deposit
 
 			// // for tax
 			// extensions.push(requestExtensionTax.address);
@@ -192,8 +198,6 @@ contract('RequestCore', function(accounts) {
 				params[numberExtension] = [];
 			}
 
-			// fo bitcoin
-			var addressBitcoinPayee = '0x1111118f017bfb2bb0c03fa73e4b3ef7e3111111'; // fake one
 
 		  console.log("extensions");
 		  console.log(extensions);
@@ -203,7 +207,7 @@ contract('RequestCore', function(accounts) {
 		  console.log(addressBitcoinPayee);
 
 		  // return requestEthereum.createRequest(buyer1, amount1, extensions, params[0], params[1], {from:seller1});
-		  return requestBitcoin.createRequest(buyer1, amount1, extensions, params[0], params[1], addressBitcoinPayee, {from:seller1});
+		  return requestBitcoin.createRequest(buyer1, amount1, extensions, params[0], params[1], addressBitcoinPayee, addressBitcoinPayer, {from:seller1});
 		}).then(function(res) { 
 		  gasConsumption += res.receipt.gasUsed;
 		  // console.log('res')
@@ -218,11 +222,17 @@ contract('RequestCore', function(accounts) {
 		}).then(function(res) { 
 		  gasConsumption += res.receipt.gasUsed;
 
-		  return requestBitcoin.payment(1, 124, {from:buyer1});  
+		  // return requestBitcoin.payment(1, 124, {from:buyer1});  
+		  // return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
+		  return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
+		}).then(function(res) {
+		  gasConsumption += res.receipt.gasUsed;
+		  return requestBitcoin.paymentBitcoin(1, escrow1, '0x1333338f017bfb2bb0c03fa73e4b3ef7e3333333', {from:buyer1});
 		}).then(function(res) { 
 		  gasConsumption += res.receipt.gasUsed;
-		//   return requestExtensionEscrow.rele1aseToPayee(1, {from:escrow1});
-		// }).then(function(res) {
+		  return requestBitcoin.paymentBitcoin(1, escrow1, '0x1333338f017bfb2bb0c03fa73e4b3ef7e3333333', {from:buyer1});
+		}).then(function(res) { 
+		  gasConsumption += res.receipt.gasUsed;
 		  // return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
 		// }).then(function(res) { 
 		  // gasConsumption += res.receipt.gasUsed;
@@ -246,10 +256,10 @@ contract('RequestCore', function(accounts) {
 		//  }).then(function(res) {
 		//  	console.log('escrows 22')
 		//  	console.log(res)	
-			return requestBitcoin.bitCoinLedger.call(1)
-		}).then(function(res) {
-		 	console.log('bitCoinLedger 1')
-		 	console.log(res)
+		// 	return requestBitcoin.bitCoinLedger.call(1)
+		// }).then(function(res) {
+		//  	console.log('bitCoinLedger 1')
+		//  	console.log(res)
 
 		 	console.log('gasConsumption')
 		 	console.log(gasConsumption)	  
