@@ -42,28 +42,21 @@ contract RequestExtensionEscrow is RequestInterface {
         return true;
     }
 
-
-    // we just register the refund if it's to the payer
-    // function doSendFund(uint _requestId, address _recipient, uint _amount)
-    //     isSubContractRight(_requestId)
-    //     returns(bool)
-    // {
-    //     if(_amount > 0 && _recipient == requestCore.getPayer(_requestId)) {
-    //         require(_amount+escrows[_requestId].amountRefunded > escrows[_requestId].amountRefunded && _amount+escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded-escrows[_requestId].amountReleased >= _amount);
-    //         escrows[_requestId].amountRefunded += _amount;
-    //     }
-
-    //     return true;
-    // }
+    function fundOrder(uint _requestId, address _from, address _to, uint _amount) 
+        isSubContractRight(_requestId)
+        returns(bool)
+    {
+        // TODO : should we block payment to payee if escrow not released ??
+        return true; 
+    }
 
     function fundMovement(uint _requestId, address _from, address _to, uint _amount)
         isSubContractRight(_requestId)
-        // inNOTEscrowState(_requestId, EscrowState.Refunded)
         returns(bool)
     {
         RequestInterface subContract = RequestInterface(escrows[_requestId].subContract);
-
-        if(_to==escrows[_requestId].escrowDeposit) {
+        logTEST(escrows[_requestId].amountRefunded, escrows[_requestId].amountReleased,escrows[_requestId].amountPaid);
+        if(_to==0 || _to==escrows[_requestId].escrowDeposit) { // _to==0 Payment to the contract #ethCase
             // escrow payment we register the payment
             require(escrows[_requestId].state!=EscrowState.Refunded);
             require(_amount > 0 && _amount+escrows[_requestId].amountPaid > escrows[_requestId].amountPaid); // value must be greater than 0 and we check the overflow
@@ -76,8 +69,7 @@ contract RequestExtensionEscrow is RequestInterface {
             }
             return false; // Intercept the fundMovement (don't continue in the extensions chain)
 
-        // } else if(_from==escrows[_requestId].escrowDeposit &&  requestCore.getPayee(_requestId)) { // don't check the from (BTC impossible?)  
-        } else if(_to==requestCore.getPayee(_requestId)) {
+        } else if(_to==requestCore.getPayee(_requestId)) { // don't check the from, todo ?
             // we just register the amount released
             require(escrows[_requestId].state!=EscrowState.Refunded);
             require(_amount > 0 && _amount+escrows[_requestId].amountReleased > escrows[_requestId].amountReleased && _amount+escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded-escrows[_requestId].amountReleased >= _amount); // check overflow and underflow
@@ -85,28 +77,26 @@ contract RequestExtensionEscrow is RequestInterface {
             return true;
             // TODO : if payment send direct to Payee (no escrow) .. it will be a mess with the escrow.
 
-        // } else if(_from==escrows[_requestId].escrowDeposit &&  requestCore.getPayer(_requestId)) { // don't check the from (BTC impossible?)  
-        } else if(_to==requestCore.getPayer(_requestId)) { 
+        } else if(_to==requestCore.getPayer(_requestId)) { // don't check the from, todo ?
             // register the refund if it's to the payer
             require(escrows[_requestId].state!=EscrowState.Released);
             require(_amount > 0 && _amount+escrows[_requestId].amountRefunded > escrows[_requestId].amountRefunded && _amount+escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded-escrows[_requestId].amountReleased >= _amount); // check overflow and underflow
 
             escrows[_requestId].amountRefunded += _amount;
-
             if(escrows[_requestId].amountRefunded+escrows[_requestId].amountReleased == escrows[_requestId].amountPaid) {
+                logTEST(escrows[_requestId].amountRefunded, escrows[_requestId].amountReleased,escrows[_requestId].amountPaid);
                 subContract.cancel(_requestId); 
             }
             
             return false;
 
-        // } else if(_to==requestCore.getPayee(_requestId)) {
-            // payment direct to Payee, nothing to say
         } else {
             // payment to someone not known, nothing to say
             return true;
         }
 
     }
+    event logTEST(uint amountRefunded, uint amountReleased,uint amountPaid);
     // -----------------------------------------------------------------------------------------
     
     // ---- ESCROW FUNCTIONS ------------------------------------------------------------------------------------
@@ -199,11 +189,6 @@ contract RequestExtensionEscrow is RequestInterface {
 
     modifier onlyRequestStateOr(uint _requestId, RequestCore.State state1, RequestCore.State state2) {
         require(requestCore.getState(_requestId)==state1 || requestCore.getState(_requestId)==state2);
-        _;
-    }
-
-    modifier paymentCompleteToEscrow(uint _requestId) {
-        require(isPaymentCompleteToEscrow(_requestId));
         _;
     }
 

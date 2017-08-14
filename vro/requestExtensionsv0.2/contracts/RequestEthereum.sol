@@ -10,7 +10,9 @@ contract RequestEthereum {
     RequestCore public requestCore;
     mapping(uint => mapping(address => uint)) public ethToWithdraw;
 
-
+    // BitcoinRequest Event 
+    event LogUnknownFund(uint requestId, address from, address to);
+    
     // contract constructor
     function RequestEthereum(address _requestCoreAddress) 
     {
@@ -77,20 +79,13 @@ contract RequestEthereum {
         return isOK;
     }
 
-    function payment(uint _requestId, uint _amount)
-        onlyRequestExtensions(_requestId)
-        returns(bool)
-    {
-        return paymentInternal(_requestId, _amount);
-    }
-
-    function doSendFund(uint _requestId, address _recipient, uint _amount)
-        onlyRequestExtensions(_requestId)
-        returns(bool)
-    {
-        return doSendFundInternal(_requestId, _recipient, _amount);
-    }
-
+    // keep ?
+    // function payment(uint _requestId, uint _amount)
+    //     onlyRequestExtensions(_requestId)
+    //     returns(bool)
+    // {
+    //     return paymentInternal(_requestId, _amount);
+    // }
 
     function cancel(uint _requestId)
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
@@ -113,6 +108,32 @@ contract RequestEthereum {
         return isOK;
     }
 
+
+    function fundOrder(uint _requestId, address _from, address _to, uint _amount) 
+        onlyRequestExtensions(_requestId) 
+        returns(bool)
+    {
+        address[10] memory extensions = requestCore.getExtensions(_requestId);
+
+        var isOK = true;
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        {
+            if(msg.sender != extensions[i]) {
+                RequestInterface extension = RequestInterface(extensions[i]);
+                isOK = isOK && extension.fundOrder(_requestId, 0, _to, _amount); // 0 is the contract itself
+            }
+        }
+        if(isOK) 
+        {
+            // sending fund means make it availbale to withdraw here
+            ethToWithdraw[_requestId][_to] = _amount;
+            // declare the fund movement
+            fundMovementInternal(_requestId, 0, _to, _amount); // 0 is the contract itself
+        }   
+        return isOK;
+    }
+
+
     // ----------------------------------------------------------------------------------------
 
 
@@ -122,7 +143,7 @@ contract RequestEthereum {
         onlyRequestPayer(_requestId)
         payable
     {
-        paymentInternal(_requestId, msg.value);
+        fundMovementInternal(_requestId, msg.sender, 0, msg.value);
     }
 
     // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
@@ -137,51 +158,28 @@ contract RequestEthereum {
 
 
     // ---- INTERNAL FUNCTIONS ------------------------------------------------------------------------------------
-    function  paymentInternal(uint _requestId, uint _amount) internal
+    function  fundMovementInternal(uint _requestId, address _from, address _to, uint _amount) internal
         onlyRequestState(_requestId, RequestCore.State.Accepted)
-        returns(bool)
     {
+
         address[10] memory extensions = requestCore.getExtensions(_requestId);
-
-        var isOK = true;
-        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        
+        var notIntercepted = true;
+        for (uint i = 0; notIntercepted && i < extensions.length && extensions[i]!=0; i++) 
         {
-            if(msg.sender != extensions[i]) {
-                RequestInterface extension = RequestInterface(extensions[i]);
-                isOK = isOK && extension.payment(_requestId, _amount);  
+            RequestInterface extension = RequestInterface(extensions[i]);
+            notIntercepted = extension.fundMovement(_requestId, _from, _to, _amount);  
+        }
+  
+        if(notIntercepted) {
+            if(_to == requestCore.getPayee(_requestId)) {
+                requestCore.payment(_requestId, _amount);
+            } else if(_to == requestCore.getPayer(_requestId)) {
+               requestCore.refund(_requestId, _amount);
+            } else {
+                LogUnknownFund(_requestId, _from, _to);
             }
         }
-        if(isOK) 
-        {
-            requestCore.payment(_requestId, _amount);
-            // payment done, the money is ready to withdraw by the payee
-            doSendFundInternal(_requestId, requestCore.getPayee(_requestId), _amount);
-        }
-        return isOK;
-    }
-
-    function doSendFundInternal(uint _requestId, address _recipient, uint _amount) internal
-        returns(bool)
-    {
-        if(_amount > 0) { // sending 0 doesn't make sense
-            address[10] memory extensions = requestCore.getExtensions(_requestId);
-
-            var isOK = true;
-            for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
-            {
-                if(msg.sender != extensions[i]) {
-                    RequestInterface extension = RequestInterface(extensions[i]);
-                    isOK = isOK && extension.doSendFund(_requestId, _recipient, _amount);
-                }
-            }
-            if(isOK) 
-            {
-                // sending fund means make it availbale to withdraw here
-                ethToWithdraw[_requestId][_recipient] = _amount;
-            }   
-            return isOK;
-        }  
-        return true;
     }
     // ----------------------------------------------------------------------------------------
 

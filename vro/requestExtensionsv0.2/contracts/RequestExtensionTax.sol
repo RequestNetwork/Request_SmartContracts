@@ -4,7 +4,7 @@ import './RequestCore.sol';
 import './RequestInterface.sol';
 
 contract RequestExtensionTax is RequestInterface{
-
+/*
     // mapping of requestId => tax
     struct RequestTax {
         address subContract;
@@ -106,5 +106,6 @@ contract RequestExtensionTax is RequestInterface{
         require(taxs[_requestId].subContract == msg.sender);
         _;
     }   
+*/
 }
 

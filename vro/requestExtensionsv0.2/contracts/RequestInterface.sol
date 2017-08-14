@@ -25,13 +25,6 @@ contract RequestInterface {
         return true;
     } 
  
-    // send fund somewhere
-    function doSendFund(uint _requestId, address _recipient, uint _amount) returns(bool)
-    {
-        // nothing to do
-        return true;
-    } 
-
     // declare a payment
     function payment(uint _requestId, uint _amount) returns(bool)
     {
@@ -47,13 +40,13 @@ contract RequestInterface {
     } 
 
 
-    function fundMovement(uint _requestId, address from, address to, uint _amount) returns(bool)
+    function fundMovement(uint _requestId, address _from, address _to, uint _amount) returns(bool)
     {
         // nothing to do
         return true;
     } 
 
-    function fundOrder(uint _requestId, address from, address to, uint _amount) returns(bool)
+    function fundOrder(uint _requestId, address _from, address _to, uint _amount) returns(bool)
     {
         // nothing to do
         return true;

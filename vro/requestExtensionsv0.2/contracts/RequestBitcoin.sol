@@ -133,11 +133,6 @@ contract RequestBitcoin {
         onlyRequestState(_requestId, RequestCore.State.Accepted)
         returns(bool)
     {
-        // from extension do the job (?)
-        //if(isOnlyRequestExtensions(_requestId)) {
-            // paymentInternal(_requestId, _amount);    
-        // if from payee or payer, ask oracle
-        //} else 
         if (requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender) {
             requestOracleFundReception(_requestId, 0, to, addressBitoinTo);
         } else {
@@ -162,18 +157,33 @@ contract RequestBitcoin {
     // }
 
     // useless ?
-    function fundOrder(uint _requestId, address _from, address _to, uint _amount) returns(bool)
+    function fundOrder(uint _requestId, address _from, address _to, uint _amount) 
+        onlyRequestExtensions(_requestId)
+        returns(bool)
     {
-        bytes20 bitcoinAdressTo = 0;
-        if(_to==requestCore.getPayee(_requestId)) {
-            bitcoinAdressTo = bitCoinLedger[_requestId].addressBitcoinPayee;
-        } else if(_to==requestCore.getPayer(_requestId)) {
-            bitcoinAdressTo = bitCoinLedger[_requestId].addressBitcoinPayer;
+        address[10] memory extensions = requestCore.getExtensions(_requestId);
+        
+        var notIntercepted = true;
+        for (uint i = 0; notIntercepted && i < extensions.length && extensions[i]!=0; i++) 
+        {
+            if(msg.sender != extensions[i]) {
+                RequestInterface extension = RequestInterface(extensions[i]);
+                notIntercepted = extension.fundOrder(_requestId, _from, _to, _amount);  
+            }
         }
+    
+        if(notIntercepted) {
+            bytes20 bitcoinAdressTo = 0;
+            if(_to==requestCore.getPayee(_requestId)) {
+                bitcoinAdressTo = bitCoinLedger[_requestId].addressBitcoinPayee;
+            } else if(_to==requestCore.getPayer(_requestId)) {
+                bitcoinAdressTo = bitCoinLedger[_requestId].addressBitcoinPayer;
+            }
 
-        requestOracleFundReception(_requestId, _from, _to, bitcoinAdressTo);
-        return true;
-    } 
+            requestOracleFundReception(_requestId, _from, _to, bitcoinAdressTo);
+            return true;        
+        }
+    }
 
     // function refund(uint _requestId, uint _amount)
     //     // onlyRequestExtensions(_requestId)
@@ -191,15 +201,6 @@ contract RequestBitcoin {
     //     }
         
     // }
-
-    // function doSendFund(uint _requestId, address _recipient, uint _amount)
-    //     onlyRequestExtensions(_requestId)
-    //     returns(bool)
-    // {
-    //     return doSendFundInternal(_requestId, _recipient, _amount);
-    // }
-
-
 
     // ---- CONTRACT FUNCTIONS ---------------------------------------
     // ask Oracle
