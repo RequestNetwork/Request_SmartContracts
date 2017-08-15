@@ -79,13 +79,14 @@ contract RequestEthereum {
         return isOK;
     }
 
-    // keep ?
-    // function payment(uint _requestId, uint _amount)
-    //     onlyRequestExtensions(_requestId)
-    //     returns(bool)
-    // {
-    //     return paymentInternal(_requestId, _amount);
-    // }
+    // direct path to the core ?
+    function payment(uint _requestId, uint _amount)
+        onlyRequestExtensions(_requestId)
+        returns(bool)
+    {
+        requestCore.payment(_requestId, _amount);
+        return true;
+    }
 
     function cancel(uint _requestId)
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))

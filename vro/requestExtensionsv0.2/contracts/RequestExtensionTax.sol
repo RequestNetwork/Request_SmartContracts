@@ -4,12 +4,14 @@ import './RequestCore.sol';
 import './RequestInterface.sol';
 
 contract RequestExtensionTax is RequestInterface{
-/*
     // mapping of requestId => tax
     struct RequestTax {
         address subContract;
         address taxer;
         uint16 perTenThousand; // percentage with "2 decimals"
+        uint amountPaidToTax;
+        uint amountPaidToPayee;
+        uint amountDeclaredPaid;
     }
     mapping(uint => RequestTax) public taxs;
 
@@ -32,18 +34,18 @@ contract RequestExtensionTax is RequestInterface{
         isSubContractTrusted(msg.sender)
         returns(bool)
     {
-        taxs[_requestId] = RequestTax(msg.sender, address(_params[0]), uint16(_params[1])); // create RequestTax
+        taxs[_requestId] = RequestTax(msg.sender, address(_params[0]), uint16(_params[1]), 0,0,0); // create RequestTax
         return true;
     }
 
 
     // we just have to split the fund if it's too the paye
-    function doSendFund(uint _requestId, address _recipient, uint _amount)
+    function fundOrder(uint _requestId, address _from, address _to, uint _amount) 
         isSubContractRight(_requestId)
         returns(bool)
     {
         // if found to payee we refuse the sendfund and create 2 news for taxes
-        if(_amount > 0 && _recipient == requestCore.getPayee(_requestId)) {
+        if(_amount > 0 && _to == requestCore.getPayee(_requestId)) {
 
             uint amountToTaxer = (_amount*taxs[_requestId].perTenThousand)/10000;
             uint amountToPayee = _amount-amountToTaxer;
@@ -53,22 +55,67 @@ contract RequestExtensionTax is RequestInterface{
             
             RequestInterface subContract = RequestInterface(taxs[_requestId].subContract);
             
-            subContract.doSendFund(_requestId, requestCore.getPayee(_requestId), amountToPayee);
-            subContract.doSendFund(_requestId, taxs[_requestId].taxer, amountToTaxer);
-            LogRequestTaxPaid(_requestId, amountToTaxer);
+            subContract.fundOrder(_requestId, 0, _to, amountToPayee);
+            subContract.fundOrder(_requestId, 0, taxs[_requestId].taxer, amountToTaxer);
 
             return false; // refuse the previous sending fund.
         }
         // otherwise we accept
         return true;
     }
-    // ----------------------------------------------------------------------------------------
-    
-    // ---- TAX FUNCTIONS ------------------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------------------------------------
+    function fundMovement(uint _requestId, address _from, address _to, uint _amount)
+        isSubContractRight(_requestId)
+        returns(bool)
+    {
+        
+        if(_to==taxs[_requestId].taxer) { // don't check the from, todo ?
+            // Something todo in case of refund ?
+            taxs[_requestId].amountPaidToTax += _amount;
+            LogRequestTaxPaid(_requestId, _amount);
+
+            computeAmountPaid(_requestId);
+
+            return false; // interception it was for this ex tension
+        } else if(_to==requestCore.getPayee(_requestId)) { // don't check the from, todo ?
+            taxs[_requestId].amountPaidToPayee += _amount;
+
+            computeAmountPaid(_requestId);
+            return false; // interception !
+        // } else if(_to==requestCore.getPayer(_requestId)) { // don't check the from, todo ?
+        //     // Something todo in case of refund ?
+        //     return true;
+        } else {
+            // payment to someone not known, nothing to say
+            return true;
+        }
+    }
+    // -----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
 
     // internal functions
+    function computeAmountPaid(uint _requestId) internal {
+        RequestInterface subContract = RequestInterface(taxs[_requestId].subContract);
+
+        uint amountTaxPaidExpected = (requestCore.getAmountExpected(_requestId)*taxs[_requestId].perTenThousand)/10000;
+        uint amountPayeeExpected = requestCore.getAmountExpected(_requestId)-amountTaxPaidExpected;
+
+        uint permilTaxPaid = (taxs[_requestId].amountPaidToTax * 1000) / amountTaxPaidExpected;
+        uint permilPayeePaid = (taxs[_requestId].amountPaidToPayee * 1000) / amountPayeeExpected;
+
+        uint amountTotalPaidSoFar = 0;
+        if(permilPayeePaid < permilTaxPaid) {
+            amountTotalPaidSoFar = (requestCore.getAmountExpected(_requestId) * permilPayeePaid) / 1000;
+        } else {
+            amountTotalPaidSoFar = (requestCore.getAmountExpected(_requestId) * permilTaxPaid) / 1000;
+        }
+        
+        if(amountTotalPaidSoFar > taxs[_requestId].amountDeclaredPaid) {
+            subContract.payment(_requestId, amountTotalPaidSoFar-taxs[_requestId].amountDeclaredPaid);
+            taxs[_requestId].amountDeclaredPaid = amountTotalPaidSoFar;
+        }        
+    }
+
 
     //modifier
     modifier condition(bool c) {
@@ -106,6 +153,6 @@ contract RequestExtensionTax is RequestInterface{
         require(taxs[_requestId].subContract == msg.sender);
         _;
     }   
-*/
+
 }
 

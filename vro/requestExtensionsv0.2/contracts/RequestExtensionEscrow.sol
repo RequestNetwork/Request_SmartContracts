@@ -55,7 +55,6 @@ contract RequestExtensionEscrow is RequestInterface {
         returns(bool)
     {
         RequestInterface subContract = RequestInterface(escrows[_requestId].subContract);
-        logTEST(escrows[_requestId].amountRefunded, escrows[_requestId].amountReleased,escrows[_requestId].amountPaid);
         if(_to==0 || _to==escrows[_requestId].escrowDeposit) { // _to==0 Payment to the contract #ethCase
             // escrow payment we register the payment
             require(escrows[_requestId].state!=EscrowState.Refunded);
@@ -84,7 +83,6 @@ contract RequestExtensionEscrow is RequestInterface {
 
             escrows[_requestId].amountRefunded += _amount;
             if(escrows[_requestId].amountRefunded+escrows[_requestId].amountReleased == escrows[_requestId].amountPaid) {
-                logTEST(escrows[_requestId].amountRefunded, escrows[_requestId].amountReleased,escrows[_requestId].amountPaid);
                 subContract.cancel(_requestId); 
             }
             
@@ -96,7 +94,7 @@ contract RequestExtensionEscrow is RequestInterface {
         }
 
     }
-    event logTEST(uint amountRefunded, uint amountReleased,uint amountPaid);
+
     // -----------------------------------------------------------------------------------------
     
     // ---- ESCROW FUNCTIONS ------------------------------------------------------------------------------------
