@@ -163,7 +163,7 @@ contract('RequestCore', function(accounts) {
 					 	data = '0x'+from+to+addressBitcoinTo+txId+amount;
 					 	if(!againRefundToPayer) {
 					 		againRefundToPayer = true;
-				   			// requestExtensionEscrow.refundToPayer(1, {from:escrow1}).then(function() {
+				   			requestExtensionEscrow.refundToPayer(1, {from:escrow1}).then(function() {
 //				   			requestExtensionEscrow.releaseToPayee(1, {from:escrow1}).then(function() {
 					   		// requestBitcoin.oracleFundReception(reqId, data, {from:oracleBitCoin}).then(function() {
 							// 	return requestBitcoin.bitCoinLedger.call(1)
@@ -174,7 +174,7 @@ contract('RequestCore', function(accounts) {
 							// }).then(function(res) {
 							//  	console.log('bitcoinTxsHistory 1 0 3333333333333333333333')
 							//  	console.log(res)
-//					   		});
+					   		});
 				   		}
 			   		});
 			   }
@@ -237,17 +237,17 @@ contract('RequestCore', function(accounts) {
 		//   return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
 		// }).then(function(res) {
 		  // gasConsumption += res.receipt.gasUsed;
-		  // return requestBitcoin.paymentBitcoin(1, escrow1, '0x1333338f017bfb2bb0c03fa73e4b3ef7e3333333', {from:buyer1});
-		  return requestBitcoin.paymentBitcoin(1, taxer1, '0x1444444448f017bfb2bb0c03fa73e4b3ef7e4444444', {from:buyer1});
+		  return requestBitcoin.paymentBitcoin(1, escrow1,   '0x1333338f017bfb2bb0c03fa73e4b3ef7e3333333', {from:buyer1});
+		  // return requestBitcoin.paymentBitcoin(1, taxer1, '0x1444448f017bfb2bb0c03fa73e4b3ef7e4444444', {from:buyer1});
 		}).then(function(res) { 
 		  gasConsumption += res.receipt.gasUsed;
-		  return requestBitcoin.paymentBitcoin(1, seller1, addressBitcoinPayee, {from:buyer1});
-		}).then(function(res) { 
-		  gasConsumption += res.receipt.gasUsed;
-		  return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
-		//   // return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
-		}).then(function(res) { 
-		  gasConsumption += res.receipt.gasUsed;
+		//   return requestBitcoin.paymentBitcoin(1, seller1, addressBitcoinPayee, {from:buyer1});
+		// }).then(function(res) { 
+		//   gasConsumption += res.receipt.gasUsed;
+		  // return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
+		//   return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
+		// }).then(function(res) { 
+		//   gasConsumption += res.receipt.gasUsed;
 		 //  return requestExtensionEscrow.escrows.call(1)
 		 // }).then(function(res) {
 		 // 	console.log('escrows')
