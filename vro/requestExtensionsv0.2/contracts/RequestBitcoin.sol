@@ -47,7 +47,6 @@ contract RequestBitcoin {
     {
 
         uint requestId= requestCore.createRequest(msg.sender, _payer, _amountExpected, _extensions);
-
         if(_extensions[0]!=0) {
             RequestInterface extension0 = RequestInterface(_extensions[0]);
             extension0.createRequest(requestId, _extensionParams0);
@@ -129,6 +128,15 @@ contract RequestBitcoin {
         return isOK;
     }
 
+    // direct path to the core ?
+    function payment(uint _requestId, uint _amount)
+        onlyRequestExtensions(_requestId)
+        returns(bool)
+    {
+        requestCore.payment(_requestId, _amount);
+        return true;
+    }
+
     function paymentBitcoin(uint _requestId, address to, bytes20 addressBitoinTo)
         onlyRequestState(_requestId, RequestCore.State.Accepted)
         returns(bool)
@@ -179,6 +187,7 @@ contract RequestBitcoin {
             } else if(_to==requestCore.getPayer(_requestId)) {
                 bitcoinAdressTo = bitCoinLedger[_requestId].addressBitcoinPayer;
             }
+            // else TODO retrieve addressBitcoin third part in REGISTER ?
 
             requestOracleFundReception(_requestId, _from, _to, bitcoinAdressTo);
             return true;        
@@ -208,7 +217,7 @@ contract RequestBitcoin {
         OracleRequestFundReception(_requestId, _from, _to, _addressBitcoinTo);
     }
 
-    event LogTest(address from, address to, bytes20 toBitcoin,bytes32 txId, uint256 amount); // todo delete
+    event LogTestFUNDRECEPTION(address from, address to, bytes20 toBitcoin,bytes32 txId, uint256 amount); // todo delete
 
     function oracleFundReception(uint _requestId, bytes _data)  
         // onlyBitcoinOracle
@@ -225,7 +234,7 @@ contract RequestBitcoin {
         require(!txIdAlreadyStored(_requestId, txId));
         uint256 amount = uint256(extractBytes32(_data,92));
 
-        LogTest(from, to, toBitcoin, txId, amount);
+        LogTestFUNDRECEPTION(from, to, toBitcoin, txId, amount);
 
         // TODO check if toBitcoin is own by to WITH REGISTER TODO
 

@@ -105,9 +105,17 @@ contract RequestExtensionTax is RequestInterface{
 
         uint amountTotalPaidSoFar = 0;
         if(permilPayeePaid < permilTaxPaid) {
-            amountTotalPaidSoFar = (requestCore.getAmountExpected(_requestId) * permilPayeePaid) / 1000;
+            if(permilPayeePaid>=1000) {
+                amountTotalPaidSoFar = requestCore.getAmountExpected(_requestId);
+            } else {
+                amountTotalPaidSoFar = (requestCore.getAmountExpected(_requestId) * permilPayeePaid) / 1000;
+            }
         } else {
-            amountTotalPaidSoFar = (requestCore.getAmountExpected(_requestId) * permilTaxPaid) / 1000;
+            if(permilPayeePaid>=1000) {
+                amountTotalPaidSoFar = requestCore.getAmountExpected(_requestId);
+            } else {
+                amountTotalPaidSoFar = (requestCore.getAmountExpected(_requestId) * permilTaxPaid) / 1000;
+            }
         }
         
         if(amountTotalPaidSoFar > taxs[_requestId].amountDeclaredPaid) {
@@ -115,7 +123,6 @@ contract RequestExtensionTax is RequestInterface{
             taxs[_requestId].amountDeclaredPaid = amountTotalPaidSoFar;
         }        
     }
-
 
     //modifier
     modifier condition(bool c) {

@@ -1,4 +1,5 @@
 
+
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
 var RequestBitcoin = artifacts.require("./RequestBitcoin.sol");
@@ -49,7 +50,7 @@ contract('RequestCore', function(accounts) {
   	var escrow1 = accounts[6];
   	var taxer1 = accounts[7];
   	var oracleBitCoin = accounts[8];
-	var amount1 = 1000000000000;
+	var amount1 = 1000;
 	var amount2 = 9999;
 
 	var againRefundToPayer = false;
@@ -61,12 +62,11 @@ contract('RequestCore', function(accounts) {
 
 	var gasConsumption = 0;
 
-
-	it("Escrow should work two extension Ethereum", function() {
+		it("Escrow should work Bitcoin alone", function() {
 		var requestCore;
 		var requestExtensionEscrow;
 		var requestExtensionTax;
-		var requestEthereum;
+		var requestBitcoin;
 
 		return RequestCore.deployed().then(function(coreInstance) {
 			requestCore=coreInstance;
@@ -80,59 +80,114 @@ contract('RequestCore', function(accounts) {
 			   console.log(result.args)	
 			   console.log('-----------------------------------------------')
 			});
-
-
 			return RequestExtensionEscrow.new(requestCore.address,{from:admin});
 		}).then(function(extensionEscrowInstance) {
-				requestExtensionEscrow = extensionEscrowInstance;
+			requestExtensionEscrow = extensionEscrowInstance;
 
-				var eventsrequestExtensionEscrow= requestExtensionEscrow.allEvents({fromBlock: 0, toBlock: 'latest'});
-				eventsrequestExtensionEscrow.watch(function(error, result){
+			var eventsrequestExtensionEscrow= requestExtensionEscrow.allEvents({fromBlock: 0, toBlock: 'latest'});
+			eventsrequestExtensionEscrow.watch(function(error, result){
+			   console.log('-----------------------------------------------')
+			   if(error) { console.log('requestExtensionEscrow error'); console.log(error); }
+			   console.log('eventsrequestExtensionEscrow')
+			   console.log(result.event)
+			   console.log(result.args)
+			   console.log('-----------------------------------------------')
+			});
+			return RequestExtensionTax.new(requestCore.address,{from:admin});
+		}).then(function(extensionTaxInstance) {
+				requestExtensionTax = extensionTaxInstance;
+
+				var eventsrequestExtensionTax= requestExtensionTax.allEvents({fromBlock: 0, toBlock: 'latest'});
+				eventsrequestExtensionTax.watch(function(error, result){
 				   console.log('-----------------------------------------------')
-				   if(error) { console.log('requestExtensionEscrow error'); console.log(error); }
-				   console.log('eventsrequestExtensionEscrow')
+				   if(error) { console.log('requestExtensionTax error'); console.log(error); }
+				   console.log('eventsrequestExtensionTax')
 				   console.log(result.event)
 				   console.log(result.args)
 				   console.log('-----------------------------------------------')
 				});
-
-
-		// 	return RequestExtensionTax.new(requestCore.address,{from:admin});
-		// }).then(function(extensionTaxInstance) {
-		// 		requestExtensionTax = extensionTaxInstance;
-
-		// 		var eventsrequestExtensionTax= requestExtensionTax.allEvents({fromBlock: 0, toBlock: 'latest'});
-		// 		eventsrequestExtensionTax.watch(function(error, result){
-		// 		   console.log('-----------------------------------------------')
-		// 		   if(error) { console.log('requestExtensionTax error'); console.log(error); }
-		// 		   console.log('eventsrequestExtensionTax')
-		// 		   console.log(result.event)
-		// 		   console.log(result.args)
-		// 		   console.log('-----------------------------------------------')
-		// 		});
 
 
 				return RequestEthereum.new(requestCore.address,{from:admin});
-		}).then(function(ethereumInstance) {
-				requestEthereum = ethereumInstance;		
-				
-				var eventsrequestEthereum= requestEthereum.allEvents({fromBlock: 0, toBlock: 'latest'});
-				eventsrequestEthereum.watch(function(error, result){
-				   console.log('-----------------------------------------------')
-				   if(error) { console.log('requestEthereum error'); console.log(error); }
-				   console.log('eventsrequestEthereum')
-				   console.log(result.event)
-				   console.log(result.args)
-				   console.log('-----------------------------------------------')
-				});
+		}).then(function(instance) {
+			requestEthereum = instance;		
+			console.log('requestEthereum')		
+			console.log(requestEthereum.address)
+			var eventsrequestEthereum= requestEthereum.allEvents({fromBlock: 0, toBlock: 'latest'});
+			eventsrequestEthereum.watch(function(error, result){
+			   console.log('-----------------------------------------------')
+			   if(error) { console.log('requestEthereum error'); console.log(error); }
+			   console.log('eventsrequestEthereum')
+			   console.log(result.event)
+			   console.log(result.args)
+			   console.log('-----------------------------------------------')
+			});
 
-				return requestCore.adminResume({from:admin});
+
+			return RequestBitcoin.new(requestCore.address, oracleBitCoin, {from:admin});
+		}).then(function(bitcoinInstance) {
+			requestBitcoin = bitcoinInstance;		
+			console.log('requestBitcoin')		
+			console.log(requestBitcoin.address)
+			var eventsrequestBitcoin= requestBitcoin.allEvents({fromBlock: 0, toBlock: 'latest'});
+			eventsrequestBitcoin.watch(function(error, result){
+			   console.log('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
+			   if(error) { console.log('requestBitcoin error'); console.log(error); }
+			   console.log('eventsrequestBitcoin')
+			   console.log(result.event)
+			   console.log(result.args)
+			   console.log('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
+			   if(result.event == 'OracleRequestFundReception') {
+			   		var reqId = result.args.requestId;
+			   		var from = result.args.from.replace('0x','');
+			   		var to = result.args.to.replace('0x','');
+			   		var addressBitcoinTo = result.args.addressBitcoinTo.replace('0x','');
+			   		// var addressBitcoinFrom = "1010101010134567891324567891234510101010"; // faked one
+			   		var txId = "01010101010134567891324567891234567891234567891234567891010101"+(lastOctetTxIdFake++); // faked one
+			   		var amount = integerToByte32str(amount1).replace('0x',''); // faked one
+			   		// console.log("'0x'+from+to+addressBitcoinTo+txId+amount");
+			   		console.log('0x'+from+to+addressBitcoinTo+txId+amount);
+			   		var data = '0x'+from+to+addressBitcoinTo+txId+amount;
+
+			   		requestBitcoin.oracleFundReception(reqId, data, {from:oracleBitCoin}).then(function() {
+						return requestBitcoin.bitCoinLedger.call(1)
+					}).then(function(res) {
+					 	console.log('bitCoinLedger 222222222222222222')
+					 	console.log(res)
+					// 	return requestBitcoin.bitcoinTxsHistory.call(1,0)
+					// }).then(function(res) {
+					//  	console.log('bitcoinTxsHistory 1 0')
+					//  	console.log(res)
+
+					 	txId = "01010101010134567891324567891234567891234567891234567891010101"+(lastOctetTxIdFake++); 
+					 	data = '0x'+from+to+addressBitcoinTo+txId+amount;
+					 	if(!againRefundToPayer) {
+					 		againRefundToPayer = true;
+				   			// requestExtensionEscrow.refundToPayer(1, {from:escrow1}).then(function() {
+//				   			requestExtensionEscrow.releaseToPayee(1, {from:escrow1}).then(function() {
+					   		// requestBitcoin.oracleFundReception(reqId, data, {from:oracleBitCoin}).then(function() {
+							// 	return requestBitcoin.bitCoinLedger.call(1)
+							// }).then(function(res) {
+							//  	console.log('bitCoinLedger 222222222222222222 333333333333333333333333')
+							//  	console.log(res)
+							// 	return requestBitcoin.bitcoinTxsHistory.call(1,0)
+							// }).then(function(res) {
+							//  	console.log('bitcoinTxsHistory 1 0 3333333333333333333333')
+							//  	console.log(res)
+//					   		});
+				   		}
+			   		});
+			   }
+			});
+			return requestCore.adminResume({from:admin});
 		}).then(function() {
 		  return requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 		}).then(function() {
+		  return requestCore.adminAddTrustedSubContract(requestBitcoin.address, {from:admin});
+		}).then(function() {
 		  return requestCore.adminAddTrustedExtension(requestExtensionEscrow.address, {from:admin});
-		// }).then(function() {
-		//   return requestCore.adminAddTrustedExtension(requestExtensionTax.address, {from:admin});
+		}).then(function() {
+		  return requestCore.adminAddTrustedExtension(requestExtensionTax.address, {from:admin});
 		}).then(function() {
 
 			var extensions = [];
@@ -141,90 +196,79 @@ contract('RequestCore', function(accounts) {
 
 			// // for escrow
 			// extensions.push(requestExtensionEscrow.address);
-			// params[numberExtension++] = [addressToByte32str(escrow1)]
+			// params[numberExtension++] = [addressToByte32str(escrow1),addressToByte32str(escrow1)] // escrow and escrow deposit
 
 			// // for tax
-			// extensions.push(requestExtensionTax.address);
-			// params[numberExtension++] = [addressToByte32str(taxer1), integerToByte32str(2000) ]
+			extensions.push(requestExtensionTax.address);
+			params[numberExtension++] = [addressToByte32str(taxer1), integerToByte32str(2000) ]
 
 			for(;numberExtension<2; numberExtension++) {
 				params[numberExtension] = [];
 			}
 
+
 		  console.log("extensions");
 		  console.log(extensions);
 		  console.log("params");
 		  console.log(params);
+		  console.log("addressBitcoinPayee");
+		  console.log(addressBitcoinPayee);
+		  console.log("addressBitcoinPayer");
+		  console.log(addressBitcoinPayer);
 
-		  return requestEthereum.createRequest(buyer1, amount1, extensions, params[0], params[1], {from:seller1});
-		  // return requestEthereum.createRequest(buyer1, amount1, [requestExtensionTax.address], params1, params1, {from:seller1});
+		  // return requestEthereum.createRequest(buyer1, amount1, extensions, params[0], params[1], {from:seller1});
+		  return requestBitcoin.createRequest(buyer1, amount1, extensions, params[0], params[1], addressBitcoinPayee, addressBitcoinPayer, {from:seller1});
 		}).then(function(res) { 
 		  gasConsumption += res.receipt.gasUsed;
+		  // console.log('res')
+		  // console.log(res)
 		  // (res.logs || []).forEach(function(l) {
 		  //   assert.equal(l.event, "LogRequestCreated", "LogRequestCreated must be trigger");
 		  //   assert.equal(l.args.requestId.valueOf(), "1", "event should give invoideID: 1");
 		  //   assert.equal(l.args.seller, seller1, "event should give seller as second arg");
 		  //   assert.equal(l.args.buyer, buyer1, "event should give buyer as third arg");
 		  // });
-		  return requestEthereum.accept(1, {from:buyer1});  
+		  return requestBitcoin.accept(1, {from:buyer1});  
 		}).then(function(res) { 
 		  gasConsumption += res.receipt.gasUsed;
-		//   return requestExtensionEscrow.escrows.call(1);
+
+		  // return requestBitcoin.payment(1, 124, {from:buyer1});  
+		  // return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
+		//   return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
 		// }).then(function(res) {
-			// console.log('res')
-			// console.log(res)
-		  return requestEthereum.pay(1, {from:buyer1, value:amount1});
+		  // gasConsumption += res.receipt.gasUsed;
+		  // return requestBitcoin.paymentBitcoin(1, escrow1, '0x1333338f017bfb2bb0c03fa73e4b3ef7e3333333', {from:buyer1});
+		  return requestBitcoin.paymentBitcoin(1, taxer1, '0x1444444448f017bfb2bb0c03fa73e4b3ef7e4444444', {from:buyer1});
+		}).then(function(res) { 
+		  gasConsumption += res.receipt.gasUsed;
+		  return requestBitcoin.paymentBitcoin(1, seller1, addressBitcoinPayee, {from:buyer1});
+		}).then(function(res) { 
+		  gasConsumption += res.receipt.gasUsed;
+		//   return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
+		//   // return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
 		// }).then(function(res) { 
 		//   gasConsumption += res.receipt.gasUsed;
-		//   return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
-		// }).then(function(res) {
-		  // return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
-		}).then(function(res) { 
-		  gasConsumption += res.receipt.gasUsed;
 		 //  return requestExtensionEscrow.escrows.call(1)
 		 // }).then(function(res) {
 		 // 	console.log('escrows')
 		 // 	console.log(res)
-		// 	return web3.eth.getBalance(buyer1)
-		// }).then(function(res) {
-		//  	console.log('getBalance buyer1')
-		//  	console.log(res)
-			return requestEthereum.ethToWithdraw.call(1,buyer1)
-		}).then(function(res) {
-		 	console.log('ethToWithdraw buyer1')
-		 	console.log(res)
-
-			return requestEthereum.ethToWithdraw.call(1,seller1)
-		}).then(function(res) {
-		 	console.log('ethToWithdraw seller1')
-		 	console.log(res)
-			return requestEthereum.ethToWithdraw.call(1,taxer1)
-		}).then(function(res) {
-		 	console.log('ethToWithdraw taxer1')
-		 	console.log(res)
-		 	console.log('gasConsumption')
-		 	console.log(gasConsumption)
-		// 	return requestEthereum.ethToWithdraw.call(1,buyer1)
+		// 	return requestBitcoin.ethToWithdraw.call(1,buyer1)
 		// }).then(function(res) {
 		//  	console.log('ethToWithdraw 2')
-		//  	console.log(res)
-		// 	return web3.eth.getBalance(buyer1)
-		// }).then(function(res) {
-		//  	console.log('getBalance2 buyer1')
 		//  	console.log(res)
 		//   return requestExtensionEscrow.escrows.call(1)
 		//  }).then(function(res) {
 		//  	console.log('escrows 22')
-		//  	console.log(res)		  
+		//  	console.log(res)	
+		// 	return requestBitcoin.bitCoinLedger.call(1)
+		// }).then(function(res) {
+		//  	console.log('bitCoinLedger 1')
+		//  	console.log(res)
+
+		 	console.log('gasConsumption')
+		 	console.log(gasConsumption)	  
 		});
 	});
-
-
-
-
-
-
-
 
 /*
 	// who can do what ----------------------------------------

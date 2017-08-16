@@ -179,15 +179,6 @@ contract('RequestCore', function(accounts) {
 		// 	   		});
 		// 	   }
 		// 	});
-			return web3.eth.getBalance(buyer1)
-		}).then(function(res) {
-		 	console.log('getBalance buyer1')
-		 	console.log(res)
-			return web3.eth.getBalance(seller1)
-		}).then(function(res) {
-		 	console.log('getBalance2 seller1')
-		 	console.log(res)
-
 			return requestCore.adminResume({from:admin});
 		}).then(function() {
 		  return requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
