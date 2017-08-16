@@ -195,8 +195,8 @@ contract('RequestCore', function(accounts) {
 			var numberExtension = 0;
 
 			// // for escrow
-			// extensions.push(requestExtensionEscrow.address);
-			// params[numberExtension++] = [addressToByte32str(escrow1),addressToByte32str(escrow1)] // escrow and escrow deposit
+			extensions.push(requestExtensionEscrow.address);
+			params[numberExtension++] = [addressToByte32str(escrow1),addressToByte32str(escrow1)] // escrow and escrow deposit
 
 			// // for tax
 			extensions.push(requestExtensionTax.address);
@@ -244,10 +244,10 @@ contract('RequestCore', function(accounts) {
 		  return requestBitcoin.paymentBitcoin(1, seller1, addressBitcoinPayee, {from:buyer1});
 		}).then(function(res) { 
 		  gasConsumption += res.receipt.gasUsed;
-		//   return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
+		  return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
 		//   // return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
-		// }).then(function(res) { 
-		//   gasConsumption += res.receipt.gasUsed;
+		}).then(function(res) { 
+		  gasConsumption += res.receipt.gasUsed;
 		 //  return requestExtensionEscrow.escrows.call(1)
 		 // }).then(function(res) {
 		 // 	console.log('escrows')
