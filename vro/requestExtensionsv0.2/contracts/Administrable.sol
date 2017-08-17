@@ -33,7 +33,7 @@ contract Administrable {
     // sub
     // Admin function ----------------------
     // pause system by admin
-    function adminPaused()
+    function adminPause()
         onlyAdmin
     {
         require(systemState==SystemState.Working); // state must be created only
@@ -107,7 +107,7 @@ contract Administrable {
         return trustedSubContracts[_contractAddress];
     }
 
-    function statusExtension(address _extension) 
+    function getStatusExtension(address _extension) 
         systemIsWorking
         returns(uint8) 
     {

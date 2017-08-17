@@ -28,13 +28,16 @@ contract RequestEthereum {
     {
         uint requestId= requestCore.createRequest(msg.sender, _payer, _amountExpected, _extensions);
 
-        RequestSynchroneInterface extension0 = RequestSynchroneInterface(_extensions[0]);
-        extension0.createRequest(requestId, _extensionParams0);
+        if(_extensions[0]!=0) {
+            RequestSynchroneInterface extension0 = RequestSynchroneInterface(_extensions[0]);
+            extension0.createRequest(requestId, _extensionParams0);
+        }
 
         if(_extensions[1]!=0) {
             RequestSynchroneInterface extension1 = RequestSynchroneInterface(_extensions[1]);
             extension1.createRequest(requestId, _extensionParams1);
         }
+
         return requestId;
     }
 
