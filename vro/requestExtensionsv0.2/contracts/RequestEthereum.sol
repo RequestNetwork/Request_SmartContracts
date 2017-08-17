@@ -1,7 +1,7 @@
 pragma solidity ^0.4.11;
 
 import './RequestCore.sol';
-import './RequestInterface.sol';
+import './RequestSynchroneInterface.sol';
 
 // many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs
 contract RequestEthereum {
@@ -28,11 +28,11 @@ contract RequestEthereum {
     {
         uint requestId= requestCore.createRequest(msg.sender, _payer, _amountExpected, _extensions);
 
-        RequestInterface extension0 = RequestInterface(_extensions[0]);
+        RequestSynchroneInterface extension0 = RequestSynchroneInterface(_extensions[0]);
         extension0.createRequest(requestId, _extensionParams0);
 
         if(_extensions[1]!=0) {
-            RequestInterface extension1 = RequestInterface(_extensions[1]);
+            RequestSynchroneInterface extension1 = RequestSynchroneInterface(_extensions[1]);
             extension1.createRequest(requestId, _extensionParams1);
         }
         return requestId;
@@ -50,7 +50,7 @@ contract RequestEthereum {
         var isOK = true;
         for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
         {
-            RequestInterface extension = RequestInterface(extensions[i]);
+            RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
             isOK = isOK && extension.accept(_requestId);
         }
         if(isOK) 
@@ -71,7 +71,7 @@ contract RequestEthereum {
         var isOK = true;
         for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
         {
-            RequestInterface extension = RequestInterface(extensions[i]);
+            RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
             isOK = isOK && extension.decline(_requestId);
         }
         if(isOK) 
@@ -88,11 +88,11 @@ contract RequestEthereum {
         return paymentInternal(_requestId, _amount);
     }
 
-    function doSendFund(uint _requestId, address _recipient, uint _amount)
+    function fundOrder(uint _requestId, address _recipient, uint _amount)
         onlyRequestExtensions(_requestId)
         returns(bool)
     {
-        return doSendFundInternal(_requestId, _recipient, _amount);
+        return fundOrderInternal(_requestId, _recipient, _amount);
     }
 
 
@@ -106,7 +106,7 @@ contract RequestEthereum {
         for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
         {
             if(msg.sender != extensions[i]) {
-                RequestInterface extension = RequestInterface(extensions[i]);
+                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
                 isOK = isOK && extension.cancel(_requestId);
             }
         }
@@ -151,7 +151,7 @@ contract RequestEthereum {
         for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
         {
             if(msg.sender != extensions[i]) {
-                RequestInterface extension = RequestInterface(extensions[i]);
+                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
                 isOK = isOK && extension.payment(_requestId, _amount);  
             }
         }
@@ -159,12 +159,12 @@ contract RequestEthereum {
         {
             requestCore.payment(_requestId, _amount);
             // payment done, the money is ready to withdraw by the payee
-            doSendFundInternal(_requestId, requestCore.getPayee(_requestId), _amount);
+            fundOrderInternal(_requestId, requestCore.getPayee(_requestId), _amount);
         }
         return isOK;
     }
 
-    function doSendFundInternal(uint _requestId, address _recipient, uint _amount) internal
+    function fundOrderInternal(uint _requestId, address _recipient, uint _amount) internal
         returns(bool)
     {
         if(_amount > 0) { // sending 0 doesn't make sense
@@ -174,8 +174,8 @@ contract RequestEthereum {
             for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
             {
                 if(msg.sender != extensions[i]) {
-                    RequestInterface extension = RequestInterface(extensions[i]);
-                    isOK = isOK && extension.doSendFund(_requestId, _recipient, _amount);
+                    RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
+                    isOK = isOK && extension.fundOrder(_requestId, _recipient, _amount);
                 }
             }
             if(isOK) 
@@ -201,7 +201,7 @@ contract RequestEthereum {
     //     for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
     //     {
     //         if(msg.sender != extensions[i]) {
-    //             RequestInterface extension = RequestInterface(extensions[i]);
+    //             RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
     //             isOK = isOK && extension.refund(_requestId, _amount);  
     //         }
     //     }

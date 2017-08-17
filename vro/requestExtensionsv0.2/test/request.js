@@ -108,13 +108,28 @@ contract('RequestCore', function(accounts) {
 		}).then(function() {
 
 
+			var extensions = [];
+			var params = [];
+			var numberExtension = 0;
 
+			// // for escrow
+			extensions.push(requestExtensionEscrow.address);
+			params[numberExtension++] = [addressToByte32str(escrow1),addressToByte32str(escrow1)] // escrow and escrow deposit
 
-		  var params0 = [addressToByte32str(escrow1)];
-		  var params1 = [addressToByte32str(taxer1), integerToByte32str(2000) ];
-		  console.log(params1);
-		  return requestEthereum.createRequest(buyer1, amount1, [requestExtensionEscrow.address,requestExtensionTax.address], params0, params1, {from:seller1});
-		  // return requestEthereum.createRequest(buyer1, amount1, [requestExtensionTax.address], params1, params1, {from:seller1});
+			// // for tax
+			extensions.push(requestExtensionTax.address);
+			params[numberExtension++] = [addressToByte32str(taxer1), integerToByte32str(2000) ]
+
+			for(;numberExtension<2; numberExtension++) {
+				params[numberExtension] = [];
+			}
+
+		  console.log("extensions");
+		  console.log(extensions);
+		  console.log("params");
+		  console.log(params);
+
+		  return requestEthereum.createRequest(buyer1, amount1, extensions, params[0], params[1], {from:seller1});
 		}).then(function(res) { 
 		  // console.log("res.receipt.logs");
 		  // console.log(res.receipt.logs);
@@ -132,10 +147,10 @@ contract('RequestCore', function(accounts) {
 			// console.log(res)
 		  return requestEthereum.pay(1, {from:buyer1, value:amount1});
 		}).then(function(res) {
-		//   return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
-		// }).then(function(res) {
-		  return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
+		  return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
 		}).then(function(res) {
+		//   return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
+		// }).then(function(res) {
 		 //  return requestExtensionEscrow.escrows.call(1)
 		 // }).then(function(res) {
 		 // 	console.log('escrows')

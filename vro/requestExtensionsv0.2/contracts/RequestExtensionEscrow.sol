@@ -1,10 +1,10 @@
 pragma solidity ^0.4.11;
 
 import './RequestCore.sol';
-import './RequestInterface.sol';
+import './RequestSynchroneInterface.sol';
 
 // many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs
-contract RequestExtensionEscrow is RequestInterface {
+contract RequestExtensionEscrow is RequestSynchroneInterface {
     enum EscrowState { Created, Refunded, Released }
 
     // mapping of requestId => escrow
@@ -40,7 +40,7 @@ contract RequestExtensionEscrow is RequestInterface {
 
 
     // we just register the refund if it's to the payer
-    function doSendFund(uint _requestId, address _recipient, uint _amount)
+    function fundOrder(uint _requestId, address _recipient, uint _amount)
         isSubContractRight(_requestId)
         returns(bool)
     {
@@ -81,7 +81,7 @@ contract RequestExtensionEscrow is RequestInterface {
         escrows[_requestId].state = EscrowState.Released;
 
         if(isPaymentCompleteToEscrow(_requestId)) {
-            RequestInterface subContract = RequestInterface(escrows[_requestId].subContract);
+            RequestSynchroneInterface subContract = RequestSynchroneInterface(escrows[_requestId].subContract);
             subContract.payment(_requestId, escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded);
         }
     }
@@ -97,8 +97,8 @@ contract RequestExtensionEscrow is RequestInterface {
         uint amountToRefund = escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded;
         escrows[_requestId].amountRefunded = escrows[_requestId].amountPaid;
 
-        RequestInterface subContract = RequestInterface(escrows[_requestId].subContract);
-        if(amountToRefund>0) subContract.doSendFund(_requestId, requestCore.getPayer(_requestId), amountToRefund); 
+        RequestSynchroneInterface subContract = RequestSynchroneInterface(escrows[_requestId].subContract);
+        if(amountToRefund>0) subContract.fundOrder(_requestId, requestCore.getPayer(_requestId), amountToRefund); 
         subContract.cancel(_requestId); 
     }
     // ----------------------------------------------------------------------------------------

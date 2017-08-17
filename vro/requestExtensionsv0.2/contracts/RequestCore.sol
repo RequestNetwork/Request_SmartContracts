@@ -15,7 +15,8 @@ contract RequestCore is Administrable{
         uint amountExpected;
         address subContract;
         uint amountPaid;
-        uint amountRefunded;
+        uint amountAdditional;
+        uint amountSubtract;
         State state;
         address[10] extensions;
     }
@@ -30,9 +31,11 @@ contract RequestCore is Administrable{
     event LogRequestAccepted(uint requestId);
     event LogRequestDeclined(uint requestId);
     event LogRequestCanceled(uint requestId);
+    event LogRequestCompleted(uint requestId);
     event LogRequestPayment(uint requestId, uint amountPaid);
     event LogRequestRefunded(uint requestId, uint amountRefunded);
-    event LogRequestCompleted(uint requestId);
+    event LogRequestAddAdditional(uint requestId, uint amountAdded);
+    event LogRequestAddSubtract(uint requestId, uint amountSubtracted);
 
 
     // contract constructor
@@ -48,7 +51,7 @@ contract RequestCore is Administrable{
         returns (uint) 
     {
         uint requestId = numRequests++; // get the current num as ID and increment it
-        requests[requestId] = Request(_payee, _payer, _amountExpected, msg.sender, 0, 0, State.Created, _extensions); // create Request
+        requests[requestId] = Request(_payee, _payer, _amountExpected, msg.sender, 0, 0, 0, State.Created, _extensions); // create Request
         LogRequestCreated(requestId, _payee, _payer); // we "publish" this Request - should we let _payer here?
         return requestId;
     }
@@ -90,12 +93,12 @@ contract RequestCore is Administrable{
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare payment
-        require(_amount > 0 && _amount+c.amountPaid > c.amountPaid && _amount+c.amountPaid <= c.amountExpected); // value must be greater than 0 and all the payments should not overpass the amountExpected
+        require(_amount > 0 && _amount+c.amountPaid > c.amountPaid); // value must be greater than 0 and all the payments should not overpass the amountExpected
 
         c.amountPaid += _amount;
         LogRequestPayment(_requestId, _amount);
 
-        if(c.amountPaid == c.amountExpected) {
+        if(c.amountPaid == c.amountExpected+c.amountAdditional-c.amountSubtract) {
             c.state = State.Completed;
             LogRequestCompleted(_requestId);
         }
@@ -107,10 +110,34 @@ contract RequestCore is Administrable{
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare refund
-        require(_amount > 0 && _amount+c.amountRefunded > c.amountRefunded && _amount+c.amountRefunded <= c.amountPaid); // value must be greater than 0 and all the payments should not overpass the amountPaid
+        require(_amount > 0 && c.amountPaid-_amount < c.amountPaid); // value must be greater than 0 and all the payments should not overpass the amountPaid
 
-        c.amountRefunded += _amount;
+        c.amountPaid -= _amount;
         LogRequestRefunded(_requestId, _amount);
+    }
+
+    // declare a addtional
+    function addAdditional(uint _requestId, uint _amount)
+        systemIsWorking
+    {   
+        Request storage c = requests[_requestId];
+        require(c.subContract==msg.sender); // only subContract can declare refund
+        require(_amount > 0 && c.amountAdditional+_amount > c.amountAdditional); // value must be greater than 0 and all the payments should not overpass the amountPaid
+
+        c.amountAdditional += _amount;
+        LogRequestAddAdditional(_requestId, _amount);
+    }
+
+    // declare a subract
+    function addSubtract(uint _requestId, uint _amount)
+        systemIsWorking
+    {   
+        Request storage c = requests[_requestId];
+        require(c.subContract==msg.sender); // only subContract can declare refund
+        require(_amount > 0 && c.amountSubtract+_amount > c.amountSubtract); // value must be greater than 0 and all the payments should not overpass the amountPaid
+
+        c.amountSubtract += _amount;
+        LogRequestAddSubtract(_requestId, _amount);
     }
 
     // request getters - each fields or each tuples
@@ -149,11 +176,18 @@ contract RequestCore is Administrable{
         return requests[_requestId].amountPaid;
     }
       
-    function getAmountRefunded(uint _requestId)
+    function getAmountAdditional(uint _requestId)
         systemIsWorking
         returns(uint)
     {
-        return requests[_requestId].amountRefunded;
+        return requests[_requestId].amountAdditional;
+    }
+
+    function getAmountSubtract(uint _requestId)
+        systemIsWorking
+        returns(uint)
+    {
+        return requests[_requestId].amountSubtract;
     }
 
     function getState(uint _requestId)

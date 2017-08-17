@@ -1,9 +1,9 @@
 pragma solidity ^0.4.11;
 
 import './RequestCore.sol';
-import './RequestInterface.sol';
+import './RequestSynchroneInterface.sol';
 
-contract RequestExtensionTax is RequestInterface{
+contract RequestExtensionTax is RequestSynchroneInterface{
 
     // mapping of requestId => tax
     struct RequestTax {
@@ -38,7 +38,7 @@ contract RequestExtensionTax is RequestInterface{
 
 
     // we just have to split the fund if it's too the paye
-    function doSendFund(uint _requestId, address _recipient, uint _amount)
+    function fundOrder(uint _requestId, address _recipient, uint _amount)
         isSubContractRight(_requestId)
         returns(bool)
     {
@@ -51,10 +51,10 @@ contract RequestExtensionTax is RequestInterface{
             require(amountToTaxer+amountToPayee == _amount); // avoid overflow
             require(_amount-amountToTaxer < _amount); // avoid underflow
             
-            RequestInterface subContract = RequestInterface(taxs[_requestId].subContract);
+            RequestSynchroneInterface subContract = RequestSynchroneInterface(taxs[_requestId].subContract);
             
-            subContract.doSendFund(_requestId, requestCore.getPayee(_requestId), amountToPayee);
-            subContract.doSendFund(_requestId, taxs[_requestId].taxer, amountToTaxer);
+            subContract.fundOrder(_requestId, requestCore.getPayee(_requestId), amountToPayee);
+            subContract.fundOrder(_requestId, taxs[_requestId].taxer, amountToTaxer);
             LogRequestTaxPaid(_requestId, amountToTaxer);
 
             return false; // refuse the previous sending fund.

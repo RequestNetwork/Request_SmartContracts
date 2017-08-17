@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 
-contract RequestInterface {
+contract RequestSynchroneInterface {
     
     function createRequest(uint _requestId, bytes32[10] _params) returns(bool);
 
@@ -26,7 +26,7 @@ contract RequestInterface {
     } 
  
     // send fund somewhere
-    function doSendFund(uint _requestId, address _recipient, uint _amount) returns(bool)
+    function fundOrder(uint _requestId, address _recipient, uint _amount) returns(bool)
     {
         // nothing to do
         return true;
