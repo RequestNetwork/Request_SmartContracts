@@ -6,7 +6,7 @@ import './Administrable.sol';
 contract RequestCore is Administrable{
 
     // state of an RequestgetSystemState
-    enum State { Created, Accepted, Declined, Completed, Canceled }
+    enum State { Created, Accepted, Declined, Canceled }
 
     // What is an Request
     struct Request {
@@ -32,7 +32,6 @@ contract RequestCore is Administrable{
     event LogRequestAccepted(uint requestId);
     event LogRequestDeclined(uint requestId);
     event LogRequestCanceled(uint requestId);
-    event LogRequestCompleted(uint requestId);
     event LogRequestPayment(uint requestId, uint amountPaid);
     event LogRequestRefunded(uint requestId, uint amountRefunded);
     event LogRequestAddAdditional(uint requestId, uint amountAdded);
@@ -96,15 +95,10 @@ contract RequestCore is Administrable{
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare payment
-        require(_amount+c.amountPaid > c.amountPaid); // value must be greater than 0 and all the payments should not overpass the amountExpected
+        require(_amount+c.amountPaid >= c.amountPaid); // all the payments should not overpass the amountExpected
 
         c.amountPaid += _amount;
         LogRequestPayment(_requestId, _amount);
-
-        if(c.amountPaid == c.amountExpected+c.amountAdditional-c.amountSubtract) {
-            c.state = State.Completed;
-            LogRequestCompleted(_requestId);
-        }
     }
 
     // declare a refund
@@ -113,7 +107,7 @@ contract RequestCore is Administrable{
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare refund
-        require(c.amountPaid-_amount < c.amountPaid); // value must be greater than 0 and all the payments should not overpass the amountPaid
+        require(c.amountPaid-_amount <= c.amountPaid); // all the payments should not overpass the amountPaid
 
         c.amountPaid -= _amount;
         LogRequestRefunded(_requestId, _amount);
@@ -125,7 +119,7 @@ contract RequestCore is Administrable{
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare refund
-        require(c.amountAdditional+_amount > c.amountAdditional); // value must be greater than 0 and all the payments should not overpass the amountPaid
+        require(c.amountAdditional+_amount >= c.amountAdditional); // value must be greater than 0 and all the payments should not overpass the amountPaid
 
         c.amountAdditional += _amount;
         LogRequestAddAdditional(_requestId, _amount);
