@@ -23,10 +23,13 @@ contract RequestEthereum {
         requestCore=RequestCore(_requestCoreAddress);
     }
 
-    function createRequest(address _payer, uint _amountExpected, address[10] _extensions, bytes32[10] _extensionParams0, bytes32[10] _extensionParams1  )
+    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[5] _extensionParams0, bytes32[5] _extensionParams1, bytes32[5] _extensionParams2  )
         returns(uint)
     {
-        uint requestId= requestCore.createRequest(msg.sender, _payer, _amountExpected, _extensions);
+        require(msg.sender==_payee || msg.sender==_payer);
+        require(_payee!=_payer);
+
+        uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
 
         if(_extensions[0]!=0) {
             RequestSynchroneInterface extension0 = RequestSynchroneInterface(_extensions[0]);
@@ -38,6 +41,10 @@ contract RequestEthereum {
             extension1.createRequest(requestId, _extensionParams1);
         }
 
+        if(_extensions[2]!=0) {
+            RequestSynchroneInterface extension2 = RequestSynchroneInterface(_extensions[2]);
+            extension2.createRequest(requestId, _extensionParams2);
+        }
         return requestId;
     }
 
@@ -48,7 +55,7 @@ contract RequestEthereum {
         onlyRequestState(_requestId, RequestCore.State.Created)
         returns(bool)
     {
-        address[10] memory extensions = requestCore.getExtensions(_requestId);
+        address[3] memory extensions = requestCore.getExtensions(_requestId);
 
         var isOK = true;
         for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
@@ -69,7 +76,7 @@ contract RequestEthereum {
         onlyRequestState(_requestId, RequestCore.State.Created)
         returns(bool)
     {
-        address[10] memory extensions = requestCore.getExtensions(_requestId);
+        address[3] memory extensions = requestCore.getExtensions(_requestId);
 
         var isOK = true;
         for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
@@ -103,7 +110,7 @@ contract RequestEthereum {
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
         returns(bool)
     {
-        address[10] memory extensions = requestCore.getExtensions(_requestId);
+        address[3] memory extensions = requestCore.getExtensions(_requestId);
 
         var isOK = true;
         for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
@@ -148,7 +155,7 @@ contract RequestEthereum {
         onlyRequestState(_requestId, RequestCore.State.Accepted)
         returns(bool)
     {
-        address[10] memory extensions = requestCore.getExtensions(_requestId);
+        address[3] memory extensions = requestCore.getExtensions(_requestId);
 
         var isOK = true;
         for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
@@ -171,7 +178,7 @@ contract RequestEthereum {
         returns(bool)
     {
         if(_amount > 0) { // sending 0 doesn't make sense
-            address[10] memory extensions = requestCore.getExtensions(_requestId);
+            address[3] memory extensions = requestCore.getExtensions(_requestId);
 
             var isOK = true;
             for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
@@ -198,7 +205,7 @@ contract RequestEthereum {
     // function refund(uint _requestId, uint _amount)
     //     onlyRequestExtensions(_requestId)
     // {
-    //     address[10] memory extensions = requestCore.getExtensions(_requestId);
+    //     address[3] memory extensions = requestCore.getExtensions(_requestId);
 
     //     var isOK = true;
     //     for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
@@ -249,7 +256,7 @@ contract RequestEthereum {
 
 
     function isOnlyRequestExtensions(uint _requestId) internal returns(bool){
-        address[10] memory extensions = requestCore.getExtensions(_requestId);
+        address[3] memory extensions = requestCore.getExtensions(_requestId);
         bool found = false;
         for (uint i = 0; !found && i < extensions.length && extensions[i]!=0; i++) 
         {

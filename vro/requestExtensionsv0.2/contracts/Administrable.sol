@@ -125,8 +125,17 @@ contract Administrable {
         _;
     }
 
-    modifier areTrustedExtensions(address[10] _extensions) {
-        for (uint i = 0; i < _extensions.length && _extensions[i]!=0 ; i++) 
+    modifier areTrustedExtensions(address[3] _extensions) {
+        // no zero before
+        require(_extensions[2]==0 || _extensions[1]!=0);
+        require(_extensions[1]==0 || _extensions[0]!=0);
+
+        // not two equals
+        require(_extensions[0]==0 || _extensions[1]==0 || _extensions[0] != _extensions[1]);
+        require(_extensions[1]==0 || _extensions[2]==0 || _extensions[1] != _extensions[2]);
+        require(_extensions[0]==0 || _extensions[2]==0 || _extensions[0] != _extensions[2]);
+
+        for (uint i = 0; i < _extensions.length && _extensions[i]!=0; i++) 
         {
             require(trustedExtensions[_extensions[i]] == 1);
         }

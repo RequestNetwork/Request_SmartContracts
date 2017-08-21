@@ -28,7 +28,7 @@ contract RequestExtensionTax is RequestSynchroneInterface{
     // _params :
     //       - 0 : address of the taxer
     //       - 1 : perTenThousand of the tax (percentage with "2 decimals")
-    function createRequest(uint _requestId, bytes32[10] _params)
+    function createRequest(uint _requestId, bytes32[5] _params)
         isSubContractTrusted(msg.sender)
         returns(bool)
     {

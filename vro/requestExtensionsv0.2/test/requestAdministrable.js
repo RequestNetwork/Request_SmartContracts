@@ -1,3 +1,4 @@
+
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
 var RequestExtensionEscrow = artifacts.require("./RequestExtensionEscrow.sol");
@@ -29,7 +30,7 @@ var expectThrow = async function(promise) {
 };
 
 
-contract('RequestCore', function(accounts) {
+contract('RequestCore Administrative part', function(accounts) {
 	var admin = accounts[0];
 	var otherguy = accounts[1];
 

@@ -30,7 +30,7 @@ contract RequestExtensionEscrow is RequestSynchroneInterface {
     }
 
     // ---- INTERFACE FUNCTIONS ------------------------------------------------------------------------------------
-    function createRequest(uint _requestId, bytes32[10] _params)
+    function createRequest(uint _requestId, bytes32[5] _params)
         isSubContractTrusted(msg.sender)
         returns(bool)
     {

@@ -1,4 +1,5 @@
 return;
+
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
 var RequestExtensionEscrow = artifacts.require("./RequestExtensionEscrow.sol");
@@ -114,12 +115,12 @@ contract('RequestCore', function(accounts) {
 			var numberExtension = 0;
 
 			// // for escrow
-			extensions.push(requestExtensionEscrow.address);
-			params[numberExtension++] = [addressToByte32str(escrow1),addressToByte32str(escrow1)] // escrow and escrow deposit
+			// extensions.push(requestExtensionEscrow.address);
+			// params[numberExtension++] = [addressToByte32str(escrow1),addressToByte32str(escrow1)] // escrow and escrow deposit
 
 			// // for tax
-			extensions.push(requestExtensionTax.address);
-			params[numberExtension++] = [addressToByte32str(taxer1), integerToByte32str(2000) ]
+			// extensions.push(requestExtensionTax.address);
+			// params[numberExtension++] = [addressToByte32str(taxer1), integerToByte32str(2000) ]
 
 			for(;numberExtension<2; numberExtension++) {
 				params[numberExtension] = [];
@@ -130,49 +131,51 @@ contract('RequestCore', function(accounts) {
 		  console.log("params");
 		  console.log(params);
 
-		  return requestEthereum.createRequest(buyer1, amount1, extensions, params[0], params[1], {from:seller1});
+		  return requestEthereum.createRequest(seller1, buyer1, amount1, extensions, params[0], params[1], {from:seller1});
 		}).then(function(res) { 
+		  console.log('res.receipt.gasUsed');
+		  console.log(res.receipt.gasUsed);
 		  // console.log("res.receipt.logs");
 		  // console.log(res.receipt.logs);
-		  // (res.logs || []).forEach(function(l) {
-		  //   assert.equal(l.event, "LogRequestCreated", "LogRequestCreated must be trigger");
-		  //   assert.equal(l.args.requestId.valueOf(), "1", "event should give invoideID: 1");
-		  //   assert.equal(l.args.seller, seller1, "event should give seller as second arg");
-		  //   assert.equal(l.args.buyer, buyer1, "event should give buyer as third arg");
-		  // });
-		  return requestEthereum.accept(1, {from:buyer1});  
-		 }).then(function(res) {
-		//   return requestExtensionEscrow.escrows.call(1);
+		//   // (res.logs || []).forEach(function(l) {
+		//   //   assert.equal(l.event, "LogRequestCreated", "LogRequestCreated must be trigger");
+		//   //   assert.equal(l.args.requestId.valueOf(), "1", "event should give invoideID: 1");
+		//   //   assert.equal(l.args.seller, seller1, "event should give seller as second arg");
+		//   //   assert.equal(l.args.buyer, buyer1, "event should give buyer as third arg");
+		//   // });
+		//   return requestEthereum.accept(1, {from:buyer1});  
+		//  }).then(function(res) {
+		// //   return requestExtensionEscrow.escrows.call(1);
+		// // }).then(function(res) {
+		// 	// console.log('res')
+		// 	// console.log(res)
+		//   return requestEthereum.pay(1, {from:buyer1, value:amount1});
 		// }).then(function(res) {
-			// console.log('res')
-			// console.log(res)
-		  return requestEthereum.pay(1, {from:buyer1, value:amount1});
-		}).then(function(res) {
-		  return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
-		}).then(function(res) {
-		//   return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
+		//   return requestExtensionEscrow.releaseToPayee(1, {from:escrow1});
 		// }).then(function(res) {
-		 //  return requestExtensionEscrow.escrows.call(1)
-		 // }).then(function(res) {
-		 // 	console.log('escrows')
-		 // 	console.log(res)
-		// 	return web3.eth.getBalance(buyer1)
+		// //   return requestExtensionEscrow.refundToPayer(1, {from:escrow1});
+		// // }).then(function(res) {
+		//  //  return requestExtensionEscrow.escrows.call(1)
+		//  // }).then(function(res) {
+		//  // 	console.log('escrows')
+		//  // 	console.log(res)
+		// // 	return web3.eth.getBalance(buyer1)
+		// // }).then(function(res) {
+		// //  	console.log('getBalance buyer1')
+		// //  	console.log(res)
+		// 	return requestEthereum.ethToWithdraw.call(1,buyer1)
 		// }).then(function(res) {
-		//  	console.log('getBalance buyer1')
+		//  	console.log('ethToWithdraw buyer1')
 		//  	console.log(res)
-			return requestEthereum.ethToWithdraw.call(1,buyer1)
-		}).then(function(res) {
-		 	console.log('ethToWithdraw buyer1')
-		 	console.log(res)
 
-			return requestEthereum.ethToWithdraw.call(1,seller1)
-		}).then(function(res) {
-		 	console.log('ethToWithdraw seller1')
-		 	console.log(res)
-			return requestEthereum.ethToWithdraw.call(1,taxer1)
-		}).then(function(res) {
-		 	console.log('ethToWithdraw taxer1')
-		 	console.log(res)
+		// 	return requestEthereum.ethToWithdraw.call(1,seller1)
+		// }).then(function(res) {
+		//  	console.log('ethToWithdraw seller1')
+		//  	console.log(res)
+		// 	return requestEthereum.ethToWithdraw.call(1,taxer1)
+		// }).then(function(res) {
+		//  	console.log('ethToWithdraw taxer1')
+		//  	console.log(res)
 
 		// 	return requestEthereum.ethToWithdraw.call(1,buyer1)
 		// }).then(function(res) {
