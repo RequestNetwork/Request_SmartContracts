@@ -54,7 +54,7 @@ contract RequestCore is Administrable{
         uint requestId = numRequests++; // get the current num as ID and increment it
         requests[requestId] = Request(_creator, _payee, _payer, _amountExpected, msg.sender, 0, 0, 0, State.Created, _extensions); // create Request
 
-        LogRequestCreated(requestId, _payee, _payer); // we "publish" this Request - should we let _payer here?
+        LogRequestCreated(requestId, _payee, _payer); // we "publish" this Request
         return requestId;
     }
 

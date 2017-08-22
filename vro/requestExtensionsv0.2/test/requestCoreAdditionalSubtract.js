@@ -1,10 +1,10 @@
+return;
 
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
 var RequestExtensionEscrow = artifacts.require("./RequestExtensionEscrow.sol");
 var RequestExtensionTax = artifacts.require("./RequestExtensionTax.sol");
 
-var SolidityCoder = require("web3/lib/solidity/coder.js");
 var BigNumber = require('bignumber.js');
 
 var expectThrow = async function(promise) {

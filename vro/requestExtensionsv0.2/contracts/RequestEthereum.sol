@@ -23,12 +23,10 @@ contract RequestEthereum {
         requestCore=RequestCore(_requestCoreAddress);
     }
 
-    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[5] _extensionParams0, bytes32[5] _extensionParams1, bytes32[5] _extensionParams2  )
+    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[5] _extensionParams0, bytes32[5] _extensionParams1, bytes32[5] _extensionParams2)
+        condition(msg.sender==_payee || msg.sender==_payer)
         returns(uint)
     {
-        require(msg.sender==_payee || msg.sender==_payer);
-        require(_payee!=_payer);
-
         uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
 
         if(_extensions[0]!=0) {
