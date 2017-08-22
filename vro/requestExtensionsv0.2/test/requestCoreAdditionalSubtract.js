@@ -249,8 +249,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[8],0,"new request wrong data : state");
 	});
 
-/*
-	it("new addAdditional _amount+request.amounPaid > 2^256 (overflow) impossible", async function () {
+
+
+	it("new additional _amount+request.amountAdditional >= 2^256 (overflow) impossible", async function () {
 		await requestCore.addAdditional(1, new BigNumber(2).pow(255), {from:fakeContract});
 
 		await expectThrow(requestCore.addAdditional(1, new BigNumber(2).pow(255), {from:fakeContract}));
@@ -261,19 +262,19 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[2],payer,"request wrong data : payer");
 		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
 		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
-		assert.equal(new BigNumber(2).pow(255).comparedTo(r[5]),0,"new request wrong data : amountPaid");
-		assert.equal(r[6],0,"new request wrong data : amountAdditional");
+		assert.equal(r[5],0,"new request wrong data : amountPaid");
+		assert.equal(new BigNumber(2).pow(255).comparedTo(r[6]),0,"new request wrong data : amountAdditional");
 		assert.equal(r[7],0,"new request wrong data : amountSubtract");
 		assert.equal(r[8],0,"new request wrong data : state");
 	});
 
+// 
 
-	it("new addAdditional _amount+request.amounPaid == amountExpected-request.amountSubtract+request.amountAdditional", async function () {
-		var r = await requestCore.addAdditional(1, arbitraryAmount, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAddAdditional","Event LogRequestAddAdditional is missing after addAdditional()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAddAdditional wrong args requestId");
-		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount,"Event LogRequestAddAdditional wrong args amountAdded");
+	it("new additional _amount+request.amountAdditional+amountExpected >= 2^256 (overflow) impossible", async function () {
+		var r = await requestCore.addAdditional(1, new BigNumber(2).pow(256).minus(arbitraryAmount*2), {from:fakeContract});
+
+		await expectThrow(requestCore.addAdditional(1, arbitraryAmount, {from:fakeContract}));
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -281,12 +282,13 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[2],payer,"request wrong data : payer");
 		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
 		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
-		assert.equal(r[5],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(r[6],0,"new request wrong data : amountAdditional");
+		assert.equal(r[5],0,"new request wrong data : amountPaid");
+		assert.equal(new BigNumber(2).pow(256).minus(arbitraryAmount*2).comparedTo(r[6]),0,"new request wrong data : amountAdditional");
 		assert.equal(r[7],0,"new request wrong data : amountSubtract");
 		assert.equal(r[8],0,"new request wrong data : state");
 	});
 
+/*
 	it("new addAdditional _amount+request.amounPaid > amountExpected-request.amountSubtract+request.amountAdditional", async function () {
 		var r = await requestCore.addAdditional(1, arbitraryAmount*2, {from:fakeContract});
 
