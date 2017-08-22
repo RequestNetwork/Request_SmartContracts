@@ -120,7 +120,7 @@ contract RequestCore is Administrable{
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare refund
         require(c.amountAdditional+_amount >= c.amountAdditional); // avoid overflow
-        require(c.amountAdditional+_amount+c.amountExpected >= c.amountExpected); // avoid overflow BIS
+        require(c.amountAdditional+_amount+c.amountExpected >= c.amountExpected); // avoid overflow BIS - TODO USELESS ?
 
         c.amountAdditional += _amount;
         LogRequestAddAdditional(_requestId, _amount);
@@ -132,7 +132,8 @@ contract RequestCore is Administrable{
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare refund
-        require(_amount > 0 && c.amountSubtract+_amount > c.amountSubtract); // value must be greater than 0 and all the payments should not overpass the amountPaid
+        require(c.amountSubtract+_amount >= c.amountSubtract); // avoid overflow
+        require(_amount+c.amountSubtract <= c.amountExpected); // avoid overflow BIS - TODO USELESS ?
 
         c.amountSubtract += _amount;
         LogRequestAddSubtract(_requestId, _amount);
