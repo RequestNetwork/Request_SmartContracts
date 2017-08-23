@@ -92,8 +92,6 @@ contract('RequestEthereum',  function(accounts) {
     });
 
 
-
-
 	it("basic check on payee payer creator", async function () {
 		// new request msg.sender!=payee and != payer impossible	
 		await expectThrow(requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], [], [], {from:otherguy}));

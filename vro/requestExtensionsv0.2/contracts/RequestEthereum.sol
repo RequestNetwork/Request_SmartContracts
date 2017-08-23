@@ -49,8 +49,9 @@ contract RequestEthereum {
     // ---- INTERFACE FUNCTIONS ------------------------------------------------------------------------------------
     // the payer can accept an Request 
     function accept(uint _requestId) 
-        onlyRequestPayer(_requestId)
-        onlyRequestState(_requestId, RequestCore.State.Created)
+        condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
+        // onlyRequestPayer(_requestId)
+        // onlyRequestState(_requestId, RequestCore.State.Created)
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
@@ -58,8 +59,10 @@ contract RequestEthereum {
         var isOK = true;
         for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
         {
-            RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-            isOK = isOK && extension.accept(_requestId);
+            if(msg.sender != extensions[i]) {
+                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
+                isOK = isOK && extension.accept(_requestId);
+            }
         }
         if(isOK) 
         {
@@ -70,8 +73,9 @@ contract RequestEthereum {
 
     // the payer can decline an Request
     function decline(uint _requestId)
-        onlyRequestPayer(_requestId)
-        onlyRequestState(_requestId, RequestCore.State.Created)
+        condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
+        // onlyRequestPayer(_requestId)
+        // onlyRequestState(_requestId, RequestCore.State.Created)
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
@@ -79,8 +83,10 @@ contract RequestEthereum {
         var isOK = true;
         for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
         {
-            RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-            isOK = isOK && extension.decline(_requestId);
+            if(msg.sender != extensions[i]) {
+                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
+                isOK = isOK && extension.decline(_requestId);
+            }
         }
         if(isOK) 
         {
