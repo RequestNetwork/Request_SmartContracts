@@ -14,7 +14,7 @@ contract RequestEthereum {
         uint amount;
         address recipient;
     }
-    mapping(uint => mapping(address => uint)) public ethToWithdraw;
+    mapping(address => uint) public ethToWithdraw;
 
 
     // contract constructor
@@ -50,8 +50,6 @@ contract RequestEthereum {
     // the payer can accept an Request 
     function accept(uint _requestId) 
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
-        // onlyRequestPayer(_requestId)
-        // onlyRequestState(_requestId, RequestCore.State.Created)
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
@@ -74,8 +72,6 @@ contract RequestEthereum {
     // the payer can decline an Request
     function decline(uint _requestId)
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
-        // onlyRequestPayer(_requestId)
-        // onlyRequestState(_requestId, RequestCore.State.Created)
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
@@ -144,11 +140,11 @@ contract RequestEthereum {
     }
 
     // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
-    function withdraw(uint _requestId, address UntrustedRecipient)
+    function withdraw()
     {
-        uint amount = ethToWithdraw[_requestId][UntrustedRecipient];
+        uint amount = ethToWithdraw[msg.sender];
         require(amount>0);
-        ethToWithdraw[_requestId][UntrustedRecipient] = 0;
+        ethToWithdraw[msg.sender] = 0;
         UntrustedRecipient.transfer(amount);
     }
     // ----------------------------------------------------------------------------------------
@@ -195,7 +191,7 @@ contract RequestEthereum {
             if(isOK) 
             {
                 // sending fund means make it availbale to withdraw here
-                ethToWithdraw[_requestId][_recipient] = _amount;
+                ethToWithdraw[_recipient] += _amount;
             }   
             return isOK;
         }  
@@ -222,7 +218,7 @@ contract RequestEthereum {
     //     if(isOK) 
     //     {
     //         requestCore.refund(_requestId, _amount); // TODO HOW TO DIFERENCIATE REAL REFUND and REFUND FOR EXTENSION ?
-    //         ethToWithdraw[_requestId][requestCore.getPayer(_requestId)] = _amount;
+    //         ethToWithdraw[requestCore.getPayer(_requestId)] += _amount;
     //     }
     // }
 
