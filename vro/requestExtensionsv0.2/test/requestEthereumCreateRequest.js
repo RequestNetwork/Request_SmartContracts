@@ -5,7 +5,7 @@ var RequestEthereum = artifacts.require("./RequestEthereum.sol");
 var RequestExtensionEscrow = artifacts.require("./RequestExtensionEscrow.sol");
 var RequestExtensionTax = artifacts.require("./RequestExtensionTax.sol");
 // contract for test
-var TestRequestSynchroneInterface = artifacts.require("./TestRequestSynchroneInterface.sol");
+var TestRequestSynchroneInterfaceContinue = artifacts.require("./TestRequestSynchroneInterfaceContinue.sol");
 
 var BigNumber = require('bignumber.js');
 
@@ -76,9 +76,9 @@ contract('RequestEthereum',  function(accounts) {
 	var arbitraryAmount = 100000000;
 
     beforeEach(async () => {
-    	fakeExtention1 = await TestRequestSynchroneInterface.new(1);
-    	fakeExtention2 = await TestRequestSynchroneInterface.new(2);
-    	fakeExtention3 = await TestRequestSynchroneInterface.new(3);
+    	fakeExtention1 = await TestRequestSynchroneInterfaceContinue.new(1);
+    	fakeExtention2 = await TestRequestSynchroneInterfaceContinue.new(2);
+    	fakeExtention3 = await TestRequestSynchroneInterfaceContinue.new(3);
 
 		requestCore = await RequestCore.new();
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});

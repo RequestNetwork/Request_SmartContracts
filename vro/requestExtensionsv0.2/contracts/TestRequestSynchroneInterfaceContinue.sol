@@ -2,10 +2,10 @@ pragma solidity ^0.4.11;
 
 import './RequestSynchroneInterface.sol';
 
-contract TestRequestSynchroneInterface is RequestSynchroneInterface{
+contract TestRequestSynchroneInterfaceContinue is RequestSynchroneInterface{
     
     uint constant_id;
-    function TestRequestSynchroneInterface (uint _id) {
+    function TestRequestSynchroneInterfaceContinue (uint _id) {
         constant_id = _id;
     }
 
