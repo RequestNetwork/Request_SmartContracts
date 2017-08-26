@@ -1,4 +1,4 @@
-
+return;
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
 var RequestExtensionEscrow = artifacts.require("./RequestExtensionEscrow.sol");
@@ -92,9 +92,9 @@ contract('RequestEthereum Cancel',  function(accounts) {
     	fakeExtentionInterception2 = await TestRequestSynchroneInterfaceInterception.new(12);
     	fakeExtentionInterception3 = await TestRequestSynchroneInterfaceInterception.new(13);
 
-    	fakeExtentionLauncher1 = await TestRequestSynchroneExtensionLauncher.new(21);
-    	fakeExtentionLauncher2 = await TestRequestSynchroneExtensionLauncher.new(22);
-    	fakeExtentionLauncher3 = await TestRequestSynchroneExtensionLauncher.new(23);
+    	fakeExtentionLauncher1 = await TestRequestSynchroneExtensionLauncher.new(21,true,true,true,true,true,true,true,true,true);
+    	fakeExtentionLauncher2 = await TestRequestSynchroneExtensionLauncher.new(22,true,true,true,true,true,true,true,true,true);
+    	fakeExtentionLauncher3 = await TestRequestSynchroneExtensionLauncher.new(23,true,true,true,true,true,true,true,true,true);
 
 
 
@@ -114,7 +114,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncher2.address, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncher3.address, {from:admin});
 
-		var newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], [], [], {from:payee});
+		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], [], [], {from:payee});
     });
 
 	// ##################################################################################################

@@ -7,8 +7,29 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
     uint constant_id;
     mapping(uint => address) contractLaunchedAddress;
 
-    function TestRequestSynchroneExtensionLauncher (uint _id) {
+    bool createRequestReturn;
+    bool acceptReturn;
+    bool declineReturn;
+    bool cancelReturn;
+    bool fundOrderReturn;
+    bool paymentReturn;
+    bool refundReturn;
+    bool addAdditionalReturn;
+    bool addSubtractReturn;
+
+
+    function TestRequestSynchroneExtensionLauncher (uint _id, bool _createRequest,bool _accept,bool _decline,bool _cancel,bool _fundOrder,bool _payment,bool _refund,bool _addAdditional,bool _addSubtract) {
         constant_id = _id;
+
+        createRequestReturn = _createRequest;
+        acceptReturn = _accept;
+        declineReturn = _decline;
+        cancelReturn = _cancel;
+        fundOrderReturn = _fundOrder;
+        paymentReturn = _payment;
+        refundReturn = _refund;
+        addAdditionalReturn = _addAdditional;
+        addSubtractReturn = _addSubtract;
     }
 
     // Launcher -------------------------------------------------
@@ -59,63 +80,63 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
     {
         contractLaunchedAddress[_requestId] = msg.sender;
         LogTestCreateRequest(_requestId, constant_id, _params);
-        return true;
+        return createRequestReturn;
     }
 
     event LogTestAccept(uint requestId, uint id);
     function accept(uint _requestId) returns(bool)
     {
         LogTestAccept(_requestId, constant_id);
-        return true;
+        return acceptReturn;
     } 
 
     event LogTestDecline(uint requestId, uint id);
     function decline(uint _requestId) returns(bool)
     {
         LogTestDecline(_requestId, constant_id);
-        return true;
+        return declineReturn;
     } 
 
     event LogTestCancel(uint requestId, uint id);
     function cancel(uint _requestId) returns(bool)
     {
         LogTestCancel(_requestId, constant_id);
-        return true;
+        return cancelReturn;
     } 
  
     event LogTestFundOrder(uint requestId, uint id, address _recipient, uint _amount);
     function fundOrder(uint _requestId, address _recipient, uint _amount) returns(bool)
     {
         LogTestFundOrder(_requestId, constant_id, _recipient, _amount);
-        return true;
+        return fundOrderReturn;
     } 
 
     event LogTestPayment(uint requestId, uint id, uint _amount);
     function payment(uint _requestId, uint _amount) returns(bool)
     {
         LogTestPayment(_requestId, constant_id, _amount);
-        return true;
+        return paymentReturn;
     } 
 
     event LogTestRefund(uint requestId, uint id, uint _amount);
     function refund(uint _requestId, uint _amount) returns(bool)
     {
         LogTestRefund(_requestId, constant_id, _amount);
-        return true;
+        return refundReturn;
     } 
 
     event LogTestAddAdditional(uint requestId, uint id, uint _amount);
     function addAdditional(uint _requestId, uint _amount) returns(bool)
     {
         LogTestAddAdditional(_requestId, constant_id, _amount);
-        return true;
+        return addAdditionalReturn;
     } 
 
     event LogTestAddSubtract(uint requestId, uint id, uint _amount);
     function addSubtract(uint _requestId, uint _amount) returns(bool)
     {
         LogTestAddSubtract(_requestId, constant_id, _amount);
-        return true;
+        return addSubtractReturn;
     } 
 }
 

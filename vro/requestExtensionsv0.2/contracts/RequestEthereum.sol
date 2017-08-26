@@ -131,9 +131,9 @@ contract RequestEthereum {
 
 
     // ---- CONTRACT FUNCTIONS ------------------------------------------------------------------------------------
-    // The payer pay the Request with ether
+    // Someone pay the Request with ether
     function pay(uint _requestId)
-        onlyRequestPayer(_requestId)
+        condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
         payable
     {
         paymentInternal(_requestId, msg.value);
@@ -145,7 +145,7 @@ contract RequestEthereum {
         uint amount = ethToWithdraw[msg.sender];
         require(amount>0);
         ethToWithdraw[msg.sender] = 0;
-        UntrustedRecipient.transfer(amount);
+        msg.sender.transfer(amount);
     }
     // ----------------------------------------------------------------------------------------
 
@@ -177,25 +177,22 @@ contract RequestEthereum {
     function fundOrderInternal(uint _requestId, address _recipient, uint _amount) internal
         returns(bool)
     {
-        if(_amount > 0) { // sending 0 doesn't make sense
-            address[3] memory extensions = requestCore.getExtensions(_requestId);
+        address[3] memory extensions = requestCore.getExtensions(_requestId);
 
-            var isOK = true;
-            for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
-            {
-                if(msg.sender != extensions[i]) {
-                    RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-                    isOK = isOK && extension.fundOrder(_requestId, _recipient, _amount);
-                }
+        var isOK = true;
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        {
+            if(msg.sender != extensions[i]) {
+                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
+                isOK = isOK && extension.fundOrder(_requestId, _recipient, _amount);
             }
-            if(isOK) 
-            {
-                // sending fund means make it availbale to withdraw here
-                ethToWithdraw[_recipient] += _amount;
-            }   
-            return isOK;
-        }  
-        return true;
+        }
+        if(isOK) 
+        {
+            // sending fund means make it availbale to withdraw here
+            ethToWithdraw[_recipient] += _amount;
+        }   
+        return isOK;
     }
     // ----------------------------------------------------------------------------------------
 
