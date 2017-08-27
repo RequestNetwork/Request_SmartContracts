@@ -90,6 +90,9 @@ contract('RequestEthereum Pay',  function(accounts) {
 	var newRequest;
 
 	var arbitraryAmount = 100000000;
+	var arbitraryAmount2 = 300000;
+	var arbitraryAmount3 = 100000;
+
 
     beforeEach(async () => {
     	fakeExtentionContinue1 = await TestRequestSynchroneInterfaceContinue.new(1);
@@ -1311,6 +1314,105 @@ contract('RequestEthereum Pay',  function(accounts) {
 	// ##################################################################################################
 	// ##################################################################################################
 	// ##################################################################################################
+
+	it("msg.value == 0 OK", async function () {
+		var r = await requestEthereum.pay(1, {value:0, from:payee});
+
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
+		assert.equal(l.data[1],0,"Event LogRequestPayment wrong args amountPaid");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new request wrong data : state");
+
+		var r = await requestEthereum.ethToWithdraw.call(payee);
+		assert.equal(r,0,"new request wrong data : amount to withdraw payee");
+	});
+
+	it("3 pay request ", async function () {
+		var r = await requestEthereum.pay(1, {value:arbitraryAmount3, from:payee});
+
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount3,"Event LogRequestPayment wrong args amountPaid");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount3,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new request wrong data : state");
+
+		var r = await requestEthereum.ethToWithdraw.call(payee);
+		assert.equal(r,arbitraryAmount3,"new request wrong data : amount to withdraw payee");
+
+		// second
+		var r = await requestEthereum.pay(1, {value:arbitraryAmount2, from:payee});
+
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount2,"Event LogRequestPayment wrong args amountPaid");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount3+arbitraryAmount2,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new request wrong data : state");
+
+		var r = await requestEthereum.ethToWithdraw.call(payee);
+		assert.equal(r,arbitraryAmount3+arbitraryAmount2,"new request wrong data : amount to withdraw payee");
+
+		// third
+		var r = await requestEthereum.pay(1, {value:arbitraryAmount, from:payee});
+
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount3+arbitraryAmount2+arbitraryAmount,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new request wrong data : state");
+
+		var r = await requestEthereum.ethToWithdraw.call(payee);
+		assert.equal(r,arbitraryAmount3+arbitraryAmount2+arbitraryAmount,"new request wrong data : amount to withdraw payee");
+	});
+
+	// turn down the node
+	// it("msg.value >= 2^256 Impossible", async function () {
+	// 	var r = await expectThrow(requestEthereum.pay(1, {value:new BigNumber(2).pow(256), from:payee}));
+	// });
 
 });
 
