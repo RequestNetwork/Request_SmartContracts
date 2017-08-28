@@ -254,7 +254,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		assert.equal(r,arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
-	it("accept request created OK - with 1 extension, continue: [{true,true}]", async function () {
+	it("pay request accepted OK - with 1 extension, continue: [{true,true}]", async function () {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
@@ -295,7 +295,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		assert.equal(r,arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
-	it("accept request created OK - with 1 extension, continue: [{false,true}]", async function () {
+	it("pay request accepted OK - with 1 extension, continue: [{false,true}]", async function () {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherPaymentFalse1.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
@@ -323,7 +323,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		assert.equal(r,0,"new request wrong data : amount to withdraw payee");
 	});
 
-	it("accept request created OK - with 1 extension, continue: [{true,false}]", async function () {
+	it("pay request accepted OK - with 1 extension, continue: [{true,false}]", async function () {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
@@ -363,7 +363,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		assert.equal(r,0,"new request wrong data : amount to withdraw payee");
 	});
 
-		it("accept request created OK - with 1 extension, continue: [{false,false}]", async function () {
+		it("pay request accepted OK - with 1 extension, continue: [{false,false}]", async function () {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 

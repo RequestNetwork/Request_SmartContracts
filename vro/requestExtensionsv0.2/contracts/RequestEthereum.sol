@@ -139,6 +139,16 @@ contract RequestEthereum {
         paymentInternal(_requestId, msg.value);
     }
 
+    function payback(uint _requestId)
+        condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
+        onlyRequestPayee(_requestId)
+        payable
+    {   
+        // we cannot refund more than already paid
+        require(msg.value <= requestCore.getAmountPaid(_requestId));
+        refundInternal(_requestId, msg.value);
+    }
+
     // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
     function withdraw()
     {
@@ -174,6 +184,28 @@ contract RequestEthereum {
         return isOK;
     }
 
+    function refundInternal(uint _requestId, uint _amount) internal
+        onlyRequestState(_requestId, RequestCore.State.Accepted)
+        returns(bool)
+    {
+        address[3] memory extensions = requestCore.getExtensions(_requestId);
+
+        var isOK = true;
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        {
+            if(msg.sender != extensions[i]) {
+                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
+                isOK = isOK && extension.refund(_requestId, _amount);  
+            }
+        }
+        if(isOK) 
+        {
+            requestCore.refund(_requestId, _amount);
+            // refund done, the money is ready to withdraw by the payer
+            fundOrderInternal(_requestId, requestCore.getPayer(_requestId), _amount);
+        }
+    }
+
     function fundOrderInternal(uint _requestId, address _recipient, uint _amount) internal
         returns(bool)
     {
@@ -194,34 +226,8 @@ contract RequestEthereum {
         }   
         return isOK;
     }
+
     // ----------------------------------------------------------------------------------------
-
-
-
-    // TODO !
-    // function refund(uint _requestId, uint _amount)
-    //     onlyRequestExtensions(_requestId)
-    // {
-    //     address[3] memory extensions = requestCore.getExtensions(_requestId);
-
-    //     var isOK = true;
-    //     for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
-    //     {
-    //         if(msg.sender != extensions[i]) {
-    //             RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-    //             isOK = isOK && extension.refund(_requestId, _amount);  
-    //         }
-    //     }
-    //     if(isOK) 
-    //     {
-    //         requestCore.refund(_requestId, _amount); // TODO HOW TO DIFERENCIATE REAL REFUND and REFUND FOR EXTENSION ?
-    //         ethToWithdraw[requestCore.getPayer(_requestId)] += _amount;
-    //     }
-    // }
-
-
-
-
 
 
 
