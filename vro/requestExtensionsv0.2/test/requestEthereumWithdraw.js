@@ -109,52 +109,21 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 
 
 	// TODO : 	// OP CODE not understood /!\
-	// it("challenge reentrance 2 rounds", async function () {
-	//	await requestEthereum.pay(1, {from:payer,value:arbitraryAmount});
+	it("challenge reentrance 2 rounds", async function () {
+		await requestEthereum.pay(1, {from:payer,value:arbitraryAmount});
 		
-	// 	console.log("await requestEthereum.ethToWithdraw.call(payee)");
-	// 	console.log(await requestEthereum.ethToWithdraw.call(payee));
+		testRequestReentrance = await TestRequestReentrance.new(requestEthereum.address, 2,{from:hacker});
+		var r = await testRequestReentrance.init(hacker,{from:hacker});
 
-	// 	testRequestReentrance = await TestRequestReentrance.new(requestEthereum.address, 2,{from:hacker});
-	// 	var r = await testRequestReentrance.init(hacker,{from:hacker});
+		assert.equal(r.logs[0].event,"Log","Event Log is missing");
+		assert.equal(r.logs[0].args.id,2,"Event LogRequestPayment wrong args id");
 
-	// 	assert.equal(r.logs[0].event,"Log","Event Log is missing");
-	// 	assert.equal(r.logs[0].args.id,2,"Event LogRequestPayment wrong args id");
+		await requestEthereum.accept(r.logs[0].args.id, {from:hacker});
+		await requestEthereum.pay(2, {from:hacker,value:arbitraryAmount10percent});
 
-	// 	await requestEthereum.accept(r.logs[0].args.id, {from:hacker});
-	// 	await requestEthereum.pay(2, {from:hacker,value:arbitraryAmount10percent});
-
-
-	// 	console.log("await requestEthereum.ethToWithdraw.call(testRequestReentrance.address)");
-	// 	console.log(await requestEthereum.ethToWithdraw.call(testRequestReentrance.address));
-
-	// 	console.log("await web3.eth.getBalance(hacker)");
-	// 	console.log(await web3.eth.getBalance(hacker));
-
-	// 	console.log("await web3.eth.getBalance(requestEthereum.address)");
-	// 	console.log(await web3.eth.getBalance(requestEthereum.address));
-
-	// 	console.log("await web3.eth.getBalance(testRequestReentrance.address)");
-	// 	console.log(await web3.eth.getBalance(testRequestReentrance.address));
-
-	// 	var r = await testRequestReentrance.start({from:hacker});
-	// 	// web3.eth.sendTransaction({from:hacker, to:testRequestReentrance.address, value: 1});
-	// 	console.log("############################################################################");
-	// 	console.log("############################################################################");
-	// 	console.log("############################################################################");
-
-	// 	console.log("await requestEthereum.ethToWithdraw.call(testRequestReentrance.address)");
-	// 	console.log(await requestEthereum.ethToWithdraw.call(testRequestReentrance.address));
-
-	// 	console.log("await web3.eth.getBalance(hacker)");
-	// 	console.log(await web3.eth.getBalance(hacker));
-
-	// 	console.log("await web3.eth.getBalance(requestEthereum.address)");
-	// 	console.log(await web3.eth.getBalance(requestEthereum.address));
-
-	// 	console.log("await web3.eth.getBalance(testRequestReentrance.address)");
-	// 	console.log(await web3.eth.getBalance(testRequestReentrance.address));
-	// });
+		var r = await expectThrow(testRequestReentrance.start({from:hacker}));
+		assert.equal(await web3.eth.getBalance(testRequestReentrance.address), 0, 'Contract hacking balance must remain 0');
+	});
 
 
 });
