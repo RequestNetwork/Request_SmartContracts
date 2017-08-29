@@ -96,7 +96,7 @@ contract RequestCore is Administrable{
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare payment
-        require(_amount+c.amountPaid >= c.amountPaid); // all the payments should not overpass the amountExpected
+        require(_amount+c.amountPaid >= c.amountPaid); // avoid overflow
 
         c.amountPaid += _amount;
         LogRequestPayment(_requestId, _amount);
@@ -108,7 +108,7 @@ contract RequestCore is Administrable{
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare refund
-        require(c.amountPaid-_amount <= c.amountPaid); // all the payments should not overpass the amountPaid
+        require(c.amountPaid-_amount <= c.amountPaid); // avoid overflow
 
         c.amountPaid -= _amount;
         LogRequestRefunded(_requestId, _amount);
@@ -161,7 +161,15 @@ contract RequestCore is Administrable{
     {
         return requests[_requestId].amountExpected;
     }
+
+    function getAmountExpectedAfterSubAdd(uint _requestId)
+        systemIsWorking
+        returns(uint)
+    {
+        return requests[_requestId].amountExpected+requests[_requestId].amountAdditional-requests[_requestId].amountSubtract;
+    }
     
+
     function getSubContract(uint _requestId)
         systemIsWorking
         returns(address)
