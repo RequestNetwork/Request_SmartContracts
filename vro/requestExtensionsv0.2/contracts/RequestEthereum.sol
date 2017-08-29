@@ -135,27 +135,34 @@ contract RequestEthereum {
     // ---- CONTRACT FUNCTIONS ------------------------------------------------------------------------------------
     // Someone pay the Request with ether
     function pay(uint _requestId, uint tips)
-        condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
         payable
+        condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
+        condition(msg.value >= tips) // tips declare must be lower than amount sent
+        condition(requestCore.getAmountExpectedAfterSubAdd(_requestId)+tips >= msg.value) // You can pay more than amount needed
     {
-        require(msg.value >= tips); // tips declare must be lower than amount sent
-        require(requestCore.getAmountExpectedAfterSubAdd(_requestId)+tips >= msg.value); // You can pay more than amount needed
-
         if(tips > 0) {
             addAdditionalInternal(_requestId, tips);
         }
-
         paymentInternal(_requestId, msg.value);
     }
 
     function payback(uint _requestId)
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
         onlyRequestPayee(_requestId)
+        condition(msg.value <= requestCore.getAmountPaid(_requestId))
         payable
     {   
         // we cannot refund more than already paid
-        require(msg.value <= requestCore.getAmountPaid(_requestId));
         refundInternal(_requestId, msg.value);
+    }
+
+    // declare a discount from 
+    function discount(uint _requestId, uint _amount)
+        condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
+        onlyRequestPayee(_requestId)
+        condition(_amount+requestCore.getAmountPaid(_requestId) <= requestCore.getAmountExpectedAfterSubAdd(_requestId))
+    {
+        addSubtractInternal(_requestId, _amount);
     }
 
     // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
@@ -189,6 +196,27 @@ contract RequestEthereum {
             requestCore.payment(_requestId, _amount);
             // payment done, the money is ready to withdraw by the payee
             fundOrderInternal(_requestId, requestCore.getPayee(_requestId), _amount);
+        }
+        return isOK;
+    }
+
+    function  addSubtractInternal(uint _requestId, uint _amount) internal
+        onlyRequestState(_requestId, RequestCore.State.Accepted)
+        returns(bool)
+    {
+        address[3] memory extensions = requestCore.getExtensions(_requestId);
+
+        var isOK = true;
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        {
+            if(msg.sender != extensions[i]) {
+                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
+                isOK = isOK && extension.addSubtract(_requestId, _amount);  
+            }
+        }
+        if(isOK) 
+        {
+            requestCore.addSubtract(_requestId, _amount);
         }
         return isOK;
     }
