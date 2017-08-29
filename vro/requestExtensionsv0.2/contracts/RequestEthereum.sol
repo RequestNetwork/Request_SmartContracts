@@ -107,7 +107,7 @@ contract RequestEthereum {
 
 
     function cancel(uint _requestId)
-        condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
+        condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && (requestCore.getState(_requestId)==RequestCore.State.Created || requestCore.getState(_requestId)==RequestCore.State.Accepted)))
         returns(bool)
     {
         // impossible to cancel a Request with a balance != 0
