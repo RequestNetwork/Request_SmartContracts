@@ -110,6 +110,8 @@ contract RequestEthereum {
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
         returns(bool)
     {
+        // impossible to cancel a Request with a balance != 0
+        require(requestCore.getAmountPaid(_requestId) == 0);
         address[3] memory extensions = requestCore.getExtensions(_requestId);
 
         var isOK = true;

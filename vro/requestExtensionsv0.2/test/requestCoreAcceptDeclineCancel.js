@@ -1,4 +1,4 @@
-return;
+
 
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
@@ -534,6 +534,22 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		assert.equal(r[8],0,"new request wrong data : state");
 	});
 
+	it("cancel request amountPaid != 0 Impossible", async function () {
+		await requestCore.accept(1, {from:fakeContract});
+		await requestCore.payment(1, 1, {from:fakeContract});
+		await expectThrow(requestCore.cancel(1, {from:fakeContract}));
+
+		var r = await requestCore.requests.call(1, {from:fakeContract});
+		assert.equal(r[0],creator,"request wrong data : creator");
+		assert.equal(r[1],payee,"request wrong data : payee");
+		assert.equal(r[2],payer,"request wrong data : payer");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
+		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[5],1,"new request wrong data : amountPaid");
+		assert.equal(r[6],0,"new request wrong data : amountAdditional");
+		assert.equal(r[7],0,"new request wrong data : amountSubtract");
+		assert.equal(r[8],1,"new request wrong data : state");
+	});
 	// ##################################################################################################
 	// ##################################################################################################
 	// ##################################################################################################

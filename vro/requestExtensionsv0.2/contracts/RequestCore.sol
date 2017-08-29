@@ -85,6 +85,7 @@ contract RequestCore is Administrable{
     {
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can cancel
+        require(c.amountPaid==0); // only Request with balance null can be canceled
         c.state = State.Canceled;
         LogRequestCanceled(_requestId);
     }   
