@@ -1,4 +1,3 @@
-return;
 
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
@@ -59,7 +58,7 @@ var expectThrow = async function(promise) {
 };
 
 
-contract('RequestEthereum Pay',  function(accounts) {
+contract('RequestEthereum Pay', function(accounts) {
 	var admin = accounts[0];
 	var otherguy = accounts[1];
 	var fakeContract = accounts[2];
@@ -90,9 +89,10 @@ contract('RequestEthereum Pay',  function(accounts) {
 	var requestEthereum;
 	var newRequest;
 
-	var arbitraryAmount = 100000000;
-	var arbitraryAmount2 = 300000;
-	var arbitraryAmount3 = 100000;
+	var arbitraryAmount = 1000000;
+	var arbitraryAmount2 = 3000;
+	var arbitraryAmount3 = 1000;
+	var arbitraryTips = 1000;
 
 
     beforeEach(async () => {
@@ -151,39 +151,39 @@ contract('RequestEthereum Pay',  function(accounts) {
 	// ##################################################################################################
 	it("impossible to pay if Core Paused", async function () {
 		await requestCore.adminPause({from:admin});
-		await expectThrow(requestEthereum.pay(1, {value:arbitraryAmount, from:payer}));
+		await expectThrow(requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer}));
 	});
 
 	it("impossible to pay if Core Deprecated", async function () {
 		await requestCore.adminDeprecate({from:admin});
-		await expectThrow(requestEthereum.pay(1, {value:arbitraryAmount, from:payer}));
+		await expectThrow(requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer}));
 	});
 
 	it("pay request not exist impossible", async function () {
-		await expectThrow(requestEthereum.pay(666, {value:arbitraryAmount, from:payer}));
+		await expectThrow(requestEthereum.pay(666,0, {value:arbitraryAmount, from:payer}));
 	});
 
 
 
 	it("pay request just created Impossible", async function () {
 		await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], [], [], {from:payee});
-		await expectThrow(requestEthereum.pay(2, {value:arbitraryAmount, from:payer}));
+		await expectThrow(requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer}));
 	});
 
 	it("pay request declined impossible", async function () {
 		await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], [], [], {from:payee});
 		await requestEthereum.decline(2, {from:payer});
-		await expectThrow(requestEthereum.pay(2, {value:arbitraryAmount, from:payer}));
+		await expectThrow(requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer}));
 	});
 	it("pay request canceled impossible", async function () {
 		await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], [], [], {from:payee});
 		await requestEthereum.cancel(2, {from:payee});
-		await expectThrow(requestEthereum.pay(2, {value:arbitraryAmount, from:payer}));
+		await expectThrow(requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer}));
 	});
 
 
 	it("pay request from payee OK", async function () {
-		var r = await requestEthereum.pay(1, {value:arbitraryAmount, from:payee});
+		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
@@ -207,7 +207,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 	});
 
 	it("pay request from a random guy OK", async function () {
-		var r = await requestEthereum.pay(1, {value:arbitraryAmount, from:otherguy});
+		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount, from:otherguy});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
@@ -231,7 +231,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 	});
 
 	it("pay request created OK - without extension", async function () {
-		var r = await requestEthereum.pay(1, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
@@ -258,7 +258,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
@@ -299,7 +299,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherPaymentFalse1.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherPaymentFalse1.abi);
@@ -327,7 +327,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalse1.abi);
@@ -367,7 +367,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.abi);
@@ -395,7 +395,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,5,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
@@ -449,7 +449,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherFundOrderFalse2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,5,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
@@ -503,7 +503,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
@@ -537,7 +537,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherPaymentFalse1.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
@@ -571,7 +571,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionContinue2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,4,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalse1.abi);
@@ -617,7 +617,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionLauncherFundOrderFalse2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,4,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalse1.abi);
@@ -663,7 +663,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionLauncherFundOrderFalseAndPaymentFalse2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalse1.abi);
@@ -699,7 +699,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionLauncherPaymentFalse2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalse1.abi);
@@ -734,7 +734,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherPaymentFalse1.address,fakeExtentionContinue2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherPaymentFalse1.abi);
@@ -762,7 +762,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherPaymentFalse1.address,fakeExtentionLauncherFundOrderFalse2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherPaymentFalse1.abi);
@@ -790,7 +790,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherPaymentFalse1.address,fakeExtentionLauncherFundOrderFalseAndPaymentFalse2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherPaymentFalse1.abi);
@@ -818,7 +818,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherPaymentFalse1.address,fakeExtentionLauncherPaymentFalse2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherPaymentFalse1.abi);
@@ -847,7 +847,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.address,fakeExtentionContinue2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.abi);
@@ -875,7 +875,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.address,fakeExtentionLauncherFundOrderFalse2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.abi);
@@ -903,7 +903,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.address,fakeExtentionLauncherFundOrderFalseAndPaymentFalse2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.abi);
@@ -931,7 +931,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.address,fakeExtentionLauncherPaymentFalse2.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.abi);
@@ -963,7 +963,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionContinue3.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,7,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
@@ -1030,7 +1030,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionLauncherFundOrderFalse3.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,7,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
@@ -1098,7 +1098,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherFundOrderFalse2.address,fakeExtentionContinue3.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,6,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
@@ -1158,7 +1158,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionContinue2.address,fakeExtentionContinue3.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,5,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalse1.abi);
@@ -1212,7 +1212,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionLauncherPaymentFalse3.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
@@ -1253,7 +1253,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherPaymentFalse2.address,fakeExtentionContinue3.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
@@ -1288,7 +1288,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherPaymentFalse1.address,fakeExtentionContinue2.address,fakeExtentionContinue3.address], [], [], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
-		var r = await requestEthereum.pay(2, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherPaymentFalse1.abi);
@@ -1317,7 +1317,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 	// ##################################################################################################
 
 	it("msg.value == 0 OK", async function () {
-		var r = await requestEthereum.pay(1, {value:0, from:payee});
+		var r = await requestEthereum.pay(1,0, {value:0, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
@@ -1341,7 +1341,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 	});
 
 	it("3 pay request ", async function () {
-		var r = await requestEthereum.pay(1, {value:arbitraryAmount3, from:payee});
+		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount3, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
@@ -1364,7 +1364,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		assert.equal(r,arbitraryAmount3,"new request wrong data : amount to withdraw payee");
 
 		// second
-		var r = await requestEthereum.pay(1, {value:arbitraryAmount2, from:payee});
+		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount2, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
@@ -1387,7 +1387,7 @@ contract('RequestEthereum Pay',  function(accounts) {
 		assert.equal(r,arbitraryAmount3+arbitraryAmount2,"new request wrong data : amount to withdraw payee");
 
 		// third
-		var r = await requestEthereum.pay(1, {value:arbitraryAmount, from:payee});
+		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
@@ -1410,9 +1410,81 @@ contract('RequestEthereum Pay',  function(accounts) {
 		assert.equal(r,arbitraryAmount3+arbitraryAmount2+arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
+
+	it("pay with tips OK", async function () {
+		var r = await requestEthereum.pay(1,arbitraryTips, {value:arbitraryAmount, from:payer});
+		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
+
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"LogRequestAddAdditional","Event LogRequestAddAdditional is missing after pay()");
+		assert.equal(l.data[0],1,"Event LogRequestAddAdditional wrong args requestId");
+		assert.equal(l.data[1],arbitraryTips,"Event LogRequestAddAdditional wrong args amountAdditional");
+
+		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
+		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],arbitraryTips,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new request wrong data : state");
+
+		var r = await requestEthereum.ethToWithdraw.call(payee);
+		assert.equal(r,arbitraryAmount,"new request wrong data : amount to withdraw payee");
+	});
+
+	it("pay with more tips than msg.value Impossible", async function () {
+		var r = await expectThrow(requestEthereum.pay(1,arbitraryAmount, {value:arbitraryTips, from:payer}));
+	});
+
+	it("pay more than amountExpected (without tips) Impossible", async function () {
+		var r = await expectThrow(requestEthereum.pay(1,0, {value:arbitraryAmount+1, from:payer}));
+	});
+
+	it("pay more than amountExpected (without tips but still to much) Impossible", async function () {
+		var r = await expectThrow(requestEthereum.pay(1,1, {value:arbitraryAmount+2, from:payer}));
+	});
+
+	it("pay more than amountExpected (with tips that make the payment under expected) OK", async function () {
+		var r = await requestEthereum.pay(1,arbitraryTips, {value:arbitraryAmount+1, from:payer});
+		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
+
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"LogRequestAddAdditional","Event LogRequestAddAdditional is missing after pay()");
+		assert.equal(l.data[0],1,"Event LogRequestAddAdditional wrong args requestId");
+		assert.equal(l.data[1],arbitraryTips,"Event LogRequestAddAdditional wrong args amountAdditional");
+
+		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
+		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount+1,"Event LogRequestPayment wrong args amountPaid");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount+1,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],arbitraryTips,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new request wrong data : state");
+
+		var r = await requestEthereum.ethToWithdraw.call(payee);
+		assert.equal(r,arbitraryAmount+1,"new request wrong data : amount to withdraw payee");
+	});
+
+
 	// turn down the node
 	// it("msg.value >= 2^256 Impossible", async function () {
-	// 	var r = await expectThrow(requestEthereum.pay(1, {value:new BigNumber(2).pow(256), from:payee}));
+	// 	var r = await expectThrow(requestEthereum.pay(1,0, {value:new BigNumber(2).pow(256), from:payee}));
 	// });
 
 });

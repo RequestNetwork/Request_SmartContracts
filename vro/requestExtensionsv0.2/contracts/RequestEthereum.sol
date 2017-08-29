@@ -134,10 +134,17 @@ contract RequestEthereum {
 
     // ---- CONTRACT FUNCTIONS ------------------------------------------------------------------------------------
     // Someone pay the Request with ether
-    function pay(uint _requestId)
+    function pay(uint _requestId, uint tips)
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
         payable
     {
+        require(msg.value >= tips); // tips declare must be lower than amount sent
+        require(requestCore.getAmountExpectedAfterSubAdd(_requestId)+tips >= msg.value); // You can pay more than amount needed
+
+        if(tips > 0) {
+            addAdditionalInternal(_requestId, tips);
+        }
+
         paymentInternal(_requestId, msg.value);
     }
 
@@ -182,6 +189,27 @@ contract RequestEthereum {
             requestCore.payment(_requestId, _amount);
             // payment done, the money is ready to withdraw by the payee
             fundOrderInternal(_requestId, requestCore.getPayee(_requestId), _amount);
+        }
+        return isOK;
+    }
+
+    function  addAdditionalInternal(uint _requestId, uint _amount) internal
+        onlyRequestState(_requestId, RequestCore.State.Accepted)
+        returns(bool)
+    {
+        address[3] memory extensions = requestCore.getExtensions(_requestId);
+
+        var isOK = true;
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        {
+            if(msg.sender != extensions[i]) {
+                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
+                isOK = isOK && extension.addAdditional(_requestId, _amount);  
+            }
+        }
+        if(isOK) 
+        {
+            requestCore.addAdditional(_requestId, _amount);
         }
         return isOK;
     }
