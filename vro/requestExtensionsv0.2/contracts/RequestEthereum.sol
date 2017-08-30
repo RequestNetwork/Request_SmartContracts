@@ -178,7 +178,6 @@ contract RequestEthereum {
 
     // ---- INTERNAL FUNCTIONS ------------------------------------------------------------------------------------
     function  paymentInternal(uint _requestId, uint _amount) internal
-        onlyRequestState(_requestId, RequestCore.State.Accepted)
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
@@ -201,7 +200,6 @@ contract RequestEthereum {
     }
 
     function  addSubtractInternal(uint _requestId, uint _amount) internal
-        onlyRequestState(_requestId, RequestCore.State.Accepted)
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
@@ -222,7 +220,6 @@ contract RequestEthereum {
     }
 
     function  addAdditionalInternal(uint _requestId, uint _amount) internal
-        onlyRequestState(_requestId, RequestCore.State.Accepted)
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
