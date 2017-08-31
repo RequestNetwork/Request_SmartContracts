@@ -1,4 +1,3 @@
-return;
 
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
@@ -36,14 +35,8 @@ var expectThrow = async function(promise) {
   try {
     await promise;
   } catch (error) {
-    // TODO: Check jump destination to destinguish between a throw
-    //       and an actual invalid jump.
     const invalidOpcode = error.message.search('invalid opcode') >= 0;
     const invalidJump = error.message.search('invalid JUMP') >= 0;
-    // TODO: When we contract A calls contract B, and B throws, instead
-    //       of an 'invalid jump', we get an 'out of gas' error. How do
-    //       we distinguish this from an actual out of gas event? (The
-    //       testrpc log actually show an 'invalid jump' event.)
     const outOfGas = error.message.search('out of gas') >= 0;
     assert(
       invalidOpcode || invalidJump || outOfGas,
@@ -53,7 +46,6 @@ var expectThrow = async function(promise) {
   }
   assert.fail('Expected throw not received');
 };
-
 
 contract('RequestEthereum Withdraw',  function(accounts) {
 	var admin = accounts[0];
@@ -86,20 +78,19 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 	// ##################################################################################################
 
 	it("withdraw when amount[msg.sender] = 0 & contract value = 0 Impossible", async function () {
-		// await requestEthereum.pay(1, {from:payer,value:arbitraryAmount});
 		assert.equal(await requestEthereum.ethToWithdraw.call(payee),0,"Balance of payee must be 0" );
 		await expectThrow(requestEthereum.withdraw());
 	});
 
 	it("withdraw when amount[msg.sender] = 0 & contract value != 0 Impossible", async function () {
-		await requestEthereum.pay(1, {from:payer,value:arbitraryAmount});
+		await requestEthereum.pay(1, 0, {from:payer,value:arbitraryAmount});
 		assert.equal(await requestEthereum.ethToWithdraw.call(payer),0,"Balance of payer must be 0" );
 		await expectThrow(requestEthereum.withdraw());
 	});
 
 	it("withdraw when amount[msg.sender] = X, msg.sender get X and amount[msg.sender] = 0", async function () {
 		var balancePayee = Math.floor(await web3.eth.getBalance(payee) / arbitraryAmount);
-		await requestEthereum.pay(1, {from:payer,value:arbitraryAmount});
+		await requestEthereum.pay(1, 0, {from:payer,value:arbitraryAmount});
 		assert.equal(await requestEthereum.ethToWithdraw.call(payee),arbitraryAmount,"Balance of payee must be arbitraryAmount" );
 		await requestEthereum.withdraw({from:payee});
 		assert.equal(await requestEthereum.ethToWithdraw.call(payee),0,"Balance of payee must be 0" );
@@ -108,10 +99,8 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 		assert.equal(newBalance ,balancePayee+1,"Payee must be credited by arbitraryAmount");
 	});
 
-
-	// TODO : 	// OP CODE not understood /!\
 	it("challenge reentrance 2 rounds", async function () {
-		await requestEthereum.pay(1, {from:payer,value:arbitraryAmount});
+		await requestEthereum.pay(1, 0, {from:payer,value:arbitraryAmount});
 		
 		testRequestReentrance = await TestRequestReentrance.new(requestEthereum.address, 2,{from:hacker});
 		var r = await testRequestReentrance.init(hacker,{from:hacker});
@@ -120,7 +109,7 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 		assert.equal(r.logs[0].args.id,2,"Event LogRequestPayment wrong args id");
 
 		await requestEthereum.accept(r.logs[0].args.id, {from:hacker});
-		await requestEthereum.pay(2, {from:hacker,value:arbitraryAmount10percent});
+		await requestEthereum.pay(r.logs[0].args.id, 0, {from:hacker,value:arbitraryAmount10percent});
 
 		var r = await expectThrow(testRequestReentrance.start({from:hacker}));
 		assert.equal(await web3.eth.getBalance(testRequestReentrance.address), 0, 'Contract hacking balance must remain 0');

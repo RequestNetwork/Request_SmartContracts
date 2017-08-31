@@ -1,9 +1,6 @@
-return;
 
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
-var RequestExtensionEscrow = artifacts.require("./RequestExtensionEscrow.sol");
-var RequestExtensionTax = artifacts.require("./RequestExtensionTax.sol");
 
 var BigNumber = require('bignumber.js');
 
@@ -11,14 +8,8 @@ var expectThrow = async function(promise) {
   try {
     await promise;
   } catch (error) {
-    // TODO: Check jump destination to destinguish between a throw
-    //       and an actual invalid jump.
     const invalidOpcode = error.message.search('invalid opcode') >= 0;
     const invalidJump = error.message.search('invalid JUMP') >= 0;
-    // TODO: When we contract A calls contract B, and B throws, instead
-    //       of an 'invalid jump', we get an 'out of gas' error. How do
-    //       we distinguish this from an actual out of gas event? (The
-    //       testrpc log actually show an 'invalid jump' event.)
     const outOfGas = error.message.search('out of gas') >= 0;
     assert(
       invalidOpcode || invalidJump || outOfGas,
@@ -95,7 +86,7 @@ contract('RequestCore Create Request', function(accounts) {
 
 
 	// new request _amountExpected == 0 impossible
-	// new request _amountExpected < 0 impossible TODO /!\
+	// new request _amountExpected < 0 impossible /!\
 	// new request _amountExpected > 2^256 impossible
 	it("amountExpected more than zero and not more than 2^256", async function () {
 		var requestCore = await RequestCore.new();
@@ -103,7 +94,7 @@ contract('RequestCore Create Request', function(accounts) {
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
 		await expectThrow(requestCore.createRequest(creator, payee, payer, 0, [], {from:fakeContract}));
-		// problem here : how to test it ? TODO /!\
+		// problem here : how to test it ? /!\
 		// await expectThrow(requestCore.createRequest(payee, payee, payer, -1, [], {from:fakeContract}));
 		await expectThrow(requestCore.createRequest(creator, payee, payer, new BigNumber(2).pow(256), [], {from:fakeContract}));
 	});
@@ -305,45 +296,6 @@ contract('RequestCore Create Request', function(accounts) {
 
 		await expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, [0,fakeExtention1,0], {from:fakeContract}));
 	});
-
-
-	// TODO new request with 4 extensions trusted - not possible to test ? /!\
-	// it("new request with 4 extensions valid", async function () {
-	// 	var requestCore = await RequestCore.new();
-	// 	await requestCore.adminResume({from:admin});
-	// 	await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
-
-	// 	await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
-	// 	await requestCore.adminAddTrustedExtension(fakeExtention2, {from:admin});
-	// 	await requestCore.adminAddTrustedExtension(fakeExtention3, {from:admin});
-	// 	await requestCore.adminAddTrustedExtension(fakeExtention4, {from:admin});
-
-	// 	var r = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, [fakeExtention1,fakeExtention2,fakeExtention3,fakeExtention4], {from:fakeContract});
-
-	// 	assert.equal(r.logs[0].event,"LogRequestCreated","Event LogRequestCreated is missing after createRequest()");
-	// 	assert.equal(r.logs[0].args.requestId,"1","Event LogRequestCreated wrong args requestId");
-	// 	assert.equal(r.logs[0].args.payee,payee,"Event LogRequestCreated wrong args payee");
-	// 	assert.equal(r.logs[0].args.payer,payer,"Event LogRequestCreated wrong args payer");
-
-	// 	var newReq = await requestCore.requests.call(1);
-	// 	assert.equal(newReq[0],creator,"new request wrong data : creator");
-	// 	assert.equal(newReq[1],payee,"new request wrong data : payee");
-	// 	assert.equal(newReq[2],payer,"new request wrong data : payer");
-	// 	assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-	// 	assert.equal(newReq[4],fakeContract,"new request wrong data : subContract");
-	// 	assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-	// 	assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-	// 	assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-	// 	assert.equal(newReq[8],0,"new request wrong data : state");
-
-
-	// 	var newReqExtension = await requestCore.getExtensions.call(1);
-	// 	console.log('newReqExtension')
-	// 	console.log(newReqExtension)
-	// 	assert.equal(newReqExtension[0],fakeExtention1,"new request wrong data : Extension[0]");
-	// 	assert.equal(newReqExtension[1],fakeExtention2,"new request wrong data : Extension[1]");
-	// 	assert.equal(newReqExtension[2],fakeExtention3,"new request wrong data : Extension[2]");
-	// });
 
 });
 

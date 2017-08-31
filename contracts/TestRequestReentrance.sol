@@ -26,7 +26,7 @@ contract TestRequestReentrance {
         RequestEthereumWeak weakContract = RequestEthereumWeak(contractAdd);
         bytes32[5] memory empty;
         address[3] memory emptyAddress;
-        uint id = weakContract.createRequest(this, _payer, 1, emptyAddress, empty, empty, empty);
+        uint id = weakContract.createRequest(this, _payer, 100000000000000000, emptyAddress, empty, empty, empty);
         Log(id);
     }
 

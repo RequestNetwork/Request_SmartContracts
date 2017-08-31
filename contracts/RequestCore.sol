@@ -2,7 +2,6 @@ pragma solidity ^0.4.11;
 
 import './Administrable.sol';
 
-// many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs
 contract RequestCore is Administrable{
 
     // state of an RequestgetSystemState
@@ -22,8 +21,8 @@ contract RequestCore is Administrable{
         address[3] extensions;
     }
     // index of the Request in the mapping
-    uint public numRequests; //should be replaced by something else (hash?)
-
+    uint public numRequests; 
+    
     // mapping of all the Requests
     mapping(uint => Request) public requests;
 
