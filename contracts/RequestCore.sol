@@ -44,7 +44,7 @@ contract RequestCore is Administrable{
 
     // create an Request
     function createRequest(address _creator, address _payee, address _payer, uint _amountExpected, address[3] _extensions) 
-        systemIsWorking 
+        systemIsActive 
         isTrustedContract(msg.sender)
         areTrustedExtensions(_extensions)
         checkActorsAmount(_creator, _payee, _payer, _amountExpected)
@@ -59,7 +59,7 @@ contract RequestCore is Administrable{
 
     // the payer can accept an Request 
     function accept(uint _requestId) 
-        systemIsWorking
+        systemIsActive
     {
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can accept
@@ -69,7 +69,7 @@ contract RequestCore is Administrable{
    
     // the payer can decline an Request
     function decline(uint _requestId)
-        systemIsWorking
+        systemIsActive
     {
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can decline
@@ -80,7 +80,7 @@ contract RequestCore is Administrable{
 
     // the payee can Cancel an Request if just creted
     function cancel(uint _requestId)
-        systemIsWorking
+        systemIsActive
     {
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can cancel
@@ -91,7 +91,7 @@ contract RequestCore is Administrable{
 
     // declare a payment
     function payment(uint _requestId, uint _amount)
-        systemIsWorking
+        systemIsActive
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare payment
@@ -103,7 +103,7 @@ contract RequestCore is Administrable{
 
     // declare a refund
     function refund(uint _requestId, uint _amount)
-        systemIsWorking
+        systemIsActive
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare refund
@@ -115,7 +115,7 @@ contract RequestCore is Administrable{
 
     // declare a addtional
     function addAdditional(uint _requestId, uint _amount)
-        systemIsWorking
+        systemIsActive
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare refund
@@ -128,7 +128,7 @@ contract RequestCore is Administrable{
 
     // declare a subract
     function addSubtract(uint _requestId, uint _amount)
-        systemIsWorking
+        systemIsActive
     {   
         Request storage c = requests[_requestId];
         require(c.subContract==msg.sender); // only subContract can declare refund
@@ -141,28 +141,28 @@ contract RequestCore is Administrable{
 
     // request getters - each fields or each tuples
     function getPayee(uint _requestId)
-        systemIsWorking
+        systemIsActive
         returns(address)
     {
         return requests[_requestId].payee;
     }
     
     function getPayer(uint _requestId)
-        systemIsWorking
+        systemIsActive
         returns(address)
     {
         return requests[_requestId].payer;
     }
     
     function getAmountExpected(uint _requestId)
-        systemIsWorking
+        systemIsActive
         returns(uint)
     {
         return requests[_requestId].amountExpected;
     }
 
     function getAmountExpectedAfterSubAdd(uint _requestId)
-        systemIsWorking
+        systemIsActive
         returns(uint)
     {
         return requests[_requestId].amountExpected+requests[_requestId].amountAdditional-requests[_requestId].amountSubtract;
@@ -170,42 +170,42 @@ contract RequestCore is Administrable{
     
 
     function getSubContract(uint _requestId)
-        systemIsWorking
+        systemIsActive
         returns(address)
     {
         return requests[_requestId].subContract;
     }
     
     function getAmountPaid(uint _requestId)
-        systemIsWorking
+        systemIsActive
         returns(uint)
     {
         return requests[_requestId].amountPaid;
     }
       
     function getAmountAdditional(uint _requestId)
-        systemIsWorking
+        systemIsActive
         returns(uint)
     {
         return requests[_requestId].amountAdditional;
     }
 
     function getAmountSubtract(uint _requestId)
-        systemIsWorking
+        systemIsActive
         returns(uint)
     {
         return requests[_requestId].amountSubtract;
     }
 
     function getState(uint _requestId)
-        systemIsWorking
+        systemIsActive
         returns(State)
     {
         return requests[_requestId].state;
     }
    
     function getExtensions(uint _requestId)
-        systemIsWorking
+        systemIsActive
         returns(address[3])
     {
         return requests[_requestId].extensions;

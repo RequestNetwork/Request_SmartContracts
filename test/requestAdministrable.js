@@ -30,15 +30,15 @@ contract('RequestCore Administrative part', function(accounts) {
 		assert.equal(await requestCore.systemState.call(),"0","Core must be Paused at the begging");
 
 		var r = await requestCore.adminResume({from:admin});
-		assert.equal(r.logs[0].event,"LogSystemResumed","Event LogSystemResumed is missing after adminResume()");
+		assert.equal(r.logs[0].event,"Resumed","Event Resumed is missing after adminResume()");
 		assert.equal(await requestCore.systemState.call(),"1","Core must be Resumed after adminResume()");
 
 		var r = await requestCore.adminPause({from:admin});
-		assert.equal(r.logs[0].event,"LogSystemPaused","Event LogSystemPaused is missing after adminPause()");
+		assert.equal(r.logs[0].event,"Paused","Event Paused is missing after adminPause()");
 		assert.equal(await requestCore.systemState.call(),"0","Core must be Paused after adminPause()");
 
 		var r = await requestCore.adminDeprecate({from:admin});
-		assert.equal(r.logs[0].event,"LogSystemDeprecated","Event LogSystemDeprecated is missing after adminDeprecate()");
+		assert.equal(r.logs[0].event,"Deprecated","Event Deprecated is missing after adminDeprecate()");
 		assert.equal(await requestCore.systemState.call(),"2","Core must be Deprecated after adminDeprecate()");
 	});
 
@@ -68,8 +68,8 @@ contract('RequestCore Administrative part', function(accounts) {
 		await requestCore.adminResume({from:admin});
 
 		var r = await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
-		assert.equal(r.logs[0].event,"LogSystemNewTrustedContracted","Event LogSystemNewTrustedContracted is missing after adminAddTrustedSubContract()");
-		assert.equal(r.logs[0].args.newContract,requestEthereum.address,"Event LogSystemNewTrustedContracted wrong args");
+		assert.equal(r.logs[0].event,"NewTrustedContract","Event NewTrustedContract is missing after adminAddTrustedSubContract()");
+		assert.equal(r.logs[0].args.newContract,requestEthereum.address,"Event NewTrustedContract wrong args");
 		assert.equal(await requestCore.getStatusContract.call(requestEthereum.address),"1","New contract should be added");
 	});
 	it("adminRemoveTrustedSubContract remove trusted contract", async function() {
@@ -79,8 +79,8 @@ contract('RequestCore Administrative part', function(accounts) {
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
 		var r = await requestCore.adminRemoveTrustedSubContract(requestEthereum.address, {from:admin});
-		assert.equal(r.logs[0].event,"LogSystemRemoveTrustedContracted","Event LogSystemRemoveTrustedContracted is missing after adminAddTrustedSubContract()");
-		assert.equal(r.logs[0].args.oldContract,requestEthereum.address,"Event LogSystemRemoveTrustedContracted wrong args");
+		assert.equal(r.logs[0].event,"RemoveTrustedContract","Event RemoveTrustedContract is missing after adminAddTrustedSubContract()");
+		assert.equal(r.logs[0].args.oldContract,requestEthereum.address,"Event RemoveTrustedContract wrong args");
 		assert.equal(await requestCore.getStatusContract.call(requestEthereum.address),"0","New contract should be added");
 	});
 
@@ -91,8 +91,8 @@ contract('RequestCore Administrative part', function(accounts) {
 		await requestCore.adminResume({from:admin});
 
 		var r = await requestCore.adminAddTrustedExtension(requestEthereum.address, {from:admin});
-		assert.equal(r.logs[0].event,"LogSystemNewExtension","Event LogSystemNewExtension is missing after adminAddTrustedExtension()");
-		assert.equal(r.logs[0].args.newExtension,requestEthereum.address,"Event LogSystemNewExtension wrong args");
+		assert.equal(r.logs[0].event,"NewTrustedExtension","Event NewTrustedExtension is missing after adminAddTrustedExtension()");
+		assert.equal(r.logs[0].args.newExtension,requestEthereum.address,"Event NewTrustedExtension wrong args");
 		assert.equal(await requestCore.getStatusExtension.call(requestEthereum.address),"1","New extension should be added");
 	});
 	it("adminRemoveTrustedSubContract remove trusted contract", async function() {
@@ -102,8 +102,8 @@ contract('RequestCore Administrative part', function(accounts) {
 		await requestCore.adminAddTrustedExtension(requestEthereum.address, {from:admin});
 
 		var r = await requestCore.adminRemoveExtension(requestEthereum.address, {from:admin});
-		assert.equal(r.logs[0].event,"LogSystemRemoveExtension","Event LogSystemRemoveExtension is missing after adminRemoveExtension()");
-		assert.equal(r.logs[0].args.oldExtension,requestEthereum.address,"Event LogSystemRemoveExtension wrong args");
+		assert.equal(r.logs[0].event,"RemoveTrustedExtension","Event RemoveTrustedExtension is missing after adminRemoveExtension()");
+		assert.equal(r.logs[0].args.oldExtension,requestEthereum.address,"Event RemoveTrustedExtension wrong args");
 		assert.equal(await requestCore.getStatusExtension.call(requestEthereum.address),"0","New extension should be added");
 	});
 
