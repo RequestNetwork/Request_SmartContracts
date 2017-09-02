@@ -6,7 +6,7 @@ contract Administrable {
     enum SystemState { Paused, Active, Deprecated }
 
     // Contract admin / for now only the creator 
-    address public trustedAdmin;
+    address public admin;
 
     // mapping of address of trusted contract
     mapping(address => uint8) public trustedSubContracts;
@@ -27,7 +27,7 @@ contract Administrable {
     event RemoveTrustedExtension(address oldExtension);
 
     function Administrable() {
-        trustedAdmin = msg.sender;
+        admin = msg.sender;
         systemState = SystemState.Paused;
     }
     // sub
@@ -143,7 +143,7 @@ contract Administrable {
     }
 
     modifier onlyAdmin() {
-        require(trustedAdmin==msg.sender);
+        require(admin==msg.sender);
         _;
     }
 

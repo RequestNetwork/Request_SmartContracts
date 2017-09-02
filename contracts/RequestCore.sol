@@ -4,10 +4,10 @@ import './Administrable.sol';
 
 contract RequestCore is Administrable{
 
-    // state of an RequestgetSystemState
+    // state of a Request
     enum State { Created, Accepted, Declined, Canceled }
 
-    // What is an Request
+    // What is a Request
     struct Request {
         address creator;
         address payee;
@@ -20,6 +20,7 @@ contract RequestCore is Administrable{
         State state;
         address[3] extensions;
     }
+    
     // index of the Request in the mapping
     uint public numRequests; 
     
