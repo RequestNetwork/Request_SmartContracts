@@ -35,24 +35,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		escrows[_requestId] = RequestEscrow(msg.sender, address(_params[0]), EscrowState.Created, 0,0); // create RequestEscrow
 		return true;
 	}
-
-
-	// we just register the refund if it's to the payer
-	// function fundOrder(uint _requestId, address _recipient, uint _amount)
-	// 	isSubContractRight(_requestId)
-	// 	returns(bool)
-	// {
-	// 	if(_recipient == requestCore.getPayer(_requestId)) {
-	// 		require(_amount+escrows[_requestId].amountRefunded > escrows[_requestId].amountRefunded && _amount+escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded >= _amount);
-	// 		escrows[_requestId].amountRefunded += _amount;
-	// 	// } else if(_recipient == requestCore.getPayee(_requestId)) {
-	// 	//	 require(_amount+escrows[_requestId].amountPaid > escrows[_requestId].amountPaid && _amount+escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded >= _amount);
-	// 	//	 escrows[_requestId].amountPaid += _amount;
-	// 	}
-
-	// 	return true;
-	// }
-
+  
 	function payment(uint _requestId, uint _amount)
 		isSubContractRight(_requestId)
 		inNOTEscrowState(_requestId, EscrowState.Refunded)
