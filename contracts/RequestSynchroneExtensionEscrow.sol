@@ -30,12 +30,13 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 	function createRequest(uint _requestId, bytes32[5] _params)
 		isSubContractTrusted(msg.sender)
+    condition(_params[0]!=0)
 		returns(bool)
 	{
 		escrows[_requestId] = RequestEscrow(msg.sender, address(_params[0]), EscrowState.Created, 0,0); // create RequestEscrow
 		return true;
 	}
-  
+
 	function payment(uint _requestId, uint _amount)
 		isSubContractRight(_requestId)
 		inNOTEscrowState(_requestId, EscrowState.Refunded)
