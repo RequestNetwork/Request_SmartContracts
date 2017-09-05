@@ -17,7 +17,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	}
 	mapping(uint => RequestEscrow) public escrows;
 
-	event LogRequestEscrowPayment(uint requestId, uint amount);
+	event EscrowPayment(uint requestId, uint amount);
 
 	// address of the contract of the request system
 	RequestCore public requestCore;
@@ -42,10 +42,10 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		inNOTEscrowState(_requestId, EscrowState.Refunded)
 		returns(bool)
 	{
-    require(_amount+escrows[_requestId].amountPaid > escrows[_requestId].amountPaid && _amount+escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded <= requestCore.getAmountExpectedAfterSubAdd(_requestId)); // value must be greater than 0 and all the payments should not overpass the amountExpected
+    require(_amount+escrows[_requestId].amountPaid >= escrows[_requestId].amountPaid && _amount+escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded <= requestCore.getAmountExpectedAfterSubAdd(_requestId)); // value must be greater than 0 and all the payments should not overpass the amountExpected
 
 		escrows[_requestId].amountPaid += _amount;
-		LogRequestEscrowPayment(_requestId, _amount);
+		EscrowPayment(_requestId, _amount);
 
 		return isEscrowReleasedPayment(_requestId);
 	}
