@@ -1,4 +1,4 @@
-return;
+// return;
 
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
@@ -58,10 +58,10 @@ var expectThrow = async function(promise) {
 
 
 
-contract('RequestEthereum with Escrow Accept',  function(accounts) {
+contract('Request Synchrone extension Escrow',  function(accounts) {
 	var admin = accounts[0];
 	var otherguy = accounts[1];
-	var fakeContract = accounts[2];
+	var fakeTrustedContract = accounts[2];
 	var payer = accounts[3];
 	var payee = accounts[4];
 	var escrow = accounts[5];
@@ -80,35 +80,38 @@ contract('RequestEthereum with Escrow Accept',  function(accounts) {
 
 			await requestCore.adminResume({from:admin});
 			await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
-			await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
+			await requestCore.adminAddTrustedSubContract(fakeTrustedContract, {from:admin});
 			await requestCore.adminAddTrustedExtension(requestSynchroneExtensionEscrow.address, {from:admin});
-
-			var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], [], [], {from:payee});			
     });
 
 	// ##################################################################################################
 	// ##################################################################################################
 	it("Create Escrow request by other guy impossible", async function () {
-		var newRequest = await requestEthereum.createRequest(1, [addressToByte32str(escrow)], {from:otherguy});
-
-		var r = await requestEthereum.accept(1, {from:payer});
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestAccepted","Event LogRequestAccepted is missing after accept()");
-		assert.equal(l.data[0],1,"Event LogRequestAccepted wrong args requestId");
-
-		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		await expectThrow(requestSynchroneExtensionEscrow.createRequest(1, [addressToByte32str(escrow)], {from:otherguy}));
 	});
 
+	it("Create Escrow request by escrow impossible", async function () {
+		await expectThrow(requestSynchroneExtensionEscrow.createRequest(1, [addressToByte32str(escrow)], {from:escrow}));
+	});
+
+	it("Create Escrow request with parameters empty Impossible", async function () {
+		await expectThrow(requestSynchroneExtensionEscrow.createRequest(1, [], {from:fakeTrustedContract}));
+	});
+
+	it("Create Escrow request by a subContract trusted by core OK", async function () {
+		var r = await requestSynchroneExtensionEscrow.createRequest(1, [addressToByte32str(escrow)], {from:fakeTrustedContract})
+
+		assert.equal(r.receipt.logs.length,0,"Wrong number of events");
+
+		var newReq = await requestSynchroneExtensionEscrow.escrows.call(1);
+		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
+		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
+		assert.equal(newReq[2],0,"new request wrong data : state");
+		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+	});
+
+/*
 	it("accept request created OK", async function () {
 		var r = await requestEthereum.accept(1, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -273,5 +276,7 @@ contract('RequestEthereum with Escrow Accept',  function(accounts) {
 	});
 	// ##################################################################################################
 	// ##################################################################################################
+*/
+
 });
 
