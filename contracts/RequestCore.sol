@@ -86,9 +86,9 @@ contract RequestCore is Administrable{
     function accept(uint _requestId) 
         systemIsActive
     {
-        Request storage c = requests[_requestId];
-        require(c.subContract==msg.sender); 
-        c.state = State.Accepted;
+        Request storage r = requests[_requestId];
+        require(r.subContract==msg.sender); 
+        r.state = State.Accepted;
         Accepted(_requestId);
     }
    
@@ -96,9 +96,9 @@ contract RequestCore is Administrable{
     function decline(uint _requestId)
         systemIsActive
     {
-        Request storage c = requests[_requestId];
-        require(c.subContract==msg.sender); 
-        c.state = State.Declined;
+        Request storage r = requests[_requestId];
+        require(r.subContract==msg.sender); 
+        r.state = State.Declined;
         Declined(_requestId);
     }
 
@@ -106,10 +106,10 @@ contract RequestCore is Administrable{
     function cancel(uint _requestId)
         systemIsActive
     {
-        Request storage c = requests[_requestId];
-        require(c.subContract==msg.sender);
-        require(c.amountPaid==0); // only Request with balance null can be canceled
-        c.state = State.Canceled;
+        Request storage r = requests[_requestId];
+        require(r.subContract==msg.sender);
+        require(r.amountPaid==0); // only Request with balance null can be canceled
+        r.state = State.Canceled;
         Canceled(_requestId);
     }   
 
@@ -118,11 +118,11 @@ contract RequestCore is Administrable{
     function payment(uint _requestId, uint _amount)
         systemIsActive
     {   
-        Request storage c = requests[_requestId];
-        require(c.subContract==msg.sender); 
-        require(_amount+c.amountPaid >= c.amountPaid); // avoid overflow
+        Request storage r = requests[_requestId];
+        require(r.subContract==msg.sender); 
+        require(_amount+r.amountPaid >= r.amountPaid); // avoid overflow
 
-        c.amountPaid += _amount;
+        r.amountPaid += _amount;
         Payment(_requestId, _amount);
     }
 
@@ -130,11 +130,11 @@ contract RequestCore is Administrable{
     function refund(uint _requestId, uint _amount)
         systemIsActive
     {   
-        Request storage c = requests[_requestId];
-        require(c.subContract==msg.sender); 
-        require(c.amountPaid-_amount <= c.amountPaid); // avoid overflow
+        Request storage r = requests[_requestId];
+        require(r.subContract==msg.sender); 
+        require(r.amountPaid-_amount <= r.amountPaid); // avoid overflow
 
-        c.amountPaid -= _amount;
+        r.amountPaid -= _amount;
         Refunded(_requestId, _amount);
     }
 
@@ -142,12 +142,12 @@ contract RequestCore is Administrable{
     function addAdditional(uint _requestId, uint _amount)
         systemIsActive
     {   
-        Request storage c = requests[_requestId];
-        require(c.subContract==msg.sender); 
-        require(c.amountAdditional+_amount >= c.amountAdditional); // avoid overflow
-        require(c.amountAdditional+_amount+c.amountExpected >= c.amountExpected); // avoid overflow BIS - TODO USELESS ?
+        Request storage r = requests[_requestId];
+        require(r.subContract==msg.sender); 
+        require(r.amountAdditional+_amount >= r.amountAdditional); // avoid overflow
+        require(r.amountAdditional+_amount+r.amountExpected >= r.amountExpected); // avoid overflow BIS - TODO USELESS ?
 
-        c.amountAdditional += _amount;
+        r.amountAdditional += _amount;
         AddAdditional(_requestId, _amount);
     }
 
@@ -155,12 +155,12 @@ contract RequestCore is Administrable{
     function addSubtract(uint _requestId, uint _amount)
         systemIsActive
     {   
-        Request storage c = requests[_requestId];
-        require(c.subContract==msg.sender);
-        require(c.amountSubtract+_amount >= c.amountSubtract); // avoid overflow
-        require(_amount+c.amountSubtract <= c.amountExpected); // avoid overflow BIS - TODO USELESS ?
+        Request storage r = requests[_requestId];
+        require(r.subContract==msg.sender);
+        require(r.amountSubtract+_amount >= r.amountSubtract); // avoid overflow
+        require(_amount+r.amountSubtract <= r.amountExpected); // avoid overflow BIS - TODO USELESS ?
 
-        c.amountSubtract += _amount;
+        r.amountSubtract += _amount;
         AddSubtract(_requestId, _amount);
     }
 
