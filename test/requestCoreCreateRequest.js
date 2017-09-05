@@ -108,10 +108,10 @@ contract('RequestCore Create Request', function(accounts) {
 
 		var r = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, [], {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestCreated","Event LogRequestCreated is missing after createRequest()");
-		assert.equal(r.logs[0].args.requestId,"1","Event LogRequestCreated wrong args requestId");
-		assert.equal(r.logs[0].args.payee,payee,"Event LogRequestCreated wrong args payee");
-		assert.equal(r.logs[0].args.payer,payer,"Event LogRequestCreated wrong args payer");
+		assert.equal(r.logs[0].event,"Created","Event Created is missing after createRequest()");
+		assert.equal(r.logs[0].args.requestId,"1","Event Created wrong args requestId");
+		assert.equal(r.logs[0].args.payee,payee,"Event Created wrong args payee");
+		assert.equal(r.logs[0].args.payer,payer,"Event Created wrong args payer");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],creator,"new request wrong data : creator");
@@ -139,10 +139,10 @@ contract('RequestCore Create Request', function(accounts) {
 
 		var r = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, [fakeExtention1], {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestCreated","Event LogRequestCreated is missing after createRequest()");
-		assert.equal(r.logs[0].args.requestId,"1","Event LogRequestCreated wrong args requestId");
-		assert.equal(r.logs[0].args.payee,payee,"Event LogRequestCreated wrong args payee");
-		assert.equal(r.logs[0].args.payer,payer,"Event LogRequestCreated wrong args payer");
+		assert.equal(r.logs[0].event,"Created","Event Created is missing after createRequest()");
+		assert.equal(r.logs[0].args.requestId,"1","Event Created wrong args requestId");
+		assert.equal(r.logs[0].args.payee,payee,"Event Created wrong args payee");
+		assert.equal(r.logs[0].args.payer,payer,"Event Created wrong args payer");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],creator,"new request wrong data : creator");
@@ -171,10 +171,10 @@ contract('RequestCore Create Request', function(accounts) {
 
 		var r = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, [fakeExtention1,fakeExtention2], {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestCreated","Event LogRequestCreated is missing after createRequest()");
-		assert.equal(r.logs[0].args.requestId,"1","Event LogRequestCreated wrong args requestId");
-		assert.equal(r.logs[0].args.payee,payee,"Event LogRequestCreated wrong args payee");
-		assert.equal(r.logs[0].args.payer,payer,"Event LogRequestCreated wrong args payer");
+		assert.equal(r.logs[0].event,"Created","Event Created is missing after createRequest()");
+		assert.equal(r.logs[0].args.requestId,"1","Event Created wrong args requestId");
+		assert.equal(r.logs[0].args.payee,payee,"Event Created wrong args payee");
+		assert.equal(r.logs[0].args.payer,payer,"Event Created wrong args payer");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],creator,"new request wrong data : creator");
@@ -204,10 +204,10 @@ contract('RequestCore Create Request', function(accounts) {
 
 		var r = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, [fakeExtention1,fakeExtention2,fakeExtention3], {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestCreated","Event LogRequestCreated is missing after createRequest()");
-		assert.equal(r.logs[0].args.requestId,"1","Event LogRequestCreated wrong args requestId");
-		assert.equal(r.logs[0].args.payee,payee,"Event LogRequestCreated wrong args payee");
-		assert.equal(r.logs[0].args.payer,payer,"Event LogRequestCreated wrong args payer");
+		assert.equal(r.logs[0].event,"Created","Event Created is missing after createRequest()");
+		assert.equal(r.logs[0].args.requestId,"1","Event Created wrong args requestId");
+		assert.equal(r.logs[0].args.payee,payee,"Event Created wrong args payee");
+		assert.equal(r.logs[0].args.payer,payer,"Event Created wrong args payer");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],creator,"new request wrong data : creator");

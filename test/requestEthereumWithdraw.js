@@ -106,7 +106,7 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 		var r = await testRequestReentrance.init(hacker,{from:hacker});
 
 		assert.equal(r.logs[0].event,"Log","Event Log is missing");
-		assert.equal(r.logs[0].args.id,2,"Event LogRequestPayment wrong args id");
+		assert.equal(r.logs[0].args.id,2,"Event Payment wrong args id");
 
 		await requestEthereum.accept(r.logs[0].args.id, {from:hacker});
 		await requestEthereum.pay(r.logs[0].args.id, 0, {from:hacker,value:arbitraryAmount10percent});

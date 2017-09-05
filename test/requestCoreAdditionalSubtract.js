@@ -55,9 +55,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 	it("additional on request created OK", async function () {
 		var r = await requestCore.addAdditional(1, arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAddAdditional","Event LogRequestAddAdditional is missing after addAdditional()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAddAdditional wrong args requestId");
-		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event LogRequestAddAdditional wrong args amountAdded");
+		assert.equal(r.logs[0].event,"AddAdditional","Event AddAdditional is missing after addAdditional()");
+		assert.equal(r.logs[0].args.requestId,1,"Event AddAdditional wrong args requestId");
+		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event AddAdditional wrong args amountAdded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -75,9 +75,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		await requestCore.accept(1, {from:fakeContract});
 		var r = await requestCore.addAdditional(1, arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAddAdditional","Event LogRequestAddAdditional is missing after addAdditional()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAddAdditional wrong args requestId");
-		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event LogRequestAddAdditional wrong args amountAdded");
+		assert.equal(r.logs[0].event,"AddAdditional","Event AddAdditional is missing after addAdditional()");
+		assert.equal(r.logs[0].args.requestId,1,"Event AddAdditional wrong args requestId");
+		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event AddAdditional wrong args amountAdded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -95,9 +95,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		await requestCore.decline(1, {from:fakeContract});
 		var r = await requestCore.addAdditional(1, arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAddAdditional","Event LogRequestAddAdditional is missing after addAdditional()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAddAdditional wrong args requestId");
-		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event LogRequestAddAdditional wrong args amountAdded");
+		assert.equal(r.logs[0].event,"AddAdditional","Event AddAdditional is missing after addAdditional()");
+		assert.equal(r.logs[0].args.requestId,1,"Event AddAdditional wrong args requestId");
+		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event AddAdditional wrong args amountAdded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -115,9 +115,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		await requestCore.cancel(1, {from:fakeContract});
 		var r = await requestCore.addAdditional(1, arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAddAdditional","Event LogRequestAddAdditional is missing after addAdditional()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAddAdditional wrong args requestId");
-		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event LogRequestAddAdditional wrong args amountAdded");
+		assert.equal(r.logs[0].event,"AddAdditional","Event AddAdditional is missing after addAdditional()");
+		assert.equal(r.logs[0].args.requestId,1,"Event AddAdditional wrong args requestId");
+		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event AddAdditional wrong args amountAdded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -225,9 +225,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 
 	it("new addAdditional _amount==0 OK", async function () {
 		var r = await requestCore.addAdditional(1, 0, {from:fakeContract});
-		assert.equal(r.logs[0].event,"LogRequestAddAdditional","Event LogRequestAddAdditional is missing after addAdditional()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAddAdditional wrong args requestId");
-		assert.equal(r.logs[0].args.amountAdded,0,"Event LogRequestAddAdditional wrong args amountAdded");
+		assert.equal(r.logs[0].event,"AddAdditional","Event AddAdditional is missing after addAdditional()");
+		assert.equal(r.logs[0].args.requestId,1,"Event AddAdditional wrong args requestId");
+		assert.equal(r.logs[0].args.amountAdded,0,"Event AddAdditional wrong args amountAdded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -308,9 +308,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 	it("subtract on request created OK", async function () {
 		var r = await requestCore.addSubtract(1, arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAddSubtract","Event LogRequestAddSubtract is missing after addSubtract()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAddSubtract wrong args requestId");
-		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event LogRequestAddSubtract wrong args amountSubtracted");
+		assert.equal(r.logs[0].event,"AddSubtract","Event AddSubtract is missing after addSubtract()");
+		assert.equal(r.logs[0].args.requestId,1,"Event AddSubtract wrong args requestId");
+		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event AddSubtract wrong args amountSubtracted");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -328,9 +328,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		await requestCore.accept(1, {from:fakeContract});
 		var r = await requestCore.addSubtract(1, arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAddSubtract","Event LogRequestAddSubtract is missing after addSubtract()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAddSubtract wrong args requestId");
-		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event LogRequestAddSubtract wrong args amountSubtracted");
+		assert.equal(r.logs[0].event,"AddSubtract","Event AddSubtract is missing after addSubtract()");
+		assert.equal(r.logs[0].args.requestId,1,"Event AddSubtract wrong args requestId");
+		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event AddSubtract wrong args amountSubtracted");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -348,9 +348,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		await requestCore.decline(1, {from:fakeContract});
 		var r = await requestCore.addSubtract(1, arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAddSubtract","Event LogRequestAddSubtract is missing after addSubtract()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAddSubtract wrong args requestId");
-		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event LogRequestAddSubtract wrong args amountSubtracted");
+		assert.equal(r.logs[0].event,"AddSubtract","Event AddSubtract is missing after addSubtract()");
+		assert.equal(r.logs[0].args.requestId,1,"Event AddSubtract wrong args requestId");
+		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event AddSubtract wrong args amountSubtracted");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -368,9 +368,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		await requestCore.cancel(1, {from:fakeContract});
 		var r = await requestCore.addSubtract(1, arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAddSubtract","Event LogRequestAddSubtract is missing after addSubtract()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAddSubtract wrong args requestId");
-		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event LogRequestAddSubtract wrong args amountSubtracted");
+		assert.equal(r.logs[0].event,"AddSubtract","Event AddSubtract is missing after addSubtract()");
+		assert.equal(r.logs[0].args.requestId,1,"Event AddSubtract wrong args requestId");
+		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event AddSubtract wrong args amountSubtracted");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -462,9 +462,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 
 	it("new addSubtract _amount==0 OK", async function () {
 		var r = await requestCore.addSubtract(1, 0, {from:fakeContract});
-		assert.equal(r.logs[0].event,"LogRequestAddSubtract","Event LogRequestAddSubtract is missing after addSubtract()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAddSubtract wrong args requestId");
-		assert.equal(r.logs[0].args.amountSubtracted,0,"Event LogRequestAddSubtract wrong args amountSubtracted");
+		assert.equal(r.logs[0].event,"AddSubtract","Event AddSubtract is missing after addSubtract()");
+		assert.equal(r.logs[0].args.requestId,1,"Event AddSubtract wrong args requestId");
+		assert.equal(r.logs[0].args.amountSubtracted,0,"Event AddSubtract wrong args amountSubtracted");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");

@@ -151,8 +151,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		var r = await requestEthereum.decline(1, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(l.name,"Declined","Event Declined is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -178,8 +178,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		assert.equal(l.data[1],1,"Event LogTestDecline wrong args ID");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(l.name,"Declined","Event Declined is missing after createRequest()");
+		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(2);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -231,8 +231,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		assert.equal(l.data[1],2,"Event LogTestDecline wrong args ID");
 
 		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(l.name,"Declined","Event Declined is missing after createRequest()");
+		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(2);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -340,8 +340,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		assert.equal(l.data[1],3,"Event LogTestDecline wrong args ID");
 
 		l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(l.name,"Declined","Event Declined is missing after createRequest()");
+		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(2);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -540,8 +540,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		var r = await fakeExtentionLauncher1.launchDecline(2);
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after decline()");
-		assert.equal(l.data[0],2,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(l.name,"Declined","Event Declined is missing after decline()");
+		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(2);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -562,8 +562,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		var r = await fakeExtentionLauncher1.launchDecline(2);
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after decline()");
-		assert.equal(l.data[0],2,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(l.name,"Declined","Event Declined is missing after decline()");
+		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(2);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -584,8 +584,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		var r = await fakeExtentionLauncher1.launchDecline(2);
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after decline()");
-		assert.equal(l.data[0],2,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(l.name,"Declined","Event Declined is missing after decline()");
+		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(2);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -606,8 +606,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		var r = await fakeExtentionLauncher1.launchDecline(2);
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after decline()");
-		assert.equal(l.data[0],2,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(l.name,"Declined","Event Declined is missing after decline()");
+		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(2);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -643,8 +643,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		assert.equal(l.data[1],23,"Event LogTestDecline wrong args ID");
 
 		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(l.name,"Declined","Event Declined is missing after createRequest()");
+		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(2);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -674,8 +674,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		assert.equal(l.data[1],23,"Event LogTestDecline wrong args ID");
 
 		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(l.name,"Declined","Event Declined is missing after createRequest()");
+		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(2);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -705,8 +705,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		assert.equal(l.data[1],22,"Event LogTestDecline wrong args ID");
 
 		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(l.name,"Declined","Event Declined is missing after createRequest()");
+		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(2);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
