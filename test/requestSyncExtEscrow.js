@@ -132,6 +132,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 	it("payment if Escrow State Refunded impossible", async function () {
 		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], [], [], {from:payee});
+		await requestEthereum.accept(2,{from:payer});
 		await requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow});
 		await expectThrow(requestEthereum.pay(2, 0,{from:payer, value:arbitraryAmount}));
 	});
@@ -163,6 +164,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 
 	it("payment if Escrow State Released OK", async function () {
+		await requestCore.accept(1,{from:fakeTrustedContract});
 		await requestSynchroneExtensionEscrow.releaseToPayee(1, {from:escrow});
 		var r = await requestSynchroneExtensionEscrow.payment(1, arbitraryAmount, {from:fakeTrustedContract});
 

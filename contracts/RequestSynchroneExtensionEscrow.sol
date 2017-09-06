@@ -55,6 +55,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	function releaseToPayee(uint _requestId)
 		onlyRequestEscrow(_requestId)
 		inEscrowState(_requestId, EscrowState.Created)
+		onlyRequestState(_requestId, RequestCore.State.Accepted)
 	{
 		// release the money
 		escrows[_requestId].state = EscrowState.Released;
@@ -71,6 +72,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	function refundToPayer(uint _requestId)
 		onlyRequestEscrow(_requestId)
 		inEscrowState(_requestId, EscrowState.Created)
+		onlyRequestState(_requestId, RequestCore.State.Accepted)
 	{
 		// Refund the money
 		escrows[_requestId].state = EscrowState.Refunded;
@@ -85,11 +87,6 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 
 	// internal function 
-	function isPaymentCompleteToEscrow(uint _requestId) internal returns(bool) 
-	{
-		return escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded == requestCore.getAmountExpected(_requestId);
-	}
-
 	function isEscrowReleasedPayment(uint _requestId) internal returns(bool) 
 	{
 		return escrows[_requestId].state == EscrowState.Released;
@@ -99,16 +96,6 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	//modifier
 	modifier condition(bool c) {
 		require(c);
-		_;
-	}
-	
-	modifier onlyRequestPayer(uint _requestId) {
-		require(requestCore.getPayer(_requestId)==msg.sender);
-		_;
-	}
-	
-	modifier onlyRequestPayee(uint _requestId) {
-		require(requestCore.getPayee(_requestId)==msg.sender);
 		_;
 	}
 
@@ -127,8 +114,8 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		_;
 	}
 
-	modifier paymentCompleteToEscrow(uint _requestId) {
-		require(isPaymentCompleteToEscrow(_requestId));
+	modifier onlyRequestState(uint _requestId, RequestCore.State state) {
+		require(requestCore.getState(_requestId)==state);
 		_;
 	}
 
