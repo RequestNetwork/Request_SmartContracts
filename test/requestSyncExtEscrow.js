@@ -92,7 +92,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 			await requestCore.createRequest(payee, payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], {from:fakeTrustedContract});
 			await requestSynchroneExtensionEscrow.createRequest(1, [addressToByte32str(escrow)], {from:fakeTrustedContract})
     });
-/*
+
 	// ##################################################################################################
 	// ## Create Request
 	// ##################################################################################################
@@ -152,6 +152,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 	it("payment if Escrow State Created OK", async function () {
+		assert.equal(await requestSynchroneExtensionEscrow.payment.call(1, arbitraryAmount, {from:fakeTrustedContract}),false,"Escrow Extension must return false");
+
 		var r = await requestSynchroneExtensionEscrow.payment(1, arbitraryAmount, {from:fakeTrustedContract})
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -166,12 +168,15 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[2],0,"new request wrong data : state");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
 		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+
 	});
 
 
 	it("payment if Escrow State Released OK", async function () {
 		await requestCore.accept(1,{from:fakeTrustedContract});
 		await requestSynchroneExtensionEscrow.releaseToPayee(1, {from:escrow});
+
+		assert.equal(await requestSynchroneExtensionEscrow.payment.call(1, arbitraryAmount, {from:fakeTrustedContract}),true,"Escrow Extension must return true");
 		var r = await requestSynchroneExtensionEscrow.payment(1, arbitraryAmount, {from:fakeTrustedContract});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -188,8 +193,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
 	});
 
-
 	it("payment request _amount == 0 OK", async function () {
+		assert.equal(await requestSynchroneExtensionEscrow.payment.call(1, arbitraryAmount, {from:fakeTrustedContract}),false,"Escrow Extension must return false");
 		var r = await requestSynchroneExtensionEscrow.payment(1, 0, {from:fakeTrustedContract})
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -326,9 +331,6 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
 		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");		
 	});
-*/
-
-
 
 });
 
