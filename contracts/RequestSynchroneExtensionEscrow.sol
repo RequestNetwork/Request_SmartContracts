@@ -55,7 +55,6 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	function releaseToPayee(uint _requestId)
 		onlyRequestEscrow(_requestId)
 		inEscrowState(_requestId, EscrowState.Created)
-		onlyRequestState(_requestId, RequestCore.State.Accepted)
 	{
 		// release the money
 		escrows[_requestId].state = EscrowState.Released;
@@ -72,7 +71,6 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	function refundToPayer(uint _requestId)
 		onlyRequestEscrow(_requestId)
 		inEscrowState(_requestId, EscrowState.Created)
-		onlyRequestState(_requestId, RequestCore.State.Accepted)
 	{
 		// Refund the money
 		escrows[_requestId].state = EscrowState.Refunded;
@@ -126,16 +124,6 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 	modifier inNOTEscrowState(uint _requestId, EscrowState es) {
 		require(escrows[_requestId].state!=es);
-		_;
-	}
-
-	modifier onlyRequestState(uint _requestId, RequestCore.State state) {
-		require(requestCore.getState(_requestId)==state);
-		_;
-	}
-
-	modifier onlyRequestStateOr(uint _requestId, RequestCore.State state1, RequestCore.State state2) {
-		require(requestCore.getState(_requestId)==state1 || requestCore.getState(_requestId)==state2);
 		_;
 	}
 
