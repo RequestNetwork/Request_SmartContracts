@@ -200,178 +200,75 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
 	});
 
-
-
-
 	// ##################################################################################################
 	// ##################################################################################################
 	// ##################################################################################################
-/*
-	it("accept request created OK", async function () {
-		var r = await requestEthereum.accept(1, {from:payer});
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestAccepted","Event LogRequestAccepted is missing after accept()");
-		assert.equal(l.data[0],1,"Event LogRequestAccepted wrong args requestId");
 
-		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
-	});
 
-	it("decline request created OK", async function () {
-		var r = await requestEthereum.decline(1, {from:payer});
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after decline()");
-		assert.equal(l.data[0],1,"Event LogRequestDeclined wrong args requestId");
-
-		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],2,"new request wrong data : state");
-	});
-
-	it("cancel request created OK", async function () {
-		var r = await requestEthereum.cancel(1, {from:payee});
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestCanceled","Event LogRequestCanceled is missing after cancel()");
-		assert.equal(l.data[0],1,"Event LogRequestCanceled wrong args requestId");
-
-		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
-	});
 	// ##################################################################################################
+	// ## Release
 	// ##################################################################################################
-	it("pay request not released by escrow OK", async function () {
-		await requestEthereum.accept(1, {from:payer});
-		var r = await requestEthereum.pay(1, 0, {value:arbitraryAmount, from:payer});
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-
-		var l = getEventFromReceipt(r.receipt.logs[0], requestSynchroneExtensionEscrow.abi);
-		assert.equal(l.name,"LogRequestEscrowPayment","Event LogRequestEscrowPayment is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestEscrowPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestEscrowPayment wrong args amount");
-
-		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
-
-		var newReq = await requestSynchroneExtensionEscrow.escrows.call(1);
-		assert.equal(newReq[0],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
-		assert.equal(newReq[2],0,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
-
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,0,"new request wrong data : amount to withdraw payee");
+	it("release if request is Created Impossible", async function () {
+		// await requestCore.accept(1,{from:fakeTrustedContract});
+		await expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(1, {from:escrow}));
 	});
 
-	it("pay request already released by escrow OK", async function () {
-		await requestEthereum.accept(1, {from:payer});
-		await requestSynchroneExtensionEscrow.releaseToPayee(1, {from:escrow});
-		var r = await requestEthereum.pay(1, 0, {value:arbitraryAmount, from:payer});
-		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-
-		var l = getEventFromReceipt(r.receipt.logs[0], requestSynchroneExtensionEscrow.abi);
-		assert.equal(l.name,"LogRequestEscrowPayment","Event LogRequestEscrowPayment is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestEscrowPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestEscrowPayment wrong args amount");
-
-		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amount");
-
-		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
-
-		var newReq = await requestSynchroneExtensionEscrow.escrows.call(1);
-		assert.equal(newReq[0],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
-		assert.equal(newReq[2],2   ,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
-		
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount,"new request wrong data : amount to withdraw payee");
+	it("release if request is Declined Impossible", async function () {
+		await requestCore.decline(1,{from:fakeTrustedContract});
+		await expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(1, {from:escrow}));
 	});
 
-	it("release request by escrow after payment OK", async function () {
-		await requestEthereum.accept(1, {from:payer});
-		await requestEthereum.pay(1, 0+10, {value:arbitraryAmount+10, from:payer});
+	it("release if request is Canceled Impossible", async function () {
+		await requestCore.cancel(1,{from:fakeTrustedContract});
+		await expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(1, {from:escrow}));
+	});
+
+
+	it("release if request is Accepted OK", async function () {
+		await requestCore.accept(1,{from:fakeTrustedContract});
 		var r = await requestSynchroneExtensionEscrow.releaseToPayee(1, {from:escrow});
 
-
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount+10,"Event LogRequestPayment wrong args amount");
-
-		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],arbitraryAmount+10,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0+10,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestSynchroneExtensionEscrow.abi);
+		assert.equal(l.name,"EscrowReleaseRequest","Event EscrowReleaseRequest is missing after releaseToPayee()");
+		assert.equal(l.data[0],1,"Event EscrowReleaseRequest wrong args requestId");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(1);
-		assert.equal(newReq[0],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount+10,"new request wrong data : amountPaid");
+		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
 		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
-
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount+10,"new request wrong data : amount to withdraw payee");
 	});
-	// ##################################################################################################
-	// ##################################################################################################
-*/
+
+	it("release by random guy Impossible", async function () {
+		await requestCore.accept(1,{from:fakeTrustedContract});
+		await expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(1, {from:otherguy}));
+	});
+
+	it("release by subContract Impossible", async function () {
+		await requestCore.accept(1,{from:fakeTrustedContract});
+		await expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(1, {from:fakeTrustedContract}));
+	});
+
+	it("release by payee Impossible", async function () {
+		await requestCore.accept(1,{from:fakeTrustedContract});
+		await expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(1, {from:payee}));
+	});
+
+	it("release if escrow is Released Impossible", async function () {
+		await requestCore.accept(1,{from:fakeTrustedContract});
+		await requestSynchroneExtensionEscrow.releaseToPayee(1, {from:escrow});
+		await expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(1, {from:escrow}));
+	});
+
+	it("release if escrow is Refunded Impossible", async function () {
+		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], [], [], {from:payee});
+		await requestEthereum.accept(2,{from:payer});
+		await requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow});
+		await expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(2, {from:escrow}));
+	});
+
 
 });
 
