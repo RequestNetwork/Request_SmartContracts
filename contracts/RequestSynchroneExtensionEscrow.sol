@@ -18,8 +18,8 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	mapping(uint => RequestEscrow) public escrows;
 
 	event EscrowPayment(uint requestId, uint amount);
-  event EscrowReleaseRequest(uint requestId);
-  event EscrowRefundRequest(uint requestId);
+	event EscrowReleaseRequest(uint requestId);
+	event EscrowRefundRequest(uint requestId);
 
 	// address of the contract of the request system
 	RequestCore public requestCore;
@@ -61,9 +61,9 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	{
 		// release the money
 		escrows[_requestId].state = EscrowState.Released;
-    EscrowReleaseRequest(_requestId);
+   		EscrowReleaseRequest(_requestId);
 
-    uint amountToPaid = escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded;
+    	uint amountToPaid = escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded;
 
 		if(amountToPaid > 0) {
 			RequestSynchroneInterface subContract = RequestSynchroneInterface(escrows[_requestId].subContract);
@@ -79,7 +79,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	{
 		// Refund the money
 		escrows[_requestId].state = EscrowState.Refunded;
-    EscrowRefundRequest(_requestId);
+    	EscrowRefundRequest(_requestId);
     
 		uint amountToRefund = escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded;
 		escrows[_requestId].amountRefunded = escrows[_requestId].amountPaid;
