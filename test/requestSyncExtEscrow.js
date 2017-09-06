@@ -89,31 +89,35 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 			await requestCore.adminAddTrustedExtension(requestSynchroneExtensionEscrow.address, {from:admin});
 
+			// request 1 with fakeTrustedContract
 			await requestCore.createRequest(payee, payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], {from:fakeTrustedContract});
 			await requestSynchroneExtensionEscrow.createRequest(1, [addressToByte32str(escrow)], {from:fakeTrustedContract})
+
+			// request 2 with testRequestSynchroneSubContractLauncher
+			await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], {from:payee});
     });
 
 	// ##################################################################################################
 	// ## Create Request
 	// ##################################################################################################
 	it("Create Escrow request by other guy impossible", async function () {
-		await expectThrow(requestSynchroneExtensionEscrow.createRequest(2, [addressToByte32str(escrow)], {from:otherguy}));
+		await expectThrow(requestSynchroneExtensionEscrow.createRequest(3, [addressToByte32str(escrow)], {from:otherguy}));
 	});
 
 	it("Create Escrow request by escrow impossible", async function () {
-		await expectThrow(requestSynchroneExtensionEscrow.createRequest(2, [addressToByte32str(escrow)], {from:escrow}));
+		await expectThrow(requestSynchroneExtensionEscrow.createRequest(3, [addressToByte32str(escrow)], {from:escrow}));
 	});
 
 	it("Create Escrow request with parameters empty Impossible", async function () {
-		await expectThrow(requestSynchroneExtensionEscrow.createRequest(2, [], {from:fakeTrustedContract}));
+		await expectThrow(requestSynchroneExtensionEscrow.createRequest(3, [], {from:fakeTrustedContract}));
 	});
 
 	it("Create Escrow request by a subContract trusted by core OK", async function () {
-		var r = await requestSynchroneExtensionEscrow.createRequest(2, [addressToByte32str(escrow)], {from:fakeTrustedContract})
+		var r = await requestSynchroneExtensionEscrow.createRequest(3, [addressToByte32str(escrow)], {from:fakeTrustedContract})
 
 		assert.equal(r.receipt.logs.length,0,"Wrong number of events");
 
-		var newReq = await requestSynchroneExtensionEscrow.escrows.call(2);
+		var newReq = await requestSynchroneExtensionEscrow.escrows.call(3);
 		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],0,"new request wrong data : state");
@@ -138,9 +142,9 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 	it("payment if Escrow State Refunded impossible", async function () {
 		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], [], [], {from:payee});
-		await requestEthereum.accept(2,{from:payer});
-		await requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow});
-		await expectThrow(requestEthereum.pay(2, 0,{from:payer, value:arbitraryAmount}));
+		await requestEthereum.accept(3,{from:payer});
+		await requestSynchroneExtensionEscrow.refundToPayer(3, {from:escrow});
+		await expectThrow(requestEthereum.pay(3, 0,{from:payer, value:arbitraryAmount}));
 	});
 
 	it("payment request _amount >= 2^256 impossible", async function () {
@@ -274,24 +278,24 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 	it("release if escrow is Refunded Impossible", async function () {
 		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], [], [], {from:payee});
-		await requestEthereum.accept(2,{from:payer});
-		await requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow});
-		await expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(2, {from:escrow}));
+		await requestEthereum.accept(3,{from:payer});
+		await requestSynchroneExtensionEscrow.refundToPayer(3, {from:escrow});
+		await expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(3, {from:escrow}));
 	});
 
 
 	it("release if amountPaid-amountRefunded == 0 OK nothing special", async function () {
 		var newRequest = await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], {from:payee});
-		await testRequestSynchroneSubContractLauncher.accept(2,{from:payer});
+		await testRequestSynchroneSubContractLauncher.accept(3,{from:payer});
 
-		var r = await requestSynchroneExtensionEscrow.releaseToPayee(2, {from:escrow});
+		var r = await requestSynchroneExtensionEscrow.releaseToPayee(3, {from:escrow});
 
 		assert.equal(r.receipt.logs.length,1, "Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestSynchroneExtensionEscrow.abi);
 		assert.equal(l.name,"EscrowReleaseRequest","Event EscrowReleaseRequest is missing after releaseToPayee()");
-		assert.equal(l.data[0],2,"Event EscrowReleaseRequest wrong args requestId");
+		assert.equal(l.data[0],3,"Event EscrowReleaseRequest wrong args requestId");
 
-		var newReq = await requestSynchroneExtensionEscrow.escrows.call(2);
+		var newReq = await requestSynchroneExtensionEscrow.escrows.call(3);
 		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
@@ -302,28 +306,28 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 	it("release if amountPaid-amountRefunded > 0 OK launch payment to subContract", async function () {
 		var newRequest = await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], {from:payee});
-		await testRequestSynchroneSubContractLauncher.accept(2,{from:payer});
-		await testRequestSynchroneSubContractLauncher.launchPayment(2, arbitraryAmount);
+		await testRequestSynchroneSubContractLauncher.accept(3,{from:payer});
+		await testRequestSynchroneSubContractLauncher.launchPayment(3, arbitraryAmount);
 
-		var r = await requestSynchroneExtensionEscrow.releaseToPayee(2, {from:escrow});
+		var r = await requestSynchroneExtensionEscrow.releaseToPayee(3, {from:escrow});
 
 		assert.equal(r.receipt.logs.length,3, "Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestSynchroneExtensionEscrow.abi);
 		assert.equal(l.name,"EscrowReleaseRequest","Event EscrowReleaseRequest is missing after releaseToPayee()");
-		assert.equal(l.data[0],2,"Event EscrowReleaseRequest wrong args requestId");
+		assert.equal(l.data[0],3,"Event EscrowReleaseRequest wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneSubContractLauncher.abi);
 		assert.equal(l.name,"LogTestPayment","Event LogTestPayment is missing after releaseToPayee()");
-		assert.equal(l.data[0],2,"Event LogTestPayment wrong args requestId");
+		assert.equal(l.data[0],3,"Event LogTestPayment wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestPayment wrong args constant_id");
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestPayment wrong args _amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
 		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after releaseToPayee()");
-		assert.equal(l.data[0],2,"Event LogRequestPayment wrong args requestId");
+		assert.equal(l.data[0],3,"Event LogRequestPayment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args _amount");
 
-		var newReq = await requestSynchroneExtensionEscrow.escrows.call(2);
+		var newReq = await requestSynchroneExtensionEscrow.escrows.call(3);
 		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
@@ -339,7 +343,134 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	// ## Escrow Refund
 	// ##################################################################################################
 
+	it("escrow refund if request is Created Impossible", async function () {
+		await expectThrow(requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow}));
+	});
 
+	it("escrow refund if request is Declined Impossible", async function () {
+		await testRequestSynchroneSubContractLauncher.decline(2,{from:payer});
+		await expectThrow(requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow}));
+	});
+
+	it("escrow refund if request is Canceled Impossible", async function () {
+		await testRequestSynchroneSubContractLauncher.cancel(2,{from:payer});
+		await expectThrow(requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow}));
+	});
+
+	it("escrow refund if request is Accepted OK", async function () {
+		await testRequestSynchroneSubContractLauncher.accept(2,{from:payer});
+
+		var r = await requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow});
+
+		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestSynchroneExtensionEscrow.abi);
+		assert.equal(l.name,"EscrowRefundRequest","Event EscrowRefundRequest is missing after refundToPayer()");
+		assert.equal(l.data[0],2,"Event EscrowRefundRequest wrong args requestId");
+
+		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneSubContractLauncher.abi);
+		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after refundToPayer()");
+		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
+		assert.equal(l.data[1],1,"Event LogTestCancel wrong args constant_id");
+
+		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
+		assert.equal(l.name,"LogRequestCanceled","Event LogRequestCanceled is missing after refundToPayer()");
+		assert.equal(l.data[0],2,"Event LogRequestCanceled wrong args requestId");
+
+
+		var newReq = await requestSynchroneExtensionEscrow.escrows.call(2);
+		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
+		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
+		assert.equal(newReq[2],1,"new request wrong data : state");
+		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+	});
+
+	it("escrow refund by random guy Impossible", async function () {
+		await testRequestSynchroneSubContractLauncher.accept(2,{from:payer});
+		await expectThrow(requestSynchroneExtensionEscrow.refundToPayer(2, {from:otherguy}));
+	});
+
+	it("escrow refund by subContract Impossible", async function () {
+		await testRequestSynchroneSubContractLauncher.accept(2,{from:payer});
+		await expectThrow(requestSynchroneExtensionEscrow.refundToPayer(2, {from:fakeTrustedContract}));
+	});
+
+	it("escrow refund by payee Impossible", async function () {
+		await testRequestSynchroneSubContractLauncher.accept(2,{from:payer});
+		await expectThrow(requestSynchroneExtensionEscrow.refundToPayer(2, {from:payee}));
+	});
+
+	it("escrow refund if escrow is Released Impossible", async function () {
+		await testRequestSynchroneSubContractLauncher.accept(2,{from:payer});
+		await requestSynchroneExtensionEscrow.releaseToPayee(2, {from:escrow});
+		await expectThrow(requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow}));
+	});
+
+	it("escrow refund if escrow is Refunded Impossible", async function () {
+		await testRequestSynchroneSubContractLauncher.accept(2,{from:payer});
+		await requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow});
+		await expectThrow(requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow}));
+	});
+
+	it("escrow refund if amountPaid-amountRefunded == 0 OK nothing special", async function () {
+		await testRequestSynchroneSubContractLauncher.accept(2,{from:payer});
+		var r = await requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow});
+
+		assert.equal(r.receipt.logs.length,3, "Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestSynchroneExtensionEscrow.abi);
+		assert.equal(l.name,"EscrowRefundRequest","Event EscrowRefundRequest is missing after refundToPayer()");
+		assert.equal(l.data[0],2,"Event EscrowRefundRequest wrong args requestId");
+
+		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneSubContractLauncher.abi);
+		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after refundToPayer()");
+		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
+		assert.equal(l.data[1],1,"Event LogTestCancel wrong args constant_id");
+
+		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
+		assert.equal(l.name,"LogRequestCanceled","Event LogRequestCanceled is missing after refundToPayer()");
+		assert.equal(l.data[0],2,"Event LogRequestCanceled wrong args requestId");
+
+		var newReq = await requestSynchroneExtensionEscrow.escrows.call(2);
+		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
+		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
+		assert.equal(newReq[2],1,"new request wrong data : state");
+		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");		
+	});
+
+	it("escrow refund if amountPaid-amountRefunded > 0 OK launch fundOrder to subContract", async function () {
+		await testRequestSynchroneSubContractLauncher.accept(2,{from:payer});
+		await testRequestSynchroneSubContractLauncher.launchPayment(2, arbitraryAmount);
+		var r = await requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow});
+
+		assert.equal(r.receipt.logs.length,4, "Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestSynchroneExtensionEscrow.abi);
+		assert.equal(l.name,"EscrowRefundRequest","Event EscrowRefundRequest is missing after refundToPayer()");
+		assert.equal(l.data[0],2,"Event EscrowRefundRequest wrong args requestId");
+
+		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneSubContractLauncher.abi);
+		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after refundToPayer()");
+		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
+		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args constant_id");
+		assert.equal(l.data[2],payer,"Event LogTestFundOrder wrong args _recipient");
+		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args _amount");
+
+		var l = getEventFromReceipt(r.receipt.logs[2], testRequestSynchroneSubContractLauncher.abi);
+		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after refundToPayer()");
+		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
+		assert.equal(l.data[1],1,"Event LogTestCancel wrong args constant_id");
+
+		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
+		assert.equal(l.name,"LogRequestCanceled","Event LogRequestCanceled is missing after refundToPayer()");
+		assert.equal(l.data[0],2,"Event LogRequestCanceled wrong args requestId");
+
+		var newReq = await requestSynchroneExtensionEscrow.escrows.call(2);
+		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
+		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
+		assert.equal(newReq[2],1,"new request wrong data : state");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
+		assert.equal(newReq[4],arbitraryAmount,"new request wrong data : amountRefunded");		
+	});
 	// ##################################################################################################
 	// ##################################################################################################
 	// ##################################################################################################
