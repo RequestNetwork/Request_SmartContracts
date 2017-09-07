@@ -475,5 +475,32 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	// ##################################################################################################
 	// ##################################################################################################
 
+	// ##################################################################################################
+	// ## Escrow Cancel
+	// ##################################################################################################
+	it("cancel by other guy impossible", async function () {
+		await expectThrow(requestSynchroneExtensionEscrow.cancel(2, {from:otherguy}));
+	});
+
+	it("cancel by other trusted contract impossible", async function () {
+		await expectThrow(requestSynchroneExtensionEscrow.cancel(2, {from:fakeTrustedContract}));
+	});
+
+	it("cancel by escrow impossible", async function () {
+		await expectThrow(requestSynchroneExtensionEscrow.cancel(2, {from:escrow}));
+	});
+
+	it("cancel if amountPaid-amountRefunded == 0  OK (return true)", async function () {
+		assert.equal(await requestSynchroneExtensionEscrow.cancel.call(1, {from:fakeTrustedContract}),true,'return of cancel must be true');
+	});
+
+	it("cancel if amountPaid-amountRefunded != 0  Intercepted (return false)", async function () {
+		await requestCore.accept(1,{from:fakeTrustedContract});
+		await requestSynchroneExtensionEscrow.payment(1, arbitraryAmount, {from:fakeTrustedContract})
+		assert.equal(await requestSynchroneExtensionEscrow.cancel.call(1, {from:fakeTrustedContract}),false,'return of cancel must be true');
+	});
+	// ##################################################################################################
+	// ##################################################################################################
+	// ##################################################################################################
 });
 
