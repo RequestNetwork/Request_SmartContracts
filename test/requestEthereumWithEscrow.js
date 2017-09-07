@@ -1,4 +1,4 @@
-return;
+// return;
 
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
