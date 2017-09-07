@@ -52,6 +52,14 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		return isEscrowReleasedPayment(_requestId);
 	}
 
+    // cancel request
+    function cancel(uint _requestId) 
+		isSubContractRight(_requestId)
+		returns(bool)
+    {
+        return escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded == 0;
+    } 
+ 
 		// Escrow Function
 	// escrow can release the payment to the seller
 	function releaseToPayee(uint _requestId)
