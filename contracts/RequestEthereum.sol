@@ -3,6 +3,7 @@ pragma solidity ^0.4.11;
 import './RequestCore.sol';
 import './RequestSynchroneInterface.sol';
 
+
 contract RequestEthereum {
 
     // RequestCore object
@@ -45,27 +46,41 @@ contract RequestEthereum {
         return requestId;
     }
 
+   function createQuickRequest(address _payee, address _payer, uint _amountExpected, uint tips, uint8 v, bytes32 r, bytes32 s)
+        payable
+        returns(uint)
+    {
+        require(msg.sender==_payee || msg.sender==_payer);
+        require(msg.value >= tips); // tips declare must be lower than amount sent
+        require(_amountExpected+tips >= msg.value); // You can pay more than amount needed
+    
+        bytes32 hash = sha256(this,_payee,_payer,_amountExpected);
+
+        // check the signature
+        require(ecrecover(hash, v, r, s) == _payee);
+        
+        address[3] memory _extensions; // will be delete with extensions from parameters
+
+        uint requestId=requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
+
+        acceptInternal(requestId);
+
+        if(tips > 0) {
+            addAdditionalInternal(requestId, tips);
+        }
+
+        paymentInternal(requestId, msg.value);
+
+        return requestId;
+    }
+
     // ---- INTERFACE FUNCTIONS ------------------------------------------------------------------------------------
     // the payer can accept an Request 
     function accept(uint _requestId) 
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
         returns(bool)
     {
-        address[3] memory extensions = requestCore.getExtensions(_requestId);
-
-        var isOK = true;
-        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
-        {
-            if(msg.sender != extensions[i]) {
-                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-                isOK = isOK && extension.accept(_requestId);
-            }
-        }
-        if(isOK) 
-        {
-            requestCore.accept(_requestId);
-        }  
-        return isOK;
+        return acceptInternal(_requestId);
     }
 
     // the payer can decline an Request
@@ -281,6 +296,25 @@ contract RequestEthereum {
         return isOK;
     }
 
+    function acceptInternal(uint _requestId) internal
+        returns(bool)
+    {
+        address[3] memory extensions = requestCore.getExtensions(_requestId);
+
+        var isOK = true;
+        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        {
+            if(msg.sender != extensions[i]) {
+                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
+                isOK = isOK && extension.accept(_requestId);
+            }
+        }
+        if(isOK) 
+        {
+            requestCore.accept(_requestId);
+        }  
+        return isOK;
+    }
     // ----------------------------------------------------------------------------------------
 
 
