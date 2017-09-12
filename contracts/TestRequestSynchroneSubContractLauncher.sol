@@ -81,7 +81,7 @@ contract TestRequestSynchroneSubContractLauncher {
     } 
     // --------------------------------------------------------
 
-    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[5] _extensionParams0)
+    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[3] _extensionParams0)
         returns(uint)
     {
         uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
