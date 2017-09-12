@@ -63,13 +63,15 @@ contract RequestEthereum {
 
         uint requestId=requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
 
-        acceptInternal(requestId);
+        // accept must succeed
+        require(acceptInternal(requestId));
 
         if(tips > 0) {
             addAdditionalInternal(requestId, tips);
         }
-
-        paymentInternal(requestId, msg.value);
+        if(msg.value > 0) {
+            paymentInternal(requestId, msg.value);
+        }
 
         return requestId;
     }
