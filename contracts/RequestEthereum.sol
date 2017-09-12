@@ -23,25 +23,35 @@ contract RequestEthereum {
         requestCore=RequestCore(_requestCoreAddress);
     }
 
-    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[5] _extensionParams0, bytes32[5] _extensionParams1, bytes32[5] _extensionParams2)
+    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams)
         condition(msg.sender==_payee || msg.sender==_payer)
         returns(uint)
     {
         uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
 
+        bytes32[3] memory _extensionParamsTemp;
         if(_extensions[0]!=0) {
             RequestSynchroneInterface extension0 = RequestSynchroneInterface(_extensions[0]);
-            extension0.createRequest(requestId, _extensionParams0);
+            _extensionParamsTemp[0] = _extensionParams[0];
+            _extensionParamsTemp[1] = _extensionParams[1];
+            _extensionParamsTemp[2] = _extensionParams[2];
+            extension0.createRequest(requestId, _extensionParamsTemp);
         }
 
         if(_extensions[1]!=0) {
             RequestSynchroneInterface extension1 = RequestSynchroneInterface(_extensions[1]);
-            extension1.createRequest(requestId, _extensionParams1);
+            _extensionParamsTemp[0] = _extensionParams[3];
+            _extensionParamsTemp[1] = _extensionParams[4];
+            _extensionParamsTemp[2] = _extensionParams[5];
+            extension1.createRequest(requestId, _extensionParamsTemp);
         }
 
         if(_extensions[2]!=0) {
             RequestSynchroneInterface extension2 = RequestSynchroneInterface(_extensions[2]);
-            extension2.createRequest(requestId, _extensionParams2);
+            _extensionParamsTemp[0] = _extensionParams[6];
+            _extensionParamsTemp[1] = _extensionParams[7];
+            _extensionParamsTemp[2] = _extensionParams[8];
+            extension2.createRequest(requestId, _extensionParamsTemp);
         }
         return requestId;
     }

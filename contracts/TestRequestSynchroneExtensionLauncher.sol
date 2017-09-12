@@ -75,8 +75,8 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
     } 
     // --------------------------------------------------------
 
-    event LogTestCreateRequest(uint requestId, uint id, bytes32[5] _params);
-    function createRequest(uint _requestId, bytes32[5] _params) returns(bool) 
+    event LogTestCreateRequest(uint requestId, uint id, bytes32[3] _params);
+    function createRequest(uint _requestId, bytes32[3] _params) returns(bool) 
     {
         contractLaunchedAddress[_requestId] = msg.sender;
         LogTestCreateRequest(_requestId, constant_id, _params);

@@ -1,4 +1,4 @@
-// return;
+
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
 // contract for test
@@ -69,7 +69,7 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 		await requestCore.adminResume({from:admin});
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
-		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], [], [], {from:payee});
+		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], {from:payee});
 		await requestEthereum.accept(1, {from:payer});
     });
 

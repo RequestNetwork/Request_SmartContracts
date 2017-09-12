@@ -3,7 +3,7 @@ pragma solidity ^0.4.11;
 
 contract RequestEthereumWeak {
 
-    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[5] _extensionParams0, bytes32[5] _extensionParams1, bytes32[5] _extensionParams2) returns(uint);
+    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams0) returns(uint);
 
     function withdraw();
 
@@ -24,9 +24,9 @@ contract TestRequestReentrance {
 
     function init(address _payer) {
         RequestEthereumWeak weakContract = RequestEthereumWeak(contractAdd);
-        bytes32[5] memory empty;
+        bytes32[9] memory empty;
         address[3] memory emptyAddress;
-        uint id = weakContract.createRequest(this, _payer, 100000000000000000, emptyAddress, empty, empty, empty);
+        uint id = weakContract.createRequest(this, _payer, 100000000000000000, emptyAddress, empty);
         Log(id);
     }
 
