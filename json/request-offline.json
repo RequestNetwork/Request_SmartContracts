@@ -12,8 +12,7 @@
 			]
 		},
 		{
-			"contract": "0x85ea0a69f9cf594e65fb326df30db98216d47cb1",
-			"params": []
+			"contract": "0x85ea0a69f9cf594e65fb326df30db98216d47cb1"
 		}
 	],
 	"sign": {
