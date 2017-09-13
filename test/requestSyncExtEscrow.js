@@ -1,4 +1,3 @@
-return;
 
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
@@ -141,7 +140,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 	it("payment if Escrow State Refunded impossible", async function () {
-		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], [], [], {from:payee});
+		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], {from:payee});
 		await requestEthereum.accept(3,{from:payer});
 		await requestSynchroneExtensionEscrow.refundToPayer(3, {from:escrow});
 		await expectThrow(requestEthereum.pay(3, 0,{from:payer, value:arbitraryAmount}));
@@ -277,7 +276,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 	it("release if escrow is Refunded Impossible", async function () {
-		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], [], [], {from:payee});
+		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], {from:payee});
 		await requestEthereum.accept(3,{from:payer});
 		await requestSynchroneExtensionEscrow.refundToPayer(3, {from:escrow});
 		await expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(3, {from:escrow}));

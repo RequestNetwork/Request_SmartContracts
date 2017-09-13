@@ -1,4 +1,4 @@
-// return;
+
 var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
 
@@ -106,7 +106,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncher3.address, {from:admin});
 
 
-		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], [], [], {from:payee});
+		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], {from:payee});
     });
 
 	// ##################################################################################################
@@ -168,7 +168,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 
 
 	it("decline request created OK - with 1 extension, continue: [true]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
@@ -194,7 +194,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline request created OK - with 1 extension, continue: [false]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -216,7 +216,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline request created OK - with 2 extensions, continue: [true,true]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
@@ -247,7 +247,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline request created OK - with 2 extensions, continue: [true,false]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionInterception1.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionInterception1.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
@@ -274,7 +274,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline request created OK - with 2 extensions, continue: [false,true]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionContinue1.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionContinue1.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -296,7 +296,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline request created OK - with 2 extensions, continue: [false,false]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionInterception2.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionInterception2.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -320,7 +320,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 
 
 	it("decline request created OK - with 3 extensions, continue: [true,true,true]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionContinue3.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionContinue3.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,4,"Wrong number of events");
@@ -356,7 +356,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline request created OK - with 3 extensions, continue: [true,true,false]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionInterception1.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionInterception1.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
@@ -389,7 +389,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 
 
 	it("decline request created OK - with 3 extensions, continue: [true,false,true]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionInterception1.address,fakeExtentionContinue3.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionInterception1.address,fakeExtentionContinue3.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
@@ -416,7 +416,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline request created OK - with 3 extensions, continue: [true,false,false]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionInterception1.address,fakeExtentionInterception2.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionInterception1.address,fakeExtentionInterception2.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
@@ -444,7 +444,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 
 
 	it("decline request created OK - with 3 extensions, continue: [false,true,true]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionContinue1.address,fakeExtentionContinue2.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionContinue1.address,fakeExtentionContinue2.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -466,7 +466,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline request created OK - with 3 extensions, continue: [false,false,true]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionInterception2.address,fakeExtentionContinue2.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionInterception2.address,fakeExtentionContinue2.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -488,7 +488,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline request created OK - with 3 extensions, continue: [false,true,false]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionContinue2.address,fakeExtentionInterception2.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionContinue2.address,fakeExtentionInterception2.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -510,7 +510,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline request created OK - with 3 extensions, continue: [false,false,false]", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionInterception2.address,fakeExtentionInterception3.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionInterception2.address,fakeExtentionInterception3.address], [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -535,7 +535,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 
 
 	it("decline by extension request created OK", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchDecline(2);
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -556,7 +556,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline by extension request declineed OK", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], {from:payee});
 		await requestEthereum.decline(2, {from:payer});
 
 		var r = await fakeExtentionLauncher1.launchDecline(2);
@@ -578,7 +578,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline by extension request declined OK", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], {from:payee});
 		await requestEthereum.decline(2, {from:payer});
 
 		var r = await fakeExtentionLauncher1.launchDecline(2);
@@ -600,7 +600,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline by extension request canceled OK", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], {from:payee});
 		await requestEthereum.cancel(2, {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchDecline(2);
@@ -622,13 +622,13 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline by an extension not from request impossible", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], {from:payee});
 		await expectThrow(fakeExtentionLauncher2.launchDecline(2));
 	});
 
 
 	it("decline by extension 1 ask only extensions 2 and 3", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address,fakeExtentionLauncher2.address,fakeExtentionLauncher3.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address,fakeExtentionLauncher2.address,fakeExtentionLauncher3.address], [], {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchDecline(2);
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
@@ -659,7 +659,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline by extension 2 ask only extensions 1 and 3", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address,fakeExtentionLauncher2.address,fakeExtentionLauncher3.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address,fakeExtentionLauncher2.address,fakeExtentionLauncher3.address], [], {from:payee});
 
 		var r = await fakeExtentionLauncher2.launchDecline(2);
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
@@ -690,7 +690,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline by extension 3 ask only extensions 1 and 2", async function () {
-		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address,fakeExtentionLauncher2.address,fakeExtentionLauncher3.address], [], [], [], {from:payee});
+		newRequest = requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address,fakeExtentionLauncher2.address,fakeExtentionLauncher3.address], [], {from:payee});
 
 		var r = await fakeExtentionLauncher3.launchDecline(2);
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");

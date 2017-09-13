@@ -9,8 +9,8 @@ contract TestRequestSynchroneInterfaceContinue is RequestSynchroneInterface{
         constant_id = _id;
     }
 
-    event LogTestCreateRequest(uint requestId, uint id, bytes32[5] _params);
-    function createRequest(uint _requestId, bytes32[5] _params) returns(bool) 
+    event LogTestCreateRequest(uint requestId, uint id, bytes32[3] _params);
+    function createRequest(uint _requestId, bytes32[3] _params) returns(bool) 
     {
         LogTestCreateRequest(_requestId, constant_id, _params);
         return true;
