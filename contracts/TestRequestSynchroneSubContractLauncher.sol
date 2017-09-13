@@ -81,14 +81,14 @@ contract TestRequestSynchroneSubContractLauncher {
     } 
     // --------------------------------------------------------
 
-    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[3] _extensionParams0)
+    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams)
         returns(uint)
     {
         uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
 
         if(_extensions[0]!=0) {
             RequestSynchroneInterface extension0 = RequestSynchroneInterface(_extensions[0]);
-            extension0.createRequest(requestId, _extensionParams0);
+            extension0.createRequest(requestId, _extensionParams, 0);
             extensionAddress[requestId] = _extensions[0];
         }
 

@@ -29,31 +29,30 @@ contract RequestEthereum {
     {
         uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
 
-        bytes32[3] memory _extensionParamsTemp;
+        RequestSynchroneInterface extension;
         if(_extensions[0]!=0) {
-            RequestSynchroneInterface extension0 = RequestSynchroneInterface(_extensions[0]);
-            _extensionParamsTemp[0] = _extensionParams[0];
-            _extensionParamsTemp[1] = _extensionParams[1];
-            _extensionParamsTemp[2] = _extensionParams[2];
-            extension0.createRequest(requestId, _extensionParamsTemp);
+            extension = RequestSynchroneInterface(_extensions[0]);
+            extension.createRequest(requestId, _extensionParams, 0);
         }
 
         if(_extensions[1]!=0) {
-            RequestSynchroneInterface extension1 = RequestSynchroneInterface(_extensions[1]);
-            _extensionParamsTemp[0] = _extensionParams[3];
-            _extensionParamsTemp[1] = _extensionParams[4];
-            _extensionParamsTemp[2] = _extensionParams[5];
-            extension1.createRequest(requestId, _extensionParamsTemp);
+            extension = RequestSynchroneInterface(_extensions[1]);
+            extension.createRequest(requestId, _extensionParams, 1);
         }
 
         if(_extensions[2]!=0) {
-            RequestSynchroneInterface extension2 = RequestSynchroneInterface(_extensions[2]);
-            _extensionParamsTemp[0] = _extensionParams[6];
-            _extensionParamsTemp[1] = _extensionParams[7];
-            _extensionParamsTemp[2] = _extensionParams[8];
-            extension2.createRequest(requestId, _extensionParamsTemp);
+            extension = RequestSynchroneInterface(_extensions[2]);
+            extension.createRequest(requestId, _extensionParams, 2);
         }
         return requestId;
+    }
+
+   event logLog(bool signOk, uint8[3] variable);
+   function test(address _payee, uint8[3] variable, uint8 v, bytes32 r, bytes32 s)
+    {
+        bytes32 hash = sha256(variable);
+        logLog(ecrecover(hash, v, r, s)==_payee, variable);
+        // require(ecrecover(hash, v, r, s) == _payee);
     }
 
    function createQuickRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams, uint tips, uint8 v, bytes32 r, bytes32 s)
@@ -62,7 +61,7 @@ contract RequestEthereum {
     {
         require(msg.sender==_payer);
         require(msg.value >= tips); // tips declare must be lower than amount sent
-        require(_amountExpected+tips >= msg.value); // You can pay more than amount needed
+        require(_amountExpected+tips >= msg.value); // You cannot pay more than amount needed
     
         bytes32 hash = sha256(this,_payee,_payer,_amountExpected,_extensions,_extensionParams);
 
@@ -71,29 +70,20 @@ contract RequestEthereum {
 
         uint requestId=requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
 
-        bytes32[3] memory _extensionParamsTemp;
+        RequestSynchroneInterface extension;
         if(_extensions[0]!=0) {
-            RequestSynchroneInterface extension0 = RequestSynchroneInterface(_extensions[0]);
-            _extensionParamsTemp[0] = _extensionParams[0];
-            _extensionParamsTemp[1] = _extensionParams[1];
-            _extensionParamsTemp[2] = _extensionParams[2];
-            extension0.createRequest(requestId, _extensionParamsTemp);
+            extension = RequestSynchroneInterface(_extensions[0]);
+            extension.createRequest(requestId, _extensionParams, 0);
         }
 
         if(_extensions[1]!=0) {
-            RequestSynchroneInterface extension1 = RequestSynchroneInterface(_extensions[1]);
-            _extensionParamsTemp[0] = _extensionParams[3];
-            _extensionParamsTemp[1] = _extensionParams[4];
-            _extensionParamsTemp[2] = _extensionParams[5];
-            extension1.createRequest(requestId, _extensionParamsTemp);
+            extension = RequestSynchroneInterface(_extensions[1]);
+            extension.createRequest(requestId, _extensionParams, 1);
         }
 
         if(_extensions[2]!=0) {
-            RequestSynchroneInterface extension2 = RequestSynchroneInterface(_extensions[2]);
-            _extensionParamsTemp[0] = _extensionParams[6];
-            _extensionParamsTemp[1] = _extensionParams[7];
-            _extensionParamsTemp[2] = _extensionParams[8];
-            extension2.createRequest(requestId, _extensionParamsTemp);
+            extension = RequestSynchroneInterface(_extensions[2]);
+            extension.createRequest(requestId, _extensionParams, 2);
         }
 
         // accept must succeed
