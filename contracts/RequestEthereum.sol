@@ -47,14 +47,6 @@ contract RequestEthereum {
         return requestId;
     }
 
-   event logLog(bool signOk, uint8[3] variable);
-   function test(address _payee, uint8[3] variable, uint8 v, bytes32 r, bytes32 s)
-    {
-        bytes32 hash = sha256(variable);
-        logLog(ecrecover(hash, v, r, s)==_payee, variable);
-        // require(ecrecover(hash, v, r, s) == _payee);
-    }
-
    function createQuickRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams, uint tips, uint8 v, bytes32 r, bytes32 s)
         payable
         returns(uint)
@@ -63,10 +55,10 @@ contract RequestEthereum {
         require(msg.value >= tips); // tips declare must be lower than amount sent
         require(_amountExpected+tips >= msg.value); // You cannot pay more than amount needed
     
-        bytes32 hash = sha256(this,_payee,_payer,_amountExpected,_extensions,_extensionParams);
+        bytes32 hash = getRequestHash(_payee,_payer,_amountExpected,_extensions,_extensionParams);
 
         // check the signature
-        require(ecrecover(hash, v, r, s) == _payee);
+        require(isValidSignature(_payee, hash, v, r, s));
 
         uint requestId=requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
 
@@ -342,7 +334,39 @@ contract RequestEthereum {
     }
     // ----------------------------------------------------------------------------------------
 
+    /// @dev Calculates Keccak-256 hash of a request with specified parameters.
+    function getRequestHash(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams)
+        public
+        constant
+        returns (bytes32)
+    {
+        return keccak256(this,_payee,_payer,_amountExpected,_extensions,_extensionParams);
+    }
 
+    /// @dev Verifies that a hash signature is valid. 0x style
+    /// @param signer address of signer.
+    /// @param hash Signed Keccak-256 hash.
+    /// @param v ECDSA signature parameter v.
+    /// @param r ECDSA signature parameters r.
+    /// @param s ECDSA signature parameters s.
+    /// @return Validity of order signature.
+    function isValidSignature(
+        address signer,
+        bytes32 hash,
+        uint8 v,
+        bytes32 r,
+        bytes32 s)
+        public
+        constant
+        returns (bool)
+    {
+        return signer == ecrecover(
+            keccak256("\x19Ethereum Signed Message:\n32", hash),
+            v,
+            r,
+            s
+        );
+    }
 
     //modifier
     modifier condition(bool c) {
