@@ -53,8 +53,8 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	it("accept request created OK - check event log and request status", async function () {
 		var r = await requestCore.accept(1, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAccepted","Event LogRequestAccepted is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAccepted wrong args requestId");
+		assert.equal(r.logs[0].event,"Accepted","Event Accepted is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Accepted wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -73,8 +73,8 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		await requestCore.accept(1, {from:fakeContract});
 		var r = await requestCore.accept(1, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAccepted","Event LogRequestAccepted is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAccepted wrong args requestId");
+		assert.equal(r.logs[0].event,"Accepted","Event Accepted is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Accepted wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -92,8 +92,8 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		await requestCore.decline(1, {from:fakeContract});
 		var r = await requestCore.accept(1, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAccepted","Event LogRequestAccepted is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAccepted wrong args requestId");
+		assert.equal(r.logs[0].event,"Accepted","Event Accepted is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Accepted wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -111,8 +111,8 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		await requestCore.cancel(1, {from:fakeContract});
 		var r = await requestCore.accept(1, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestAccepted","Event LogRequestAccepted is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestAccepted wrong args requestId");
+		assert.equal(r.logs[0].event,"Accepted","Event Accepted is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Accepted wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -214,8 +214,8 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	it("decline request created OK - check event log and request status", async function () {
 		var r = await requestCore.decline(1, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestDeclined","Event LogRequestDeclined is missing after decline()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(r.logs[0].event,"Declined","Event Declined is missing after decline()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Declined wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -234,8 +234,8 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		await requestCore.decline(1, {from:fakeContract});
 		var r = await requestCore.decline(1, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestDeclined","Event LogRequestDeclined is missing after decline()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(r.logs[0].event,"Declined","Event Declined is missing after decline()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Declined wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -253,8 +253,8 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		await requestCore.decline(1, {from:fakeContract});
 		var r = await requestCore.decline(1, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestDeclined","Event LogRequestDeclined is missing after decline()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(r.logs[0].event,"Declined","Event Declined is missing after decline()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Declined wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -272,8 +272,8 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		await requestCore.cancel(1, {from:fakeContract});
 		var r = await requestCore.decline(1, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestDeclined","Event LogRequestDeclined is missing after decline()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(r.logs[0].event,"Declined","Event Declined is missing after decline()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Declined wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -376,8 +376,8 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	it("cancel request created OK - check event log and request status", async function () {
 		var r = await requestCore.cancel(1, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestCanceled","Event LogRequestCanceled is missing after cancel()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestCanceled wrong args requestId");
+		assert.equal(r.logs[0].event,"Canceled","Event Canceled is missing after cancel()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Canceled wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -396,8 +396,8 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		await requestCore.cancel(1, {from:fakeContract});
 		var r = await requestCore.cancel(1, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestCanceled","Event LogRequestCanceled is missing after cancel()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestCanceled wrong args requestId");
+		assert.equal(r.logs[0].event,"Canceled","Event Canceled is missing after cancel()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Canceled wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -415,8 +415,8 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		await requestCore.decline(1, {from:fakeContract});
 		var r = await requestCore.cancel(1, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestCanceled","Event LogRequestCanceled is missing after cancel()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestCanceled wrong args requestId");
+		assert.equal(r.logs[0].event,"Canceled","Event Canceled is missing after cancel()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Canceled wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -434,8 +434,8 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		await requestCore.cancel(1, {from:fakeContract});
 		var r = await requestCore.cancel(1, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestCanceled","Event LogRequestCanceled is missing after cancel()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestCanceled wrong args requestId");
+		assert.equal(r.logs[0].event,"Canceled","Event Canceled is missing after cancel()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Canceled wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");

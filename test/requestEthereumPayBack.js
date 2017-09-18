@@ -185,9 +185,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payBack()");
-		assert.equal(l.data[0],1,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payBack()");
+		assert.equal(l.data[0],1,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -220,9 +220,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payback()");
-		assert.equal(l.data[0],2,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payback()");
+		assert.equal(l.data[0],2,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
 
 		l = getEventFromReceipt(r.receipt.logs[2], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after payback()");
@@ -290,9 +290,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payback()");
-		assert.equal(l.data[0],2,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payback()");
+		assert.equal(l.data[0],2,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], fakeExtentionLauncherFundOrderFalse1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after payback()");
@@ -366,9 +366,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payback()");
-		assert.equal(l.data[0],2,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payback()");
+		assert.equal(l.data[0],2,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
 
 		l = getEventFromReceipt(r.receipt.logs[3], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after payback()");
@@ -421,9 +421,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payback()");
-		assert.equal(l.data[0],2,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payback()");
+		assert.equal(l.data[0],2,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
 
 		l = getEventFromReceipt(r.receipt.logs[3], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after payback()");
@@ -545,9 +545,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payback()");
-		assert.equal(l.data[0],2,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payback()");
+		assert.equal(l.data[0],2,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
 
 		l = getEventFromReceipt(r.receipt.logs[3], fakeExtentionLauncherFundOrderFalse1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after payback()");
@@ -592,9 +592,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payback()");
-		assert.equal(l.data[0],2,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payback()");
+		assert.equal(l.data[0],2,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
 
 		l = getEventFromReceipt(r.receipt.logs[3], fakeExtentionLauncherFundOrderFalse1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after payback()");
@@ -952,9 +952,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payback()");
-		assert.equal(l.data[0],2,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payback()");
+		assert.equal(l.data[0],2,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
 
 		l = getEventFromReceipt(r.receipt.logs[4], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after payback()");
@@ -1020,9 +1020,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payback()");
-		assert.equal(l.data[0],2,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payback()");
+		assert.equal(l.data[0],2,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
 
 		l = getEventFromReceipt(r.receipt.logs[4], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after payback()");
@@ -1089,9 +1089,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payback()");
-		assert.equal(l.data[0],2,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payback()");
+		assert.equal(l.data[0],2,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
 
 		l = getEventFromReceipt(r.receipt.logs[4], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after payback()");
@@ -1150,9 +1150,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payback()");
-		assert.equal(l.data[0],2,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payback()");
+		assert.equal(l.data[0],2,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
 
 		l = getEventFromReceipt(r.receipt.logs[4], fakeExtentionLauncherFundOrderFalse1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after payback()");
@@ -1294,9 +1294,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payBack()");
-		assert.equal(l.data[0],1,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],0,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payBack()");
+		assert.equal(l.data[0],1,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],0,"Event Refunded wrong args amountRefunded");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -1318,9 +1318,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payBack()");
-		assert.equal(l.data[0],1,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount30percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payBack()");
+		assert.equal(l.data[0],1,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount30percent,"Event Refunded wrong args amountRefunded");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -1341,9 +1341,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payBack()");
-		assert.equal(l.data[0],1,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount20percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payBack()");
+		assert.equal(l.data[0],1,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount20percent,"Event Refunded wrong args amountRefunded");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -1364,9 +1364,9 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestRefunded","Event LogRequestRefunded is missing after payBack()");
-		assert.equal(l.data[0],1,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payBack()");
+		assert.equal(l.data[0],1,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");

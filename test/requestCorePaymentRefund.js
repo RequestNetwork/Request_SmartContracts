@@ -57,9 +57,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		await requestCore.accept(1, {from:fakeContract});
 		var r = await requestCore.payment(1, arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestPayment","Event LogRequestPayment is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount10percent,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Payment wrong args requestId");
+		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount10percent,"Event Payment wrong args amountPaid");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -77,9 +77,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		await requestCore.decline(1, {from:fakeContract});
 		var r = await requestCore.payment(1, arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestPayment","Event LogRequestPayment is missing after payment()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount10percent,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after payment()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Payment wrong args requestId");
+		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount10percent,"Event Payment wrong args amountPaid");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -97,9 +97,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		await requestCore.cancel(1, {from:fakeContract});
 		var r = await requestCore.payment(1, arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestPayment","Event LogRequestPayment is missing after payment()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount10percent,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after payment()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Payment wrong args requestId");
+		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount10percent,"Event Payment wrong args amountPaid");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -192,9 +192,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 
 	it("new payment _amount==0 OK", async function () {
 		var r = await requestCore.payment(1, 0, {from:fakeContract});
-		assert.equal(r.logs[0].event,"LogRequestPayment","Event LogRequestPayment is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(r.logs[0].args.amountPaid,0,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Payment wrong args requestId");
+		assert.equal(r.logs[0].args.amountPaid,0,"Event Payment wrong args amountPaid");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -244,9 +244,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 	it("new payment _amount+request.amounPaid == amountExpected-request.amountSubtract+request.amountAdditional", async function () {
 		var r = await requestCore.payment(1, arbitraryAmount, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestPayment","Event LogRequestPayment is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Payment wrong args requestId");
+		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -263,9 +263,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 	it("new payment _amount+request.amounPaid > amountExpected-request.amountSubtract+request.amountAdditional", async function () {
 		var r = await requestCore.payment(1, arbitraryAmount*2, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestPayment","Event LogRequestPayment is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount*2,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Payment wrong args requestId");
+		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount*2,"Event Payment wrong args amountPaid");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -291,9 +291,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		await requestCore.payment(1, arbitraryAmount30percent, {from:fakeContract});
 		var r = await requestCore.refund(1, arbitraryAmount20percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestRefunded","Event LogRequestRefunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Refunded wrong args requestId");
+		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event Refunded wrong args amountRefunded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -313,9 +313,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 
 		var r = await requestCore.refund(1, arbitraryAmount20percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestRefunded","Event LogRequestRefunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Refunded wrong args requestId");
+		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event Refunded wrong args amountRefunded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -335,9 +335,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 
 		var r = await requestCore.refund(1, arbitraryAmount20percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestRefunded","Event LogRequestRefunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Refunded wrong args requestId");
+		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event Refunded wrong args amountRefunded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -357,9 +357,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 
 		var r = await requestCore.refund(1, arbitraryAmount20percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"LogRequestRefunded","Event LogRequestRefunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Refunded wrong args requestId");
+		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event Refunded wrong args amountRefunded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -457,9 +457,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 	it("new refund _amount==0 OK", async function () {
 		await requestCore.payment(1, arbitraryAmount30percent, {from:fakeContract});
 		var r = await requestCore.refund(1, 0, {from:fakeContract});
-		assert.equal(r.logs[0].event,"LogRequestRefunded","Event LogRequestRefunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,0,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Refunded wrong args requestId");
+		assert.equal(r.logs[0].args.amountRefunded,0,"Event Refunded wrong args amountRefunded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -508,9 +508,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 	it("new refund r.amounPaid - _amount == 0 OK", async function () {
 		await requestCore.payment(1, arbitraryAmount30percent, {from:fakeContract});
 		var r = await requestCore.refund(1, arbitraryAmount30percent, {from:fakeContract});
-		assert.equal(r.logs[0].event,"LogRequestRefunded","Event LogRequestRefunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount30percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Refunded wrong args requestId");
+		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount30percent,"Event Refunded wrong args amountRefunded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -528,9 +528,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		await requestCore.payment(1, arbitraryAmount40percent, {from:fakeContract});
 		await requestCore.refund(1, arbitraryAmount10percent, {from:fakeContract});
 		var r = await requestCore.refund(1, arbitraryAmount20percent, {from:fakeContract});
-		assert.equal(r.logs[0].event,"LogRequestRefunded","Event LogRequestRefunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event LogRequestRefunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event LogRequestRefunded wrong args amountRefunded");
+		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Refunded wrong args requestId");
+		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event Refunded wrong args amountRefunded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");

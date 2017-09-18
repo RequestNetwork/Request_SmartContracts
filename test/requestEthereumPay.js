@@ -179,9 +179,9 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -203,9 +203,9 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -227,9 +227,9 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -261,9 +261,9 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],2,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		l = getEventFromReceipt(r.receipt.logs[2], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
@@ -329,9 +329,9 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],2,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], fakeExtentionLauncherFundOrderFalse1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
@@ -403,9 +403,9 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],2,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		l = getEventFromReceipt(r.receipt.logs[3], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
@@ -457,9 +457,9 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],2,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		l = getEventFromReceipt(r.receipt.logs[3], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
@@ -579,9 +579,9 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],2,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		l = getEventFromReceipt(r.receipt.logs[3], fakeExtentionLauncherFundOrderFalse1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
@@ -625,9 +625,9 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],2,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		l = getEventFromReceipt(r.receipt.logs[3], fakeExtentionLauncherFundOrderFalse1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
@@ -977,9 +977,9 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],2,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		l = getEventFromReceipt(r.receipt.logs[4], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
@@ -1044,9 +1044,9 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],2,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		l = getEventFromReceipt(r.receipt.logs[4], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
@@ -1112,9 +1112,9 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],2,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		l = getEventFromReceipt(r.receipt.logs[4], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
@@ -1172,9 +1172,9 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],2,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		l = getEventFromReceipt(r.receipt.logs[4], fakeExtentionLauncherFundOrderFalse1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
@@ -1313,9 +1313,9 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],0,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],0,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -1337,9 +1337,9 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount3,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount3,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -1360,9 +1360,9 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount2,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount2,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -1383,9 +1383,9 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -1408,14 +1408,14 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestAddAdditional","Event LogRequestAddAdditional is missing after pay()");
-		assert.equal(l.data[0],1,"Event LogRequestAddAdditional wrong args requestId");
-		assert.equal(l.data[1],arbitraryTips,"Event LogRequestAddAdditional wrong args amountAdditional");
+		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after pay()");
+		assert.equal(l.data[0],1,"Event AddAdditional wrong args requestId");
+		assert.equal(l.data[1],arbitraryTips,"Event AddAdditional wrong args amountAdditional");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -1449,14 +1449,14 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestAddAdditional","Event LogRequestAddAdditional is missing after pay()");
-		assert.equal(l.data[0],1,"Event LogRequestAddAdditional wrong args requestId");
-		assert.equal(l.data[1],arbitraryTips,"Event LogRequestAddAdditional wrong args amountAdditional");
+		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after pay()");
+		assert.equal(l.data[0],1,"Event AddAdditional wrong args requestId");
+		assert.equal(l.data[1],arbitraryTips,"Event AddAdditional wrong args amountAdditional");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount+1,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount+1,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
