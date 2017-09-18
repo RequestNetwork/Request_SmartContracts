@@ -11,6 +11,8 @@ var RequestEthereum = artifacts.require("./RequestEthereum.sol");
 
 // contract for test
 var TestRequestSynchroneInterfaceContinue = artifacts.require("./TestRequestSynchroneInterfaceContinue.sol");
+var TestRequestSynchroneExtensionLauncher = artifacts.require("./TestRequestSynchroneExtensionLauncher.sol");
+
 
 var BigNumber = require('bignumber.js');
 
@@ -94,6 +96,7 @@ contract('RequestEthereum',  function(accounts) {
 	var fakeExtention2;
 	var fakeExtention3;
 	var fakeExtention4Untrusted = accounts[9];
+	var fakeExtentionLauncherAcceptFalse;
 
 	var requestCore;
 	var requestEthereum;
@@ -105,16 +108,18 @@ contract('RequestEthereum',  function(accounts) {
     	fakeExtention1 = await TestRequestSynchroneInterfaceContinue.new(1);
     	fakeExtention2 = await TestRequestSynchroneInterfaceContinue.new(2);
     	fakeExtention3 = await TestRequestSynchroneInterfaceContinue.new(3);
+    	fakeExtentionLauncherAcceptFalse = await TestRequestSynchroneExtensionLauncher.new(21,true,false,true,true,true,true,true,true,true);
 
-		requestCore = await RequestCore.new();
-    	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
+			requestCore = await RequestCore.new();
+			requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
-		await requestCore.adminResume({from:admin});
-		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
+			await requestCore.adminResume({from:admin});
+			await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
-		await requestCore.adminAddTrustedExtension(fakeExtention1.address, {from:admin});
-		await requestCore.adminAddTrustedExtension(fakeExtention2.address, {from:admin});
-		await requestCore.adminAddTrustedExtension(fakeExtention3.address, {from:admin});
+			await requestCore.adminAddTrustedExtension(fakeExtention1.address, {from:admin});
+			await requestCore.adminAddTrustedExtension(fakeExtention2.address, {from:admin});
+			await requestCore.adminAddTrustedExtension(fakeExtention3.address, {from:admin});
+			await requestCore.adminAddTrustedExtension(fakeExtentionLauncherAcceptFalse.address, {from:admin});
     });
 
 	it("new quick request more than amountExpected (with tips that make the new quick requestment under expected) OK", async function () {
@@ -155,18 +160,18 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(l.data[1],arbitraryAmount+1,"Event LogRequestPayment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payer,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],arbitraryAmount+1,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],arbitraryAmount10percent,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
+		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
+		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount+1,"new quick request wrong data : amountPaid");
+		assert.equal(newReq[6],arbitraryAmount10percent,"new quick request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new quick request wrong data : state");
 
 		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount+1,"new request wrong data : amount to withdraw payee");
+		assert.equal(r,arbitraryAmount+1,"new quick request wrong data : amount to withdraw payee");
 	});
 
 	it("new quick request pay more than amountExpected (without tips) Impossible", async function () {
@@ -271,18 +276,18 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payer,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],arbitraryAmount10percent,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
+		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
+		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount,"new quick request wrong data : amountPaid");
+		assert.equal(newReq[6],arbitraryAmount10percent,"new quick request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new quick request wrong data : state");
 
 		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount,"new request wrong data : amount to withdraw payee");
+		assert.equal(r,arbitraryAmount,"new quick request wrong data : amount to withdraw payee");
 	});
 
 	it("new quick request _amountExpected == 0 impossible", async function () {
@@ -462,18 +467,18 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payer,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
+		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
+		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount,"new quick request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new quick request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new quick request wrong data : state");
 
 		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount,"new request wrong data : amount to withdraw payee");
+		assert.equal(r,arbitraryAmount,"new quick request wrong data : amount to withdraw payee");
 	});
 
 	it("new quick request signed by payee and data match signature OK", async function () {
@@ -504,18 +509,18 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(l.data[0],1,"Event LogRequestAccepted wrong args requestId");
 
 		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payer,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
+		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
+		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : subContract");
+		assert.equal(newReq[5],0,"new quick request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new quick request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new quick request wrong data : state");
 
 		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,0,"new request wrong data : amount to withdraw payee");
+		assert.equal(r,0,"new quick request wrong data : amount to withdraw payee");
 	});
 
 	it("new quick request signed by payer Impossible", async function () {
@@ -565,6 +570,157 @@ contract('RequestEthereum',  function(accounts) {
 									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 									{from:payer, value:arbitraryAmount}));
 	});
+
+
+	// #####################################################################################
+	// Extensions
+	// #####################################################################################
+// new quick request with 3 trustable extensions with parameters
+
+	it("new quick request with 1 extension intercepting accept impossible", async function () {
+		var listExtensions = [fakeExtentionLauncherAcceptFalse.address];
+		var listParamsExtensions = [];
+
+		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, listExtensions, listParamsExtensions);
+		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
+		var sig = signHashRequest(hash,ecprivkey);
+
+		await expectThrow(requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+													listExtensions,
+													listParamsExtensions, 
+													0, 
+													sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
+													{from:payer, value:arbitraryAmount}));
+	});
+
+		it("new quick request signed by payee and data match signature OK", async function () {
+		var listExtensions = [fakeExtention1.address,fakeExtention2.address,fakeExtention3.address];
+		var listParamsExtensions = [ethUtil.bufferToHex(ethABI.toSolidityBytes32("uint",12)), 0, 0, ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",otherguy))];
+
+		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, listExtensions, listParamsExtensions);
+		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
+		var sig = signHashRequest(hash,ecprivkey);
+
+		var r = await requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+													listExtensions,
+													listParamsExtensions, 
+													0, 
+													sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
+													{from:payer, value:arbitraryAmount});
+
+		assert.equal(r.receipt.logs.length,15,"Wrong number of events");
+
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"LogRequestCreated","Event LogRequestCreated is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event LogRequestCreated wrong args requestId");
+		assert.equal(l.data[1],payee,"Event LogRequestCreated wrong args payee");
+		assert.equal(l.data[2],payer,"Event LogRequestCreated wrong args payer");
+
+		var l = getEventFromReceipt(r.receipt.logs[1], fakeExtention1.abi);
+		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequest()");
+		assert.equal(l.data[0],1,"Event LogTestCreateRequest wrong args requestId");
+		assert.equal(l.data[1],1,"Event LogTestCreateRequest wrong args ID");
+		assert.equal(l.data[2][0],ethUtil.bufferToHex(ethABI.toSolidityBytes32("uint",12)),"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][1],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][2],0,"Event LogTestCreateRequest wrong args params");
+
+		var l = getEventFromReceipt(r.receipt.logs[2], fakeExtention2.abi);
+		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequest()");
+		assert.equal(l.data[0],1,"Event LogTestCreateRequest wrong args requestId");
+		assert.equal(l.data[1],2,"Event LogTestCreateRequest wrong args ID");
+		assert.equal(l.data[2][3],ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",otherguy)),"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][4],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][5],0,"Event LogTestCreateRequest wrong args params");
+
+		var l = getEventFromReceipt(r.receipt.logs[3], fakeExtention3.abi);
+		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequest()");
+		assert.equal(l.data[0],1,"Event LogTestCreateRequest wrong args requestId");
+		assert.equal(l.data[1],3,"Event LogTestCreateRequest wrong args ID");
+		assert.equal(l.data[2][6],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][7],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][8],0,"Event LogTestCreateRequest wrong args params");
+
+
+		var l = getEventFromReceipt(r.receipt.logs[4], fakeExtention1.abi);
+		assert.equal(l.name,"LogTestAccept","Event LogTestAccept is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event LogTestAccept wrong args requestId");
+		assert.equal(l.data[1],1,"Event LogTestAccept wrong args ID");
+
+		l = getEventFromReceipt(r.receipt.logs[5], fakeExtention2.abi);
+		assert.equal(l.name,"LogTestAccept","Event LogTestAccept is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event LogTestAccept wrong args requestId");
+		assert.equal(l.data[1],2,"Event LogTestAccept wrong args ID");
+
+		l = getEventFromReceipt(r.receipt.logs[6], fakeExtention3.abi);
+		assert.equal(l.name,"LogTestAccept","Event LogTestAccept is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event LogTestAccept wrong args requestId");
+		assert.equal(l.data[1],3,"Event LogTestAccept wrong args ID");
+
+		l = getEventFromReceipt(r.receipt.logs[7], requestCore.abi);
+		assert.equal(l.name,"LogRequestAccepted","Event LogRequestAccepted is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event LogRequestAccepted wrong args requestId");
+
+		var l = getEventFromReceipt(r.receipt.logs[8], fakeExtention1.abi);
+		assert.equal(l.name,"LogTestPayment","Event LogTestPayment is missing after pay()");
+		assert.equal(l.data[0],1,"Event LogTestPayment wrong args requestId");
+		assert.equal(l.data[1],1,"Event LogTestPayment wrong args ID");
+		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
+
+		l = getEventFromReceipt(r.receipt.logs[9], fakeExtention2.abi);
+		assert.equal(l.name,"LogTestPayment","Event LogTestPayment is missing after pay()");
+		assert.equal(l.data[0],1,"Event LogTestPayment wrong args requestId");
+		assert.equal(l.data[1],2,"Event LogTestPayment wrong args ID");
+		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
+
+		l = getEventFromReceipt(r.receipt.logs[10], fakeExtention3.abi);
+		assert.equal(l.name,"LogTestPayment","Event LogTestPayment is missing after pay()");
+		assert.equal(l.data[0],1,"Event LogTestPayment wrong args requestId");
+		assert.equal(l.data[1],3,"Event LogTestPayment wrong args ID");
+		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
+
+		l = getEventFromReceipt(r.receipt.logs[11], requestCore.abi);
+		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
+		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+
+		l = getEventFromReceipt(r.receipt.logs[12], fakeExtention1.abi);
+		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
+		assert.equal(l.data[0],1,"Event LogTestFundOrder wrong args requestId");
+		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args ID");
+		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
+
+		l = getEventFromReceipt(r.receipt.logs[13], fakeExtention2.abi);
+		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
+		assert.equal(l.data[0],1,"Event LogTestFundOrder wrong args requestId");
+		assert.equal(l.data[1],2,"Event LogTestFundOrder wrong args ID");
+		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
+
+		l = getEventFromReceipt(r.receipt.logs[14], fakeExtention3.abi);
+		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
+		assert.equal(l.data[0],1,"Event LogTestFundOrder wrong args requestId");
+		assert.equal(l.data[1],3,"Event LogTestFundOrder wrong args ID");
+		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
+		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
+		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount,"new quick request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new quick request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new quick request wrong data : state");
+
+		var r = await requestEthereum.ethToWithdraw.call(payee);
+		assert.equal(r,arbitraryAmount,"new quick request wrong data : amount to withdraw payee");
+	});
+	// #####################################################################################
+	// #####################################################################################
+	// #####################################################################################
 
 });
 
