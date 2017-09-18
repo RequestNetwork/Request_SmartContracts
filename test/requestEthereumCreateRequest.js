@@ -50,7 +50,7 @@ var expectThrow = async function(promise) {
 };
 
 
-contract('RequestEthereum',  function(accounts) {
+contract('RequestEthereum createRequest',  function(accounts) {
 	var admin = accounts[0];
 	var otherguy = accounts[1];
 	var fakeContract = accounts[2];
@@ -220,9 +220,9 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequest()");
 		assert.equal(l.data[0],1,"Event LogTestCreateRequest wrong args requestId");
 		assert.equal(l.data[1],2,"Event LogTestCreateRequest wrong args ID");
-		assert.equal(l.data[2][0],0,"Event LogTestCreateRequest wrong args params");
-		assert.equal(l.data[2][1],0,"Event LogTestCreateRequest wrong args params");
-		assert.equal(l.data[2][2],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][3],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][4],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][5],0,"Event LogTestCreateRequest wrong args params");
 
 		var r = await requestCore.requests.call(1);
 		assert.equal(r[0],payee,"request wrong data : creator");
@@ -263,17 +263,17 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequest()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],2,"Event LogTestCreateRequest wrong args ID");
-		assert.equal(l.data[2][0],0,"Event LogTestCreateRequest wrong args params");
-		assert.equal(l.data[2][1],0,"Event LogTestCreateRequest wrong args params");
-		assert.equal(l.data[2][2],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][3],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][4],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][5],0,"Event LogTestCreateRequest wrong args params");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], fakeExtention3.abi);
 		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequest()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],3,"Event LogTestCreateRequest wrong args ID");
-		assert.equal(l.data[2][0],0,"Event LogTestCreateRequest wrong args params");
-		assert.equal(l.data[2][1],0,"Event LogTestCreateRequest wrong args params");
-		assert.equal(l.data[2][2],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][6],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][7],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][8],0,"Event LogTestCreateRequest wrong args params");
 
 		var r = await requestCore.requests.call(1);
 		assert.equal(r[0],payee,"request wrong data : creator");
@@ -348,9 +348,9 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequest()");
 		assert.equal(l.data[0],1,"Event LogTestCreateRequest wrong args requestId");
 		assert.equal(l.data[1],2,"Event LogTestCreateRequest wrong args ID");
-		assert.equal(l.data[2][0],'0x2540be3ff0000000000000000000000000000000000000000000000000000000',"Event LogTestCreateRequest wrong args params");
-		assert.equal(l.data[2][1],otherguy+"000000000000000000000000","Event LogTestCreateRequest wrong args params");
-		assert.equal(l.data[2][2],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][3],'0x2540be3ff0000000000000000000000000000000000000000000000000000000',"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][4],otherguy+"000000000000000000000000","Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][5],0,"Event LogTestCreateRequest wrong args params");
 
 		var r = await requestCore.requests.call(1);
 		assert.equal(r[0],payee,"request wrong data : creator");
@@ -391,17 +391,17 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequest()");
 		assert.equal(l.data[0],1,"Event LogTestCreateRequest wrong args requestId");
 		assert.equal(l.data[1],2,"Event LogTestCreateRequest wrong args ID");
-		assert.equal(l.data[2][0],'0x2540be3ff0000000000000000000000000000000000000000000000000000000',"Event LogTestCreateRequest wrong args params");
-		assert.equal(l.data[2][1],otherguy+"000000000000000000000000","Event LogTestCreateRequest wrong args params");
-		assert.equal(l.data[2][2],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][3],'0x2540be3ff0000000000000000000000000000000000000000000000000000000',"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][4],otherguy+"000000000000000000000000","Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][5],0,"Event LogTestCreateRequest wrong args params");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], fakeExtention3.abi);
 		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequest()");
 		assert.equal(l.data[0],1,"Event LogTestCreateRequest wrong args requestId");
 		assert.equal(l.data[1],3,"Event LogTestCreateRequest wrong args ID");
-		assert.equal(l.data[2][0],"0x63686f7063686f70000000000000000000000000000000000000000000000000","Event LogTestCreateRequest wrong args params");
-		assert.equal(l.data[2][1],0,"Event LogTestCreateRequest wrong args params");
-		assert.equal(l.data[2][2],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][6],"0x63686f7063686f70000000000000000000000000000000000000000000000000","Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][7],0,"Event LogTestCreateRequest wrong args params");
+		assert.equal(l.data[2][8],0,"Event LogTestCreateRequest wrong args params");
 
 		var r = await requestCore.requests.call(1);
 		assert.equal(r[0],payee,"request wrong data : creator");

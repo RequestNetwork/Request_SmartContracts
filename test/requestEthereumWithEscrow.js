@@ -10,6 +10,8 @@ var TestRequestSynchroneInterfaceInterception = artifacts.require("./TestRequest
 var TestRequestSynchroneExtensionLauncher = artifacts.require("./TestRequestSynchroneExtensionLauncher.sol");
 var BigNumber = require('bignumber.js');
 
+var ethABI = require("../lib/ethereumjs-abi-perso.js"); 
+var ethUtil = require("ethereumjs-util");
 var SolidityCoder = require("web3/lib/solidity/coder.js");
 
 function addressToByte32str(str) {
@@ -73,16 +75,16 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 	var arbitraryAmount = 100000000;
 
     beforeEach(async () => {
-			requestCore = await RequestCore.new({from:admin});
+		requestCore = await RequestCore.new({from:admin});
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
     	requestSynchroneExtensionEscrow = await RequestSynchroneExtensionEscrow.new(requestCore.address,{from:admin});
 
-			await requestCore.adminResume({from:admin});
-			await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
-			await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
-			await requestCore.adminAddTrustedExtension(requestSynchroneExtensionEscrow.address, {from:admin});
+		await requestCore.adminResume({from:admin});
+		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
+		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
+		await requestCore.adminAddTrustedExtension(requestSynchroneExtensionEscrow.address, {from:admin});
 
-			var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [addressToByte32str(escrow)], {from:payee});			
+		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:payee});
     });
 
 	// ##################################################################################################
@@ -91,8 +93,8 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		var r = await requestEthereum.accept(1, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestAccepted","Event LogRequestAccepted is missing after accept()");
-		assert.equal(l.data[0],1,"Event LogRequestAccepted wrong args requestId");
+		assert.equal(l.name,"Accepted","Event Accepted is missing after accept()");
+		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -110,8 +112,8 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		var r = await requestEthereum.decline(1, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestDeclined","Event LogRequestDeclined is missing after decline()");
-		assert.equal(l.data[0],1,"Event LogRequestDeclined wrong args requestId");
+		assert.equal(l.name,"Declined","Event Declined is missing after decline()");
+		assert.equal(l.data[0],1,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -129,8 +131,8 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		var r = await requestEthereum.cancel(1, {from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestCanceled","Event LogRequestCanceled is missing after cancel()");
-		assert.equal(l.data[0],1,"Event LogRequestCanceled wrong args requestId");
+		assert.equal(l.name,"Canceled","Event Canceled is missing after cancel()");
+		assert.equal(l.data[0],1,"Event Canceled wrong args requestId");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -189,9 +191,9 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(l.data[1],arbitraryAmount,"Event EscrowPayment wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amount");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amount");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -227,9 +229,9 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(l.data[0],1,"Event EscrowReleaseRequest wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after releaseToPayee()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount+10,"Event LogRequestPayment wrong args amount");
+		assert.equal(l.name,"Payment","Event Payment is missing after releaseToPayee()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount+10,"Event Payment wrong args amount");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payee,"new request wrong data : creator");

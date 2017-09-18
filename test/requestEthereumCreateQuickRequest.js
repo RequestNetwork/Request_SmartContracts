@@ -1,3 +1,4 @@
+
 var ethUtil = require("ethereumjs-util");
 
 // var ethABI = require("ethereumjs-abi");
@@ -82,7 +83,7 @@ var signHashRequest = function(hash,privateKey) {
 
 
 
-contract('RequestEthereum',  function(accounts) {
+contract('RequestEthereum createQuickRequest',  function(accounts) {
 	var admin = accounts[0];
 	var otherguy = accounts[1];
 	var fakeContract = accounts[2];
@@ -110,16 +111,16 @@ contract('RequestEthereum',  function(accounts) {
     	fakeExtention3 = await TestRequestSynchroneInterfaceContinue.new(3);
     	fakeExtentionLauncherAcceptFalse = await TestRequestSynchroneExtensionLauncher.new(21,true,false,true,true,true,true,true,true,true);
 
-			requestCore = await RequestCore.new();
-			requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
+		requestCore = await RequestCore.new();
+		requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
-			await requestCore.adminResume({from:admin});
-			await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
+		await requestCore.adminResume({from:admin});
+		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
-			await requestCore.adminAddTrustedExtension(fakeExtention1.address, {from:admin});
-			await requestCore.adminAddTrustedExtension(fakeExtention2.address, {from:admin});
-			await requestCore.adminAddTrustedExtension(fakeExtention3.address, {from:admin});
-			await requestCore.adminAddTrustedExtension(fakeExtentionLauncherAcceptFalse.address, {from:admin});
+		await requestCore.adminAddTrustedExtension(fakeExtention1.address, {from:admin});
+		await requestCore.adminAddTrustedExtension(fakeExtention2.address, {from:admin});
+		await requestCore.adminAddTrustedExtension(fakeExtention3.address, {from:admin});
+		await requestCore.adminAddTrustedExtension(fakeExtentionLauncherAcceptFalse.address, {from:admin});
     });
 
 	it("new quick request more than amountExpected (with tips that make the new quick requestment under expected) OK", async function () {
@@ -140,24 +141,24 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(r.receipt.logs.length,4,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestCreated","Event LogRequestCreated is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestCreated wrong args requestId");
-		assert.equal(l.data[1],payee,"Event LogRequestCreated wrong args payee");
-		assert.equal(l.data[2],payer,"Event LogRequestCreated wrong args payer");
+		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[1],payee,"Event Created wrong args payee");
+		assert.equal(l.data[2],payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestAccepted","Event LogRequestAccepted is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestAccepted wrong args requestId");
+		assert.equal(l.name,"Accepted","Event Accepted is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestAddAdditional","Event LogRequestAddAdditional is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestAddAdditional wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestAddAdditional wrong args amount");
+		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event AddAdditional wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddAdditional wrong args amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount+1,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount+1,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
@@ -256,24 +257,24 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(r.receipt.logs.length,4,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestCreated","Event LogRequestCreated is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestCreated wrong args requestId");
-		assert.equal(l.data[1],payee,"Event LogRequestCreated wrong args payee");
-		assert.equal(l.data[2],payer,"Event LogRequestCreated wrong args payer");
+		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[1],payee,"Event Created wrong args payee");
+		assert.equal(l.data[2],payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestAccepted","Event LogRequestAccepted is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestAccepted wrong args requestId");
+		assert.equal(l.name,"Accepted","Event Accepted is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestAddAdditional","Event LogRequestAddAdditional is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestAddAdditional wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event LogRequestAddAdditional wrong args amount");
+		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event AddAdditional wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddAdditional wrong args amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
@@ -452,19 +453,19 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestCreated","Event LogRequestCreated is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestCreated wrong args requestId");
-		assert.equal(l.data[1],payee,"Event LogRequestCreated wrong args payee");
-		assert.equal(l.data[2],payer,"Event LogRequestCreated wrong args payer");
+		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[1],payee,"Event Created wrong args payee");
+		assert.equal(l.data[2],payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestAccepted","Event LogRequestAccepted is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestAccepted wrong args requestId");
+		assert.equal(l.name,"Accepted","Event Accepted is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
@@ -499,14 +500,14 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestCreated","Event LogRequestCreated is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestCreated wrong args requestId");
-		assert.equal(l.data[1],payee,"Event LogRequestCreated wrong args payee");
-		assert.equal(l.data[2],payer,"Event LogRequestCreated wrong args payer");
+		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[1],payee,"Event Created wrong args payee");
+		assert.equal(l.data[2],payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"LogRequestAccepted","Event LogRequestAccepted is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestAccepted wrong args requestId");
+		assert.equal(l.name,"Accepted","Event Accepted is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
 
 		var newReq = await requestCore.requests.call(1);
 		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
@@ -611,10 +612,10 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(r.receipt.logs.length,15,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"LogRequestCreated","Event LogRequestCreated is missing after createQuickRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestCreated wrong args requestId");
-		assert.equal(l.data[1],payee,"Event LogRequestCreated wrong args payee");
-		assert.equal(l.data[2],payer,"Event LogRequestCreated wrong args payer");
+		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
+		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[1],payee,"Event Created wrong args payee");
+		assert.equal(l.data[2],payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], fakeExtention1.abi);
 		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequest()");
@@ -657,8 +658,8 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(l.data[1],3,"Event LogTestAccept wrong args ID");
 
 		l = getEventFromReceipt(r.receipt.logs[7], requestCore.abi);
-		assert.equal(l.name,"LogRequestAccepted","Event LogRequestAccepted is missing after createRequest()");
-		assert.equal(l.data[0],1,"Event LogRequestAccepted wrong args requestId");
+		assert.equal(l.name,"Accepted","Event Accepted is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[8], fakeExtention1.abi);
 		assert.equal(l.name,"LogTestPayment","Event LogTestPayment is missing after pay()");
@@ -679,9 +680,9 @@ contract('RequestEthereum',  function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[11], requestCore.abi);
-		assert.equal(l.name,"LogRequestPayment","Event LogRequestPayment is missing after pay()");
-		assert.equal(l.data[0],1,"Event LogRequestPayment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event LogRequestPayment wrong args amountPaid");
+		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		l = getEventFromReceipt(r.receipt.logs[12], fakeExtention1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
