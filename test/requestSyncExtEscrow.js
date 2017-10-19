@@ -1,14 +1,14 @@
 
-var RequestCore = artifacts.require("./RequestCore.sol");
-var RequestEthereum = artifacts.require("./RequestEthereum.sol");
-var RequestSynchroneExtensionEscrow = artifacts.require("./RequestSynchroneExtensionEscrow.sol");
+var RequestCore = artifacts.require("./core/RequestCore.sol");
+var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
+var RequestSynchroneExtensionEscrow = artifacts.require("./synchrone/extensions/RequestSynchroneExtensionEscrow.sol");
 
 
 // contract for test
-var TestRequestSynchroneInterfaceContinue = artifacts.require("./TestRequestSynchroneInterfaceContinue.sol");
-var TestRequestSynchroneInterfaceInterception = artifacts.require("./TestRequestSynchroneInterfaceInterception.sol");
-var TestRequestSynchroneExtensionLauncher = artifacts.require("./TestRequestSynchroneExtensionLauncher.sol");
-var TestRequestSynchroneSubContractLauncher = artifacts.require("./TestRequestSynchroneSubContractLauncher.sol");
+var TestRequestSynchroneInterfaceContinue = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceContinue.sol");
+var TestRequestSynchroneInterfaceInterception = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceInterception.sol");
+var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneExtensionLauncher.sol");
+var TestRequestSynchroneSubContractLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneSubContractLauncher.sol");
 
 var ethABI = require("../lib/ethereumjs-abi-perso.js"); 
 var ethUtil = require("ethereumjs-util");

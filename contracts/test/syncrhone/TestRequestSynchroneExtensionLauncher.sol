@@ -1,15 +1,11 @@
 pragma solidity ^0.4.11;
 
-import './RequestCore.sol';
-import './RequestSynchroneInterface.sol';
+import '../../synchrone/extensions/RequestSynchroneInterface.sol';
 
-contract TestRequestSynchroneSubContractLauncher {
+contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
     
     uint constant_id;
-    mapping(uint => address) extensionAddress;
-
-    // RequestCore object
-    RequestCore public requestCore;
+    mapping(uint => address) contractLaunchedAddress;
 
     bool createRequestReturn;
     bool acceptReturn;
@@ -22,7 +18,7 @@ contract TestRequestSynchroneSubContractLauncher {
     bool addSubtractReturn;
 
 
-    function TestRequestSynchroneSubContractLauncher (uint _id, uint _requestCoreAddress, bool _createRequest,bool _accept,bool _decline,bool _cancel,bool _fundOrder,bool _payment,bool _refund,bool _addAdditional,bool _addSubtract) {
+    function TestRequestSynchroneExtensionLauncher (uint _id, bool _createRequest,bool _accept,bool _decline,bool _cancel,bool _fundOrder,bool _payment,bool _refund,bool _addAdditional,bool _addSubtract) {
         constant_id = _id;
 
         createRequestReturn = _createRequest;
@@ -34,72 +30,63 @@ contract TestRequestSynchroneSubContractLauncher {
         refundReturn = _refund;
         addAdditionalReturn = _addAdditional;
         addSubtractReturn = _addSubtract;
-
-        requestCore=RequestCore(_requestCoreAddress);
     }
 
     // Launcher -------------------------------------------------
     function launchCancel(uint _requestId)
     {
-        RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
-        extension.cancel(_requestId);
+        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        subContract.cancel(_requestId);
     } 
 
     function launchAccept(uint _requestId)
     {
-        RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
-        extension.accept(_requestId);
+        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        subContract.accept(_requestId);
     } 
 
     function launchDecline(uint _requestId)
     {
-        RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
-        extension.decline(_requestId);
+        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        subContract.decline(_requestId);
     } 
 
    function launchPayment(uint _requestId, uint _amount)
     {
-        RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
-        extension.payment(_requestId,_amount);
+        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        subContract.payment(_requestId,_amount);
     } 
 
     function launchRefund(uint _requestId, uint _amount)
     {
-        RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
-        extension.refund(_requestId,_amount);
+        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        subContract.refund(_requestId,_amount);
     } 
     function launchAddAdditional(uint _requestId, uint _amount)
     {
-        RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
-        extension.addAdditional(_requestId,_amount);
+        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        subContract.addAdditional(_requestId,_amount);
     } 
 
     function launchAddSubtract(uint _requestId, uint _amount)
     {
-        RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
-        extension.addSubtract(_requestId,_amount);
+        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        subContract.addSubtract(_requestId,_amount);
     } 
     // --------------------------------------------------------
 
-    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams)
-        returns(uint)
+    event LogTestCreateRequest(uint requestId, uint id, bytes32[9] _params);
+    function createRequest(uint _requestId, bytes32[9] _params, uint8 _index) returns(bool) 
     {
-        uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
-
-        if(_extensions[0]!=0) {
-            RequestSynchroneInterface extension0 = RequestSynchroneInterface(_extensions[0]);
-            extension0.createRequest(requestId, _extensionParams, 0);
-            extensionAddress[requestId] = _extensions[0];
-        }
-
-        return requestId;
+        contractLaunchedAddress[_requestId] = msg.sender;
+        LogTestCreateRequest(_requestId, constant_id, _params);
+        return createRequestReturn;
     }
 
     event LogTestAccept(uint requestId, uint id);
     function accept(uint _requestId) returns(bool)
     {
         LogTestAccept(_requestId, constant_id);
-        requestCore.accept(_requestId);
         return acceptReturn;
     } 
 
@@ -107,7 +94,6 @@ contract TestRequestSynchroneSubContractLauncher {
     function decline(uint _requestId) returns(bool)
     {
         LogTestDecline(_requestId, constant_id);
-        requestCore.decline(_requestId);
         return declineReturn;
     } 
 
@@ -115,7 +101,6 @@ contract TestRequestSynchroneSubContractLauncher {
     function cancel(uint _requestId) returns(bool)
     {
         LogTestCancel(_requestId, constant_id);
-        requestCore.cancel(_requestId);
         return cancelReturn;
     } 
  
@@ -130,7 +115,6 @@ contract TestRequestSynchroneSubContractLauncher {
     function payment(uint _requestId, uint _amount) returns(bool)
     {
         LogTestPayment(_requestId, constant_id, _amount);
-        requestCore.payment(_requestId,_amount);
         return paymentReturn;
     } 
 
@@ -138,7 +122,6 @@ contract TestRequestSynchroneSubContractLauncher {
     function refund(uint _requestId, uint _amount) returns(bool)
     {
         LogTestRefund(_requestId, constant_id, _amount);
-        requestCore.refund(_requestId,_amount);
         return refundReturn;
     } 
 
@@ -146,7 +129,6 @@ contract TestRequestSynchroneSubContractLauncher {
     function addAdditional(uint _requestId, uint _amount) returns(bool)
     {
         LogTestAddAdditional(_requestId, constant_id, _amount);
-        requestCore.addAdditional(_requestId,_amount);
         return addAdditionalReturn;
     } 
 
@@ -154,7 +136,6 @@ contract TestRequestSynchroneSubContractLauncher {
     function addSubtract(uint _requestId, uint _amount) returns(bool)
     {
         LogTestAddSubtract(_requestId, constant_id, _amount);
-        requestCore.addSubtract(_requestId,_amount);
         return addSubtractReturn;
     } 
 }

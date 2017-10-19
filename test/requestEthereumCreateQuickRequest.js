@@ -7,12 +7,12 @@ var ethABI = require("../lib/ethereumjs-abi-perso.js");
 
 const BN = require('bn.js')
 
-var RequestCore = artifacts.require("./RequestCore.sol");
-var RequestEthereum = artifacts.require("./RequestEthereum.sol");
+var RequestCore = artifacts.require("./core/RequestCore.sol");
+var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 
 // contract for test
-var TestRequestSynchroneInterfaceContinue = artifacts.require("./TestRequestSynchroneInterfaceContinue.sol");
-var TestRequestSynchroneExtensionLauncher = artifacts.require("./TestRequestSynchroneExtensionLauncher.sol");
+var TestRequestSynchroneInterfaceContinue = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceContinue.sol");
+var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneExtensionLauncher.sol");
 
 
 var BigNumber = require('bignumber.js');

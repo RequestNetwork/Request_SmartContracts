@@ -1,7 +1,7 @@
 pragma solidity ^0.4.11;
 
-import './RequestCore.sol';
-import './RequestSynchroneInterface.sol';
+import '../core/RequestCore.sol';
+import './extensions/RequestSynchroneInterface.sol';
 
 
 contract RequestEthereum {

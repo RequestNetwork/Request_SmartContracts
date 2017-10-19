@@ -1,6 +1,6 @@
 
-var RequestCore = artifacts.require("./RequestCore.sol");
-var RequestEthereum = artifacts.require("./RequestEthereum.sol");
+var RequestCore = artifacts.require("./core/RequestCore.sol");
+var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 
 
 var BigNumber = require('bignumber.js');

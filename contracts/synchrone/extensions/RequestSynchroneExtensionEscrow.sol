@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 
-import './RequestCore.sol';
+import '../../core/RequestCore.sol';
 import './RequestSynchroneInterface.sol';
 
 // many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs

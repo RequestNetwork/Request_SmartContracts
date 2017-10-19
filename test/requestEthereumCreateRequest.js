@@ -1,9 +1,9 @@
 
-var RequestCore = artifacts.require("./RequestCore.sol");
-var RequestEthereum = artifacts.require("./RequestEthereum.sol");
+var RequestCore = artifacts.require("./core/RequestCore.sol");
+var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 
 // contract for test
-var TestRequestSynchroneInterfaceContinue = artifacts.require("./TestRequestSynchroneInterfaceContinue.sol");
+var TestRequestSynchroneInterfaceContinue = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceContinue.sol");
 
 var BigNumber = require('bignumber.js');
 

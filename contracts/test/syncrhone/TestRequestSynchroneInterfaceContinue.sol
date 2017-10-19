@@ -1,6 +1,6 @@
 pragma solidity ^0.4.11;
 
-import './RequestSynchroneInterface.sol';
+import '../../synchrone/extensions/RequestSynchroneInterface.sol';
 
 contract TestRequestSynchroneInterfaceContinue is RequestSynchroneInterface{
     

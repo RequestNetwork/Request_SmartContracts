@@ -1,8 +1,8 @@
 
-var RequestCore = artifacts.require("./RequestCore.sol");
-var RequestEthereum = artifacts.require("./RequestEthereum.sol");
+var RequestCore = artifacts.require("./core/RequestCore.sol");
+var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 // contract for test
-var TestRequestReentrance = artifacts.require("./TestRequestReentrance.sol");
+var TestRequestReentrance = artifacts.require("./test/synchrone/TestRequestReentrance.sol");
 var BigNumber = require('bignumber.js');
 
 var SolidityCoder = require("web3/lib/solidity/coder.js");
