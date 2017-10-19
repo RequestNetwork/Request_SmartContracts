@@ -2,7 +2,6 @@
 var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 
-
 var BigNumber = require('bignumber.js');
 
 var expectThrow = async function(promise) {

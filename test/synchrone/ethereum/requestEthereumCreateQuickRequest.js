@@ -3,7 +3,7 @@ var ethUtil = require("ethereumjs-util");
 
 // var ethABI = require("ethereumjs-abi");
 // waiting for Solidity pack Array support (vrolland did a pull request)
-var ethABI = require("../lib/ethereumjs-abi-perso.js"); 
+var ethABI = require("../../../lib/ethereumjs-abi-perso.js"); 
 
 const BN = require('bn.js')
 

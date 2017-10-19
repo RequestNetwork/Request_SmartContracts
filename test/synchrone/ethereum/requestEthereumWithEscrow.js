@@ -10,7 +10,7 @@ var TestRequestSynchroneInterfaceInterception = artifacts.require("./test/synchr
 var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneExtensionLauncher.sol");
 var BigNumber = require('bignumber.js');
 
-var ethABI = require("../lib/ethereumjs-abi-perso.js"); 
+var ethABI = require("../../../lib/ethereumjs-abi-perso.js");
 var ethUtil = require("ethereumjs-util");
 var SolidityCoder = require("web3/lib/solidity/coder.js");
 
