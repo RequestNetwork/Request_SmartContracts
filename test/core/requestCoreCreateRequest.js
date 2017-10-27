@@ -41,34 +41,22 @@ contract('RequestCore Create Request', function(accounts) {
 
 
 	// requestId start at 1 when Core is created
-	it("Creation Core, requestId start at 1", async function () {
+	it("Creation Core, requestId start at 0", async function () {
 		var requestCore = await RequestCore.new();
-		assert.equal(await requestCore.numRequests.call(),"1","RequestId start by 1");
+		assert.equal(await requestCore.numRequests.call(),"0","RequestId start by 0");
 	});
 
 	// new request from non trustable sender (contract trusted) impossible
 	it("request from non trustable sender (contract trusted) impossible", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
 		await expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, [], {from:fakeContract}));
 	});
 
 	// impossible to createRequest if Core Paused
 	it("impossible to createRequest if Core Paused", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
-		await requestCore.adminPause({from:admin});
-
-		await expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, [], {from:fakeContract}));
-	});
-
-	// impossible to createRequest if Core Deprecated
-	it("impossible to createRequest if Core Deprecated", async function () {
-		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
-		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
-		await requestCore.adminDeprecate({from:admin});
+		await requestCore.pause({from:admin});
 
 		await expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, [], {from:fakeContract}));
 	});
@@ -79,7 +67,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request payee==payer impossible
 	it("Actors not null and payee!=payer", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
 		await expectThrow(requestCore.createRequest(0, payee, payer, arbitraryAmount, [], {from:fakeContract}));
@@ -94,7 +82,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request _amountExpected > 2^256 impossible
 	it("amountExpected more than zero and not more than 2^256", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
 		await expectThrow(requestCore.createRequest(creator, payee, payer, 0, [], {from:fakeContract}));
@@ -107,7 +95,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request without extensions
 	it("new request without extensions", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
 		var r = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, [], {from:fakeContract});
@@ -137,7 +125,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request with 1 extension trusted
 	it("new request with 1 extension valid", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
 
@@ -167,7 +155,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request with 3 extensions trusted
 	it("new request with 2 extensions valid", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
 		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
@@ -199,7 +187,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request with 3 extensions trusted
 	it("new request with 3 extensions valid", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
 		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
@@ -235,7 +223,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request with 1 extension not trusted
 	it("new request with 1 extension not trusted", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
 		await expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, [fakeExtention1], {from:fakeContract}));
@@ -244,7 +232,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request with 1 extension not trusted
 	it("new request with 2 trusted and 1 extension not trusted", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtention2, {from:admin});
@@ -255,7 +243,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request with 2 same extensions trusted
 	it("new request with 2 same extensions trusted", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
 
@@ -265,7 +253,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request with 3 same extensions trusted
 	it("new request with 3 same extensions trusted", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
 
@@ -275,7 +263,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// Extensions [0,0,notTrusted] impossible
 	it("Extensions [0,0,notTrusted] impossible", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
 		await expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, [0,0,fakeExtention1], {from:fakeContract}));
@@ -284,7 +272,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// Extensions [0,0,trusted] impossible
 	it("Extensions [0,0,trusted] impossible", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
 
@@ -294,7 +282,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// Extensions [0,trusted,0] impossible
 	it("Extensions [0,trusted,0] impossible", async function () {
 		var requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
 
