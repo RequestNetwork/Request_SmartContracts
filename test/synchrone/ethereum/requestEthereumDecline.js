@@ -96,7 +96,6 @@ contract('RequestEthereum Decline',  function(accounts) {
 		requestCore = await RequestCore.new({from:admin});
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
-		await requestCore.adminResume({from:admin});
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
 		await requestCore.adminAddTrustedExtension(fakeExtentionContinue1.address, {from:admin});
@@ -117,12 +116,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	// ### Decline test unit #############################################################################
 	// ##################################################################################################
 	it("impossible to decline if Core Paused", async function () {
-		await requestCore.adminPause({from:admin});
-		await expectThrow(requestEthereum.decline(1, {from:payer}));
-	});
-
-	it("impossible to decline if Core Deprecated", async function () {
-		await requestCore.adminDeprecate({from:admin});
+		await requestCore.pause({from:admin});
 		await expectThrow(requestEthereum.decline(1, {from:payer}));
 	});
 

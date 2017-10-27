@@ -1,11 +1,11 @@
 var config = {
-	"all":false,
+	"all":true,
 	// "core.js": {
 		"requestAdministrable.js":false,    
+		"requestCoreCreateRequest.js":false,    
+		"requestCoreAcceptDeclineCancel.js":false,
 		"requestCoreAdditionalSubtract.js":false,  
 		"requestCorePaymentRefund.js":false,  
-		"requestCoreAcceptDeclineCancel.js":false,  
-		"requestCoreCreateRequest.js":false,  
 	// },
 	// "synchrone.js": {
 	//	 	"ethereum.js": {

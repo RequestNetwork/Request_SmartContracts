@@ -88,7 +88,6 @@ contract('RequestEthereum Discount',  function(accounts) {
     	fakeExtentionInterception2 = await TestRequestSynchroneInterfaceInterception.new(12);
     	fakeExtentionInterception3 = await TestRequestSynchroneInterfaceInterception.new(13);
 
-		await requestCore.adminResume({from:admin});
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
 		await requestCore.adminAddTrustedExtension(fakeExtentionContinue1.address, {from:admin});
@@ -106,13 +105,8 @@ contract('RequestEthereum Discount',  function(accounts) {
 	// ### Accept test unit #############################################################################
 	// ##################################################################################################
 	it("impossible to discount if Core Paused", async function () {
-		await requestCore.adminPause({from:admin});
+		await requestCore.pause({from:admin});
 		await expectThrow(requestEthereum.discount(1, arbitraryAmount10percent, {from:payee}));
-	});
-
-	it("impossible to discount if Core Deprecated", async function () {
-		await requestCore.adminDeprecate({from:admin});
-		await expectThrow(requestEthereum.discount(1, arbitraryAmount10percent, { from:payee}));
 	});
 
 	it("discount request not exist impossible", async function () {

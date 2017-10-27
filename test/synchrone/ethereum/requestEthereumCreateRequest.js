@@ -79,7 +79,6 @@ contract('RequestEthereum createRequest',  function(accounts) {
 		requestCore = await RequestCore.new();
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
-		await requestCore.adminResume({from:admin});
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
 		await requestCore.adminAddTrustedExtension(fakeExtention1.address, {from:admin});
@@ -107,15 +106,9 @@ contract('RequestEthereum createRequest',  function(accounts) {
 	});
 
 	it("impossible to createRequest if Core Paused", async function () {
-		await requestCore.adminPause({from:admin});
+		await requestCore.pause({from:admin});
 		await expectThrow(requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], {from:payee}));
 	});
-
-	it("impossible to createRequest if Core Deprecated", async function () {
-		await requestCore.adminDeprecate({from:admin});
-		await expectThrow(requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], {from:payee}));
-	});
-
 
 	it("new request msg.sender==payee without extensions OK", async function () {
 		var r = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], {from:payee});

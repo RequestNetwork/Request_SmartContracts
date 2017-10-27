@@ -82,24 +82,23 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	var arbitraryAmount = 100000000;
 
     beforeEach(async () => {
-			requestCore = await RequestCore.new({from:admin});
-    	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
-    	requestSynchroneExtensionEscrow = await RequestSynchroneExtensionEscrow.new(requestCore.address,{from:admin});
-			testRequestSynchroneSubContractLauncher = await TestRequestSynchroneSubContractLauncher.new(1,requestCore.address,true,true,true,true,true,true,true,true,true,{from:admin});
+		requestCore = await RequestCore.new({from:admin});
+		requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
+		requestSynchroneExtensionEscrow = await RequestSynchroneExtensionEscrow.new(requestCore.address,{from:admin});
+		testRequestSynchroneSubContractLauncher = await TestRequestSynchroneSubContractLauncher.new(1,requestCore.address,true,true,true,true,true,true,true,true,true,{from:admin});
 
-			await requestCore.adminResume({from:admin});
-			await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
-			await requestCore.adminAddTrustedSubContract(fakeTrustedContract, {from:admin});
-			await requestCore.adminAddTrustedSubContract(testRequestSynchroneSubContractLauncher.address, {from:admin});
+		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
+		await requestCore.adminAddTrustedSubContract(fakeTrustedContract, {from:admin});
+		await requestCore.adminAddTrustedSubContract(testRequestSynchroneSubContractLauncher.address, {from:admin});
 
-			await requestCore.adminAddTrustedExtension(requestSynchroneExtensionEscrow.address, {from:admin});
+		await requestCore.adminAddTrustedExtension(requestSynchroneExtensionEscrow.address, {from:admin});
 
-			// request 1 with fakeTrustedContract
-			await requestCore.createRequest(payee, payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], {from:fakeTrustedContract});
-			await requestSynchroneExtensionEscrow.createRequest(1, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], 0, {from:fakeTrustedContract})
+		// request 1 with fakeTrustedContract
+		await requestCore.createRequest(payee, payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], {from:fakeTrustedContract});
+		await requestSynchroneExtensionEscrow.createRequest(1, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], 0, {from:fakeTrustedContract})
 
-			// request 2 with testRequestSynchroneSubContractLauncher
-			await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:payee});
+		// request 2 with testRequestSynchroneSubContractLauncher
+		await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:payee});
     });
 
 	// ##################################################################################################

@@ -118,7 +118,6 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		requestCore = await RequestCore.new();
 		requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
-		await requestCore.adminResume({from:admin});
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
 		await requestCore.adminAddTrustedExtension(fakeExtention1.address, {from:admin});
@@ -296,8 +295,6 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 	});
 
 	it("new quick request _amountExpected == 0 impossible", async function () {
-		await requestCore.adminDeprecate({from:admin});
-
 		var listExtensions = [];
 		var listParamsExtensions = [];
 		var hash = hashRequest(requestEthereum.address, payee, payer, 0, listExtensions, listParamsExtensions);
@@ -314,8 +311,6 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 	});
 
 	it("new quick request payee==payer impossible", async function () {
-		await requestCore.adminDeprecate({from:admin});
-
 		var listExtensions = [];
 		var listParamsExtensions = [];
 		var hash = hashRequest(requestEthereum.address, payee, payee, arbitraryAmount, listExtensions, listParamsExtensions);
@@ -332,8 +327,6 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 	});
 
 	it("new quick request payee==0 impossible", async function () {
-		await requestCore.adminDeprecate({from:admin});
-
 		var listExtensions = [];
 		var listParamsExtensions = [];
 		var hash = hashRequest(requestEthereum.address, 0, payer, arbitraryAmount, listExtensions, listParamsExtensions);
@@ -350,8 +343,6 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 	});
 
 	it("new quick request payer==0 impossible", async function () {
-		await requestCore.adminDeprecate({from:admin});
-
 		var listExtensions = [];
 		var listParamsExtensions = [];
 		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, listExtensions, listParamsExtensions);
@@ -368,8 +359,6 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 	});
 
 	it("new quick request msg.sender==payee impossible", async function () {
-		await requestCore.adminDeprecate({from:admin});
-
 		var listExtensions = [];
 		var listParamsExtensions = [];
 		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, listExtensions, listParamsExtensions);
@@ -386,8 +375,6 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 	});
 
 	it("new quick request msg.sender==otherguy impossible", async function () {
-		await requestCore.adminDeprecate({from:admin});
-
 		var listExtensions = [];
 		var listParamsExtensions = [];
 		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, listExtensions, listParamsExtensions);
@@ -403,26 +390,8 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 									{from:otherguy, value:arbitraryAmount}));
 	});
 
-	it("impossible to createQuickquick request if Core Deprecated", async function () {
-		await requestCore.adminDeprecate({from:admin});
-
-		var listExtensions = [];
-		var listParamsExtensions = [];
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, listExtensions, listParamsExtensions);
-		
-		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
-		var sig = signHashRequest(hash,ecprivkey);
-
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
-									listExtensions,
-									listParamsExtensions, 
-									0, 
-									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
-									{from:payer, value:arbitraryAmount}));
-	});
-
 	it("impossible to createQuickquick request if Core Paused", async function () {
-		await requestCore.adminPause({from:admin});
+		await requestCore.pause({from:admin});
 
 		var listExtensions = [];
 		var listParamsExtensions = [];

@@ -98,7 +98,6 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		requestCore = await RequestCore.new({from:admin});
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
-		await requestCore.adminResume({from:admin});
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
 		await requestCore.adminAddTrustedExtension(fakeExtentionContinue1.address, {from:admin});
@@ -118,12 +117,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	// ### Cancel test unit #############################################################################
 	// ##################################################################################################
 	it("impossible to cancel if Core Paused", async function () {
-		await requestCore.adminPause({from:admin});
-		await expectThrow(requestEthereum.cancel(1, {from:payee}));
-	});
-
-	it("impossible to cancel if Core Deprecated", async function () {
-		await requestCore.adminDeprecate({from:admin});
+		await requestCore.pause({from:admin});
 		await expectThrow(requestEthereum.cancel(1, {from:payee}));
 	});
 

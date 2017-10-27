@@ -3,7 +3,6 @@ if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 	return;
 }
 
-
 var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 
@@ -98,7 +97,6 @@ contract('RequestEthereum Accept',  function(accounts) {
 		requestCore = await RequestCore.new({from:admin});
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
-		await requestCore.adminResume({from:admin});
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
 		await requestCore.adminAddTrustedExtension(fakeExtentionContinue1.address, {from:admin});
@@ -118,12 +116,7 @@ contract('RequestEthereum Accept',  function(accounts) {
 	// ### Accept test unit #############################################################################
 	// ##################################################################################################
 	it("impossible to accept if Core Paused", async function () {
-		await requestCore.adminPause({from:admin});
-		await expectThrow(requestEthereum.accept(1, {from:payer}));
-	});
-
-	it("impossible to accept if Core Deprecated", async function () {
-		await requestCore.adminDeprecate({from:admin});
+		await requestCore.pause({from:admin});
 		await expectThrow(requestEthereum.accept(1, {from:payer}));
 	});
 

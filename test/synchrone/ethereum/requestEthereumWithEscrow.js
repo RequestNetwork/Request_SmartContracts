@@ -83,7 +83,6 @@ contract('RequestEthereum with Escrow',  function(accounts) {
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
     	requestSynchroneExtensionEscrow = await RequestSynchroneExtensionEscrow.new(requestCore.address,{from:admin});
 
-		await requestCore.adminResume({from:admin});
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedExtension(requestSynchroneExtensionEscrow.address, {from:admin});
