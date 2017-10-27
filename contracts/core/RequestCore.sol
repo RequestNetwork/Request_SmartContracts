@@ -56,7 +56,7 @@ contract RequestCore is Administrable {
      */
     function RequestCore() 
     {
-        numRequests = 1;
+        numRequests = 0;
     }
 
     /*
@@ -77,11 +77,12 @@ contract RequestCore is Administrable {
         checkActorsAmount(_creator, _payee, _payer, _amountExpected)
         returns (uint) 
     {
-        uint requestId = numRequests.add(1); 
-        requests[requestId] = Request(_creator, _payee, _payer, _amountExpected, msg.sender, 0, 0, 0, State.Created, _extensions); 
 
-        Created(requestId, _payee, _payer);
-        return requestId;
+        numRequests = numRequests.add(1); 
+        requests[numRequests] = Request(_creator, _payee, _payer, _amountExpected, msg.sender, 0, 0, 0, State.Created, _extensions); 
+
+        Created(numRequests, _payee, _payer);
+        return numRequests;
     }
 
     /// @dev Fonction used by Subcontracts to accept a request in the Core. A request accepted is recognized by the payer as legit
