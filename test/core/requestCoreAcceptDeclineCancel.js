@@ -41,7 +41,7 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 
     beforeEach(async () => {
 		requestCore = await RequestCore.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedSubContract(fakeContract2, {from:admin});
 
@@ -131,22 +131,7 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 	it("impossible to accept if Core Paused", async function () {
-		await requestCore.adminPause({from:admin});
-		await expectThrow(requestCore.accept(1, {from:fakeContract}));
-
-		var r = await requestCore.requests.call(1, {from:fakeContract});
-		assert.equal(r[0],creator,"request wrong data : creator");
-		assert.equal(r[1],payee,"request wrong data : payee");
-		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
-		assert.equal(r[5],0,"new request wrong data : amountPaid");
-		assert.equal(r[6],0,"new request wrong data : amountAdditional");
-		assert.equal(r[7],0,"new request wrong data : amountSubtract");
-		assert.equal(r[8],0,"new request wrong data : state");
-	});
-	it("impossible to accept if Core Deprecated", async function () {
-		await requestCore.adminDeprecate({from:admin});
+		await requestCore.pause({from:admin});
 		await expectThrow(requestCore.accept(1, {from:fakeContract}));
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
@@ -293,22 +278,7 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 
 
 	it("impossible to decline if Core Paused", async function () {
-		await requestCore.adminPause({from:admin});
-		await expectThrow(requestCore.decline(1, {from:fakeContract}));
-
-		var r = await requestCore.requests.call(1, {from:fakeContract});
-		assert.equal(r[0],creator,"request wrong data : creator");
-		assert.equal(r[1],payee,"request wrong data : payee");
-		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
-		assert.equal(r[5],0,"new request wrong data : amountPaid");
-		assert.equal(r[6],0,"new request wrong data : amountAdditional");
-		assert.equal(r[7],0,"new request wrong data : amountSubtract");
-		assert.equal(r[8],0,"new request wrong data : state");
-	});
-	it("impossible to decline if Core Deprecated", async function () {
-		await requestCore.adminDeprecate({from:admin});
+		await requestCore.pause({from:admin});
 		await expectThrow(requestCore.decline(1, {from:fakeContract}));
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
@@ -454,22 +424,7 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 	it("impossible to cancel if Core Paused", async function () {
-		await requestCore.adminPause({from:admin});
-		await expectThrow(requestCore.cancel(1, {from:fakeContract}));
-
-		var r = await requestCore.requests.call(1, {from:fakeContract});
-		assert.equal(r[0],creator,"request wrong data : creator");
-		assert.equal(r[1],payee,"request wrong data : payee");
-		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
-		assert.equal(r[5],0,"new request wrong data : amountPaid");
-		assert.equal(r[6],0,"new request wrong data : amountAdditional");
-		assert.equal(r[7],0,"new request wrong data : amountSubtract");
-		assert.equal(r[8],0,"new request wrong data : state");
-	});
-	it("impossible to cancel if Core Deprecated", async function () {
-		await requestCore.adminDeprecate({from:admin});
+		await requestCore.pause({from:admin});
 		await expectThrow(requestCore.cancel(1, {from:fakeContract}));
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
