@@ -29,47 +29,36 @@ contract('RequestCore Administrative part', function(accounts) {
 
 
 	// Creation and event
-	it("Creation Core, Resume, Pause, Deprecate", async function () {
+	it("Creation Core, pause, unpause", async function () {
 		var requestCore = await RequestCore.new();
-		assert.equal(await requestCore.systemState.call(),"0","Core must be Paused at the begging");
+		assert.equal(await requestCore.paused.call(),false,"Core must not be paused at the begging");
 
-		var r = await requestCore.adminResume({from:admin});
-		assert.equal(r.logs[0].event,"Resumed","Event Resumed is missing after adminResume()");
-		assert.equal(await requestCore.systemState.call(),"1","Core must be Resumed after adminResume()");
+		var r = await requestCore.pause({from:admin});
+		assert.equal(r.logs[0].event,"Pause","Event Pause is missing after pause()");
+		assert.equal(await requestCore.paused.call(),true,"Core must be Paused after pause()");
 
-		var r = await requestCore.adminPause({from:admin});
-		assert.equal(r.logs[0].event,"Paused","Event Paused is missing after adminPause()");
-		assert.equal(await requestCore.systemState.call(),"0","Core must be Paused after adminPause()");
-
-		var r = await requestCore.adminDeprecate({from:admin});
-		assert.equal(r.logs[0].event,"Deprecated","Event Deprecated is missing after adminDeprecate()");
-		assert.equal(await requestCore.systemState.call(),"2","Core must be Deprecated after adminDeprecate()");
+		var r = await requestCore.unpause({from:admin});
+		assert.equal(r.logs[0].event,"Unpause","Event Unpause is missing after unpause()");
+		assert.equal(await requestCore.paused.call(),false,"Core must not be paused after unpause()");
 	});
 
-
-	// right to resume, pause, deprecate
-	it("Core cannot be resumed by someone else than admin", async function() {
+	// right to resume, pause
+	it("Core cannot be pause by someone else than admin", async function() {
 		var requestCore = await RequestCore.new();
-		await expectThrow(requestCore.adminResume({from:otherguy}));
-		assert.equal(await requestCore.systemState.call(),"0","Core must remain Paused");
+		await expectThrow(requestCore.pause({from:otherguy}));
+		assert.equal(await requestCore.paused.call(),false,"Core must remain not Paused");
 	});
-	it("Core cannot be paused by someone else than admin", async function() {
+	it("Core cannot be unpause by someone else than admin", async function() {
 		var requestCore = await RequestCore.new();
-		var r = await requestCore.adminResume({from:admin});
-		await expectThrow(requestCore.adminPause({from:otherguy}));
-		assert.equal(await requestCore.systemState.call(),"1","Core must remain Resumed");
-	});
-	it("Core cannot be Deprecate by someone else than admin", async function() {
-		var requestCore = await RequestCore.new();
-		await expectThrow(requestCore.adminDeprecate({from:otherguy}));
-		assert.equal(await requestCore.systemState.call(),"0","Core must remain Paused");
+		var r = await requestCore.pause({from:admin});
+		await expectThrow(requestCore.unpause({from:otherguy}));
+		assert.equal(await requestCore.paused.call(),true,"Core must remain Paused");
 	});
 
 	// adminAddTrustedSubContract adminRemoveTrustedSubContract
 	it("adminAddTrustedSubContract add a new contract as trusted", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminResume({from:admin});
 
 		var r = await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 		assert.equal(r.logs[0].event,"NewTrustedContract","Event NewTrustedContract is missing after adminAddTrustedSubContract()");
@@ -79,7 +68,7 @@ contract('RequestCore Administrative part', function(accounts) {
 	it("adminRemoveTrustedSubContract remove trusted contract", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
 		var r = await requestCore.adminRemoveTrustedSubContract(requestEthereum.address, {from:admin});
@@ -92,7 +81,6 @@ contract('RequestCore Administrative part', function(accounts) {
 	it("adminAddTrustedExtension add a new extension as trusted", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminResume({from:admin});
 
 		var r = await requestCore.adminAddTrustedExtension(requestEthereum.address, {from:admin});
 		assert.equal(r.logs[0].event,"NewTrustedExtension","Event NewTrustedExtension is missing after adminAddTrustedExtension()");
@@ -102,7 +90,7 @@ contract('RequestCore Administrative part', function(accounts) {
 	it("adminRemoveTrustedSubContract remove trusted contract", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedExtension(requestEthereum.address, {from:admin});
 
 		var r = await requestCore.adminRemoveExtension(requestEthereum.address, {from:admin});
@@ -117,88 +105,28 @@ contract('RequestCore Administrative part', function(accounts) {
 	it("adminAddTrustedSubContract can be done only by admin", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminResume({from:admin});
+
 		await expectThrow(requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:otherguy}));
 	});
 	it("adminAddTrustedExtension can be done only by admin", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminResume({from:admin});
+
 		await expectThrow(requestCore.adminAddTrustedExtension(requestEthereum.address, {from:otherguy}));
 	});
 	it("adminRemoveTrustedSubContract can be done only by admin", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 		await expectThrow(requestCore.adminRemoveTrustedSubContract(requestEthereum.address, {from:otherguy}));
 	});
 	it("adminRemoveExtension can be done only by admin", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminResume({from:admin});
+
 		await requestCore.adminAddTrustedExtension(requestEthereum.address, {from:admin});
 		await expectThrow(requestCore.adminRemoveExtension(requestEthereum.address, {from:otherguy}));
-	});
-
-
-	// cannot adminAddTrustedSubContract adminAddTrustedExtension adminRemoveTrustedSubContract adminRemoveExtension if core paused
-	it("adminAddTrustedSubContract cannot be done if core paused", async function() {
-		var requestCore = await RequestCore.new();
-		var requestEthereum = await RequestEthereum.new();
-		await expectThrow(requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin}));
-	});
-	it("adminAddTrustedExtension cannot be done if core paused", async function() {
-		var requestCore = await RequestCore.new();
-		var requestEthereum = await RequestEthereum.new();
-		await expectThrow(requestCore.adminAddTrustedExtension(requestEthereum.address, {from:admin}));
-	});
-	it("adminRemoveTrustedSubContract cannot be done if core paused", async function() {
-		var requestCore = await RequestCore.new();
-		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminResume({from:admin});
-		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
-		await requestCore.adminPause({from:admin});
-		await expectThrow(requestCore.adminRemoveTrustedSubContract(requestEthereum.address, {from:admin}));
-	});
-	it("adminRemoveExtension cannot be done if core paused", async function() {
-		var requestCore = await RequestCore.new();
-		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminResume({from:admin});
-		await requestCore.adminAddTrustedExtension(requestEthereum.address, {from:admin});
-		await requestCore.adminPause({from:admin});
-		await expectThrow(requestCore.adminRemoveExtension(requestEthereum.address, {from:admin}));
-	});
-
-
-	// cannot adminAddTrustedSubContract adminAddTrustedExtension adminRemoveTrustedSubContract adminRemoveExtension if core deprecated
-	it("adminAddTrustedSubContract cannot be done if core deprecated", async function() {
-		var requestCore = await RequestCore.new();
-		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminDeprecate({from:admin});
-		await expectThrow(requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin}));
-	});
-	it("adminAddTrustedExtension cannot be done if core deprecated", async function() {
-		var requestCore = await RequestCore.new();
-		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminDeprecate({from:admin});
-		await expectThrow(requestCore.adminAddTrustedExtension(requestEthereum.address, {from:admin}));
-	});
-	it("adminRemoveTrustedSubContract cannot be done if core deprecated", async function() {
-		var requestCore = await RequestCore.new();
-		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminResume({from:admin});
-		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
-		await requestCore.adminDeprecate({from:admin});
-		await expectThrow(requestCore.adminRemoveTrustedSubContract(requestEthereum.address, {from:admin}));
-	});
-	it("adminRemoveExtension cannot be done if core deprecated", async function() {
-		var requestCore = await RequestCore.new();
-		var requestEthereum = await RequestEthereum.new();
-		await requestCore.adminResume({from:admin});
-		await requestCore.adminAddTrustedExtension(requestEthereum.address, {from:admin});
-		await requestCore.adminDeprecate({from:admin});
-		await expectThrow(requestCore.adminRemoveExtension(requestEthereum.address, {from:admin}));
 	});
 
 });
