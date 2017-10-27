@@ -1,4 +1,7 @@
-
+var config = require("../../config.js");
+if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
+	return;
+}
 var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 // contract for test

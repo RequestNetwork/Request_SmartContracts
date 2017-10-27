@@ -2,9 +2,12 @@ pragma solidity ^0.4.11;
 
 import '../../core/RequestCore.sol';
 import './RequestSynchroneInterface.sol';
+import '../../base/math/SafeMath.sol';
 
 // many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs
 contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
+    using SafeMath for uint;
+    
 	enum EscrowState { Created, Refunded, Released }
 
 	// mapping of requestId => escrow
@@ -32,7 +35,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 	function createRequest(uint _requestId, bytes32[9] _params, uint8 _index)
 		isSubContractTrusted(msg.sender)
-    condition(_params[0]!=0)
+    	condition(_params[0]!=0)
 		returns(bool)
 	{
 		escrows[_requestId] = RequestEscrow(msg.sender, address(_params[_index*2+0]), EscrowState.Created, 0,0); // create RequestEscrow
@@ -44,9 +47,10 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		inNOTEscrowState(_requestId, EscrowState.Refunded)
 		returns(bool)
 	{
-    require(_amount+escrows[_requestId].amountPaid >= escrows[_requestId].amountPaid && _amount+escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded <= requestCore.getAmountExpectedAfterSubAdd(_requestId)); // value must be greater than 0 and all the payments should not overpass the amountExpected
+		require(_amount.add(escrows[_requestId].amountPaid).sub(escrows[_requestId].amountRefunded) <= requestCore.getAmountExpectedAfterSubAdd(_requestId)); // value must be greater than 0 and all the payments should not overpass the amountExpected
 
-		escrows[_requestId].amountPaid += _amount;
+		escrows[_requestId].amountPaid = escrows[_requestId].amountPaid.add(_amount);
+
 		EscrowPayment(_requestId, _amount);
 
 		return isEscrowReleasedPayment(_requestId);
@@ -57,12 +61,13 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		isSubContractRight(_requestId)
 		returns(bool)
     {
-        return escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded == 0;
+        return escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded) == 0;
     } 
  
 		// Escrow Function
 	// escrow can release the payment to the seller
 	function releaseToPayee(uint _requestId)
+		public
 		onlyRequestEscrow(_requestId)
 		inEscrowState(_requestId, EscrowState.Created)
 		onlyRequestState(_requestId, RequestCore.State.Accepted)
@@ -71,7 +76,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		escrows[_requestId].state = EscrowState.Released;
    		EscrowReleaseRequest(_requestId);
 
-    	uint amountToPaid = escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded;
+    	uint amountToPaid = escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded);
 
 		if(amountToPaid > 0) {
 			RequestSynchroneInterface subContract = RequestSynchroneInterface(escrows[_requestId].subContract);
@@ -81,6 +86,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 	// escrow can refund the payment to the âyer
 	function refundToPayer(uint _requestId)
+		public
 		onlyRequestEscrow(_requestId)
 		inEscrowState(_requestId, EscrowState.Created)
 		onlyRequestState(_requestId, RequestCore.State.Accepted)
@@ -89,7 +95,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		escrows[_requestId].state = EscrowState.Refunded;
     	EscrowRefundRequest(_requestId);
     
-		uint amountToRefund = escrows[_requestId].amountPaid-escrows[_requestId].amountRefunded;
+		uint amountToRefund = escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded);
 		escrows[_requestId].amountRefunded = escrows[_requestId].amountPaid;
 
 		RequestSynchroneInterface subContract = RequestSynchroneInterface(escrows[_requestId].subContract);

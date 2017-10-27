@@ -1,3 +1,7 @@
+var config = require("../../config.js");
+if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
+	return;
+}
 
 var ethUtil = require("ethereumjs-util");
 

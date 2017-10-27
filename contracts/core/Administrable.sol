@@ -1,12 +1,8 @@
 pragma solidity ^0.4.11;
 
+import '../base/lifecycle/Pausable.sol';
 
-contract Administrable {
-    // State of the system
-    enum SystemState { Paused, Active, Deprecated }
-
-    // Contract admin / for now only the creator 
-    address public admin;
+contract Administrable is Pausable {
 
     // mapping of address of trusted contract
     mapping(address => uint8) public trustedSubContracts;
@@ -14,55 +10,18 @@ contract Administrable {
     // mapping of address of trusted extensions
     mapping(address => uint8) public trustedExtensions;
 
-    // State of the system
-    SystemState public systemState;
 
     // Events of the system
-    event Paused();
-    event Resumed();
-    event Deprecated();
     event NewTrustedContract(address newContract);
     event RemoveTrustedContract(address oldContract);
     event NewTrustedExtension(address newExtension);
     event RemoveTrustedExtension(address oldExtension);
 
-    function Administrable() {
-        admin = msg.sender;
-        systemState = SystemState.Paused;
-    }
-    // sub
-    // Admin function ----------------------
-    // pause system by admin
-    function adminPause()
-        onlyAdmin
-    {
-        require(systemState==SystemState.Active); // state must be created only
-        systemState = SystemState.Paused;
-        Paused();
-    }
 
-    // resume system by admin
-    function adminResume()
-        onlyAdmin
-    {
-        require(systemState==SystemState.Paused || systemState==SystemState.Deprecated); // state must be created only
-        systemState = SystemState.Active;
-        Resumed();
-    }
-
-    // resume system by admin
-    function adminDeprecate()
-        onlyAdmin
-    {
-        require(systemState==SystemState.Paused || systemState==SystemState.Active); // state must be created only
-        systemState = SystemState.Deprecated;
-        Deprecated();
-    }
-    
     // add new trusted contract
     function adminAddTrustedSubContract(address _newContractAddress)
-        systemIsActive
-        onlyAdmin
+        public
+        onlyOwner
     {
         trustedSubContracts[_newContractAddress] = 1;
         NewTrustedContract(_newContractAddress);
@@ -70,8 +29,8 @@ contract Administrable {
 
     // remove trusted contract
     function adminRemoveTrustedSubContract(address _oldTrustedContractAddress)
-        systemIsActive
-        onlyAdmin
+        public
+        onlyOwner
     {
         require(trustedSubContracts[_oldTrustedContractAddress] != 0);
         trustedSubContracts[_oldTrustedContractAddress] = 0;
@@ -81,8 +40,8 @@ contract Administrable {
 
     // remove trusted extensions
     function adminAddTrustedExtension(address _newExtension)
-        systemIsActive
-        onlyAdmin
+        public
+        onlyOwner
     {
         trustedExtensions[_newExtension] = 1;
         NewTrustedExtension(_newExtension);
@@ -90,8 +49,8 @@ contract Administrable {
 
     // remove trusted contract
     function adminRemoveExtension(address _oldExtension)
-        systemIsActive
-        onlyAdmin
+        public
+        onlyOwner
     {
         require(trustedExtensions[_oldExtension] != 0);
         trustedExtensions[_oldExtension] = 0;
@@ -101,14 +60,14 @@ contract Administrable {
 
     // getter system
     function getStatusContract (address _contractAddress)
-        systemIsActive
+        public
         returns(uint8) 
     {
         return trustedSubContracts[_contractAddress];
     }
 
     function getStatusExtension(address _extension) 
-        systemIsActive
+        public
         returns(uint8) 
     {
         return trustedExtensions[_extension];
@@ -117,11 +76,6 @@ contract Administrable {
     // Modifier system
     modifier isTrustedContract(address _contractAddress) {
         require(trustedSubContracts[_contractAddress] == 1);
-        _;
-    }
-
-    modifier systemIsActive() {
-        require(systemState==SystemState.Active);
         _;
     }
 
@@ -141,12 +95,4 @@ contract Administrable {
         }
         _;
     }
-
-    modifier onlyAdmin() {
-        require(admin==msg.sender);
-        _;
-    }
-
 }
-
-

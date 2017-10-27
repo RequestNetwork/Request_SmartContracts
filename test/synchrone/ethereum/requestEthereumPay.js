@@ -1,3 +1,7 @@
+var config = require("../../config.js");
+if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
+	return;
+}
 
 var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
@@ -112,7 +116,6 @@ contract('RequestEthereum Pay', function(accounts) {
 		requestCore = await RequestCore.new({from:admin});
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
-		await requestCore.adminResume({from:admin});
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
 		await requestCore.adminAddTrustedExtension(fakeExtentionContinue1.address, {from:admin});
@@ -142,14 +145,14 @@ contract('RequestEthereum Pay', function(accounts) {
 	// ### Pay test unit #############################################################################
 	// ##################################################################################################
 	it("impossible to pay if Core Paused", async function () {
-		await requestCore.adminPause({from:admin});
+		await requestCore.pause({from:admin});
 		await expectThrow(requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer}));
 	});
 
-	it("impossible to pay if Core Deprecated", async function () {
-		await requestCore.adminDeprecate({from:admin});
-		await expectThrow(requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer}));
-	});
+	// it("impossible to pay if Core Deprecated", async function () {
+	// 	await requestCore.adminDeprecate({from:admin});
+	// 	await expectThrow(requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer}));
+	// });
 
 	it("pay request not exist impossible", async function () {
 		await expectThrow(requestEthereum.pay(666,0, {value:arbitraryAmount, from:payer}));

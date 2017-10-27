@@ -2,9 +2,11 @@ pragma solidity ^0.4.11;
 
 import '../core/RequestCore.sol';
 import './extensions/RequestSynchroneInterface.sol';
+import '../base/math/SafeMath.sol';
 
 
 contract RequestEthereum {
+    using SafeMath for uint;
 
     // RequestCore object
     RequestCore public requestCore;
@@ -24,6 +26,7 @@ contract RequestEthereum {
     }
 
     function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams)
+        public
         condition(msg.sender==_payee || msg.sender==_payer)
         returns(uint)
     {
@@ -48,12 +51,13 @@ contract RequestEthereum {
     }
 
    function createQuickRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams, uint tips, uint8 v, bytes32 r, bytes32 s)
+        public
         payable
         returns(uint)
     {
         require(msg.sender==_payer);
         require(msg.value >= tips); // tips declare must be lower than amount sent
-        require(_amountExpected+tips >= msg.value); // You cannot pay more than amount needed
+        require(_amountExpected.add(tips) >= msg.value); // You cannot pay more than amount needed
     
         bytes32 hash = getRequestHash(_payee,_payer,_amountExpected,_extensions,_extensionParams);
 
@@ -94,6 +98,7 @@ contract RequestEthereum {
     // ---- INTERFACE FUNCTIONS ------------------------------------------------------------------------------------
     // the payer can accept an Request 
     function accept(uint _requestId) 
+        public
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
         returns(bool)
     {
@@ -102,6 +107,7 @@ contract RequestEthereum {
 
     // the payer can decline an Request
     function decline(uint _requestId)
+        public
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
         returns(bool)
     {
@@ -123,6 +129,7 @@ contract RequestEthereum {
     }
 
     function payment(uint _requestId, uint _amount)
+        public
         onlyRequestExtensions(_requestId)
         returns(bool)
     {
@@ -130,6 +137,7 @@ contract RequestEthereum {
     }
 
     function fundOrder(uint _requestId, address _recipient, uint _amount)
+        public
         onlyRequestExtensions(_requestId)
         returns(bool)
     {
@@ -138,6 +146,7 @@ contract RequestEthereum {
 
 
     function cancel(uint _requestId)
+        public
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && (requestCore.getState(_requestId)==RequestCore.State.Created || requestCore.getState(_requestId)==RequestCore.State.Accepted)))
         returns(bool)
     {
@@ -166,10 +175,11 @@ contract RequestEthereum {
     // ---- CONTRACT FUNCTIONS ------------------------------------------------------------------------------------
     // Someone pay the Request with ether
     function pay(uint _requestId, uint tips)
+        public
         payable
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
         condition(msg.value >= tips) // tips declare must be lower than amount sent
-        condition(requestCore.getAmountExpectedAfterSubAdd(_requestId)+tips >= msg.value) // You can pay more than amount needed
+        condition(requestCore.getAmountExpectedAfterSubAdd(_requestId).add(tips) >= msg.value) // You can pay more than amount needed
     {
         if(tips > 0) {
             addAdditionalInternal(_requestId, tips);
@@ -178,6 +188,7 @@ contract RequestEthereum {
     }
 
     function payback(uint _requestId)
+        public
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
         onlyRequestPayee(_requestId)
         condition(msg.value <= requestCore.getAmountPaid(_requestId))
@@ -189,15 +200,17 @@ contract RequestEthereum {
 
     // declare a discount from 
     function discount(uint _requestId, uint _amount)
+        public
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
         onlyRequestPayee(_requestId)
-        condition(_amount+requestCore.getAmountPaid(_requestId) <= requestCore.getAmountExpectedAfterSubAdd(_requestId))
+        condition(_amount.add(requestCore.getAmountPaid(_requestId)) <= requestCore.getAmountExpectedAfterSubAdd(_requestId))
     {
         addSubtractInternal(_requestId, _amount);
     }
 
     // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
     function withdraw()
+        public
     {
         uint amount = ethToWithdraw[msg.sender];
         require(amount>0);
@@ -208,7 +221,8 @@ contract RequestEthereum {
 
 
     // ---- INTERNAL FUNCTIONS ------------------------------------------------------------------------------------
-    function  paymentInternal(uint _requestId, uint _amount) internal
+    function  paymentInternal(uint _requestId, uint _amount) 
+        internal
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
@@ -230,7 +244,8 @@ contract RequestEthereum {
         return isOK;
     }
 
-    function  addSubtractInternal(uint _requestId, uint _amount) internal
+    function  addSubtractInternal(uint _requestId, uint _amount) 
+        internal
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
@@ -250,7 +265,8 @@ contract RequestEthereum {
         return isOK;
     }
 
-    function  addAdditionalInternal(uint _requestId, uint _amount) internal
+    function  addAdditionalInternal(uint _requestId, uint _amount) 
+        internal
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
@@ -270,7 +286,8 @@ contract RequestEthereum {
         return isOK;
     }
 
-    function refundInternal(uint _requestId, uint _amount) internal
+    function refundInternal(uint _requestId, uint _amount) 
+        internal
         onlyRequestState(_requestId, RequestCore.State.Accepted)
         returns(bool)
     {
@@ -292,7 +309,8 @@ contract RequestEthereum {
         }
     }
 
-    function fundOrderInternal(uint _requestId, address _recipient, uint _amount) internal
+    function fundOrderInternal(uint _requestId, address _recipient, uint _amount) 
+        internal
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
@@ -313,7 +331,8 @@ contract RequestEthereum {
         return isOK;
     }
 
-    function acceptInternal(uint _requestId) internal
+    function acceptInternal(uint _requestId) 
+        internal
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
@@ -368,34 +387,10 @@ contract RequestEthereum {
         );
     }
 
-    //modifier
-    modifier condition(bool c) {
-        require(c);
-        _;
-    }
-    
-    modifier onlyRequestPayer(uint _requestId) {
-        require(requestCore.getPayer(_requestId)==msg.sender);
-        _;
-    }
-    
-    modifier onlyRequestPayee(uint _requestId) {
-        require(requestCore.getPayee(_requestId)==msg.sender);
-        _;
-    }
-
-    modifier onlyRequestPayeeOrPayer(uint _requestId) {
-        require(requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender);
-        _;
-    }
-
-    modifier onlyRequestState(uint _requestId, RequestCore.State state) {
-        require(requestCore.getState(_requestId)==state);
-        _;
-    }
-
-
-    function isOnlyRequestExtensions(uint _requestId) internal returns(bool){
+    function isOnlyRequestExtensions(uint _requestId) 
+        internal 
+        returns(bool)
+    {
         address[3] memory extensions = requestCore.getExtensions(_requestId);
         bool found = false;
         for (uint i = 0; !found && i < extensions.length && extensions[i]!=0; i++) 
@@ -405,7 +400,39 @@ contract RequestEthereum {
         return found;
     }
 
-    modifier onlyRequestExtensions(uint _requestId) {
+    //modifier
+    modifier condition(bool c) 
+    {
+        require(c);
+        _;
+    }
+    
+    modifier onlyRequestPayer(uint _requestId) 
+    {
+        require(requestCore.getPayer(_requestId)==msg.sender);
+        _;
+    }
+    
+    modifier onlyRequestPayee(uint _requestId) 
+    {
+        require(requestCore.getPayee(_requestId)==msg.sender);
+        _;
+    }
+
+    modifier onlyRequestPayeeOrPayer(uint _requestId) 
+    {
+        require(requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender);
+        _;
+    }
+
+    modifier onlyRequestState(uint _requestId, RequestCore.State state) 
+    {
+        require(requestCore.getState(_requestId)==state);
+        _;
+    }
+
+    modifier onlyRequestExtensions(uint _requestId) 
+    {
         require(isOnlyRequestExtensions(_requestId));
         _;
     }
