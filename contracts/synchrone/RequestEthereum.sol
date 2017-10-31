@@ -36,17 +36,18 @@ contract RequestEthereum {
         if(_extensions[0]!=0) {
             extension = RequestSynchroneInterface(_extensions[0]);
             extension.createRequest(requestId, _extensionParams, 0);
+
+            if(_extensions[1]!=0) {
+                extension = RequestSynchroneInterface(_extensions[1]);
+                extension.createRequest(requestId, _extensionParams, 1);
+
+                if(_extensions[2]!=0) {
+                    extension = RequestSynchroneInterface(_extensions[2]);
+                    extension.createRequest(requestId, _extensionParams, 2);
+                }
+            }
         }
 
-        if(_extensions[1]!=0) {
-            extension = RequestSynchroneInterface(_extensions[1]);
-            extension.createRequest(requestId, _extensionParams, 1);
-        }
-
-        if(_extensions[2]!=0) {
-            extension = RequestSynchroneInterface(_extensions[2]);
-            extension.createRequest(requestId, _extensionParams, 2);
-        }
         return requestId;
     }
 
@@ -70,16 +71,16 @@ contract RequestEthereum {
         if(_extensions[0]!=0) {
             extension = RequestSynchroneInterface(_extensions[0]);
             extension.createRequest(requestId, _extensionParams, 0);
-        }
 
-        if(_extensions[1]!=0) {
-            extension = RequestSynchroneInterface(_extensions[1]);
-            extension.createRequest(requestId, _extensionParams, 1);
-        }
-
-        if(_extensions[2]!=0) {
-            extension = RequestSynchroneInterface(_extensions[2]);
-            extension.createRequest(requestId, _extensionParams, 2);
+            if(_extensions[1]!=0) {
+                extension = RequestSynchroneInterface(_extensions[1]);
+                extension.createRequest(requestId, _extensionParams, 1);
+                
+                if(_extensions[2]!=0) {
+                    extension = RequestSynchroneInterface(_extensions[2]);
+                    extension.createRequest(requestId, _extensionParams, 2);
+                }
+            }
         }
 
         // accept must succeed
