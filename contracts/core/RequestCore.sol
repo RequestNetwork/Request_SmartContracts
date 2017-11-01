@@ -1,19 +1,19 @@
 pragma solidity 0.4.15;
 
-/*
-
-The Core is the main contract which store all the Requests. 
-The Core philosophy is to be as much flexible as possible to adapt in the future to any new system
-All the important conditions and an important part of the business logic takes place in the subcontracts.
-Requests can only be created in the subcontracts
-Subcontracts have to be allowed by the Core and respect the business logic.
-Request Network will develop one subcontracts per currency and anyone can creates its own subcontracts.
-
-*/
-
 import './Administrable.sol';
 import '../base/math/SafeMath.sol';
 
+/**
+ * @title RequestCore
+ *
+ * @dev The Core is the main contract which store all the Requests.
+ *
+ * @dev The Core philosophy is to be as much flexible as possible to adapt in the future to any new system
+ * @dev All the important conditions and an important part of the business logic takes place in the subcontracts.
+ * @dev Requests can only be created in the subcontracts
+ * @dev Subcontracts have to be allowed by the Core and respect the business logic.
+ * @dev Request Network will develop one subcontracts per currency and anyone can creates its own subcontracts.
+ */
 contract RequestCore is Administrable {
     using SafeMath for uint;
 
@@ -23,7 +23,7 @@ contract RequestCore is Administrable {
         address creator;
         address payee;
         address payer;
-        uint amountExpected;
+        uint amountInitial;
         address subContract;
         uint amountPaid;
         uint amountAdditional;
@@ -50,7 +50,6 @@ contract RequestCore is Administrable {
     event AddAdditional(uint requestId, uint amountAdded);
     event AddSubtract(uint requestId, uint amountSubtracted);
 
-
     /*
      *  Constructor 
      */
@@ -60,32 +59,33 @@ contract RequestCore is Administrable {
     }
 
     /*
-     *  Public functions
-     */
-    /// @dev Fonction used by Subcontracts to create a request in the Core
-    /// @param _creator Request creator
-    /// @param _payee Entity which will receive the payment
-    /// @param _payer Entity supposed to pay
-    /// @param _amountExpected Initial amount expected to be received. This amount can't be changed.
-    /// @param _extensions Up to 3 extensions can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
-    /// @return Returns the id of the request    
-    function createRequest(address _creator, address _payee, address _payer, uint _amountExpected, address[3] _extensions) 
+     * @dev Fonction used by Subcontracts to create a request in the Core
+     * @param _creator Request creator
+     * @param _payee Entity which will receive the payment
+     * @param _payer Entity supposed to pay
+     * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
+     * @param _extensions Up to 3 extensions can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
+     * @return Returns the id of the request 
+     */   
+    function createRequest(address _creator, address _payee, address _payer, uint _amountInitial, address[3] _extensions) 
         public
         whenNotPaused 
         isTrustedContract(msg.sender)
         areTrustedExtensions(_extensions)
-        checkActorsAmount(_creator, _payee, _payer, _amountExpected)
         returns (uint) 
     {
-
+        require(isParametersValidForFutureRequest(_creator, _payee, _payer, _amountInitial));
         numRequests = numRequests.add(1); 
-        requests[numRequests] = Request(_creator, _payee, _payer, _amountExpected, msg.sender, 0, 0, 0, State.Created, _extensions); 
+        requests[numRequests] = Request(_creator, _payee, _payer, _amountInitial, msg.sender, 0, 0, 0, State.Created, _extensions); 
 
         Created(numRequests, _payee, _payer);
         return numRequests;
     }
 
-    /// @dev Fonction used by Subcontracts to accept a request in the Core. A request accepted is recognized by the payer as legit
+    /*
+     * @dev Fonction used by Subcontracts to accept a request in the Core. A request accepted is recognized by the payer as legit
+     * @param _requestId Request id
+     */ 
     function accept(uint _requestId) 
         public
         whenNotPaused
@@ -95,8 +95,11 @@ contract RequestCore is Administrable {
         r.state = State.Accepted;
         Accepted(_requestId);
     }
-   
-   /// @dev Fonction used by Subcontracts to decline a request in the Core. A request declined is recognized by the payer as not legit and might be spam
+
+    /*
+     * @dev Fonction used by Subcontracts to decline a request in the Core. A request declined is recognized by the payer as not legit and might be spam
+     * @param _requestId Request id
+     */ 
     function decline(uint _requestId)
         public
         whenNotPaused
@@ -107,7 +110,10 @@ contract RequestCore is Administrable {
         Declined(_requestId);
     }
 
-    /// @dev Fonction used by Subcontracts to cancel a request in the Core. Several reasons can lead to cancel a reason, see request life cycle for more info.
+    /*
+     * @dev Fonction used by Subcontracts to cancel a request in the Core. Several reasons can lead to cancel a reason, see request life cycle for more info.
+     * @param _requestId Request id
+     */ 
     function cancel(uint _requestId)
         public
         whenNotPaused
@@ -119,8 +125,11 @@ contract RequestCore is Administrable {
         Canceled(_requestId);
     }   
 
-
-    /// @dev Fonction used by Subcontracts to declare a payment in the Core. The subcontract guarantee that the request was paid for a specific amount
+    /*
+     * @dev Fonction used by Subcontracts to declare a payment in the Core. The subcontract guarantee that the request was paid for a specific amount
+     * @param _requestId Request id
+     * @param _amount amount paid
+     */ 
     function payment(uint _requestId, uint _amount)
         public
         whenNotPaused
@@ -133,7 +142,11 @@ contract RequestCore is Administrable {
         Payment(_requestId, _amount);
     }
 
-    /// @dev Fonction used by Subcontracts to declare a refund in the Core. A refund is initiated by the payee to the payer and decrease the amount paid in the request
+    /*
+     * @dev Fonction used by Subcontracts to declare a refund in the Core. A refund is initiated by the payee to the payer and decrease the amount paid in the request
+     * @param _requestId Request id
+     * @param _amount amount refunded
+     */ 
     function refund(uint _requestId, uint _amount)
         public
         whenNotPaused
@@ -146,7 +159,11 @@ contract RequestCore is Administrable {
         Refunded(_requestId, _amount);
     }
 
-    /// @dev Fonction used by Subcontracts to add an additional amount to pay to the request. The amount expected can not be changed but a tips, a  penalty or several reason can lead to a request being paid an additional
+    /*
+     * @dev Fonction used by Subcontracts to add an additional amount to pay to the request. The amount initial can not be changed but a tips, a  penalty or several reason can lead to a request being paid an additional
+     * @param _requestId Request id
+     * @param _amount additional amount
+     */ 
     function addAdditional(uint _requestId, uint _amount)
         public
         whenNotPaused
@@ -156,12 +173,16 @@ contract RequestCore is Administrable {
 
         r.amountAdditional = r.amountAdditional.add(_amount);
 
-        require(r.amountAdditional+r.amountExpected >= r.amountExpected); // avoid overflow - TODO USELESS ?
+        require(r.amountAdditional+r.amountInitial >= r.amountInitial); // avoid overflow
 
         AddAdditional(_requestId, _amount);
     }
 
-    /// @dev Fonction used by Subcontracts to add a Substract amount to the request. A substract lead to a lower payment needed for the request. It can happens for several reasons including credit note, discount, reimbursement.
+    /*
+     * @dev Fonction used by Subcontracts to add a Substract amount to the request. A substract lead to a lower payment needed for the request. It can happens for several reasons including credit note, discount, reimbursement.
+     * @param _requestId Request id
+     * @param _amount subtract amount
+     */ 
     function addSubtract(uint _requestId, uint _amount)
         public
         whenNotPaused
@@ -171,98 +192,154 @@ contract RequestCore is Administrable {
 
         r.amountSubtract = r.amountSubtract.add(_amount);
 
-        require(r.amountExpected-r.amountSubtract <= r.amountExpected); // avoid overflow - TODO USELESS ?
+        require(r.amountInitial-r.amountSubtract <= r.amountInitial); // avoid underflow
 
         AddSubtract(_requestId, _amount);
     }
 
+
+
     /*
-     *  Getters & Setters
-     */
+     * @dev Get payee of a request
+     * @param _requestId Request id
+     * @return payee address
+     */ 
     function getPayee(uint _requestId)
         public
-        whenNotPaused
+        constant
         returns(address)
     {
         return requests[_requestId].payee;
     }
-    
+
+    /*
+     * @dev Get payer of a request
+     * @param _requestId Request id
+     * @return payer address
+     */ 
     function getPayer(uint _requestId)
         public
-        whenNotPaused
+        constant
         returns(address)
     {
         return requests[_requestId].payer;
     }
-    
-    function getAmountExpected(uint _requestId)
+
+    /*
+     * @dev Get amount initial of a request
+     * @param _requestId Request id
+     * @return amount initial
+     */     
+    function getAmountInitial(uint _requestId)
         public
-        whenNotPaused
+        constant
         returns(uint)
     {
-        return requests[_requestId].amountExpected;
+        return requests[_requestId].amountInitial;
     }
 
-    function getAmountExpectedAfterSubAdd(uint _requestId)
+    /*
+     * @dev Get amount initial of a request plus additional and minus subtract
+     * @param _requestId Request id
+     * @return amount initial plus additional and minus subtract
+     */ 
+    function getAmountInitialAfterSubAdd(uint _requestId)
         public
-        whenNotPaused
+        constant
         returns(uint)
     {
-        return requests[_requestId].amountExpected.add(requests[_requestId].amountAdditional).sub(requests[_requestId].amountSubtract);
+        return requests[_requestId].amountInitial.add(requests[_requestId].amountAdditional).sub(requests[_requestId].amountSubtract);
     }
-    
 
+    /*
+     * @dev Get subContract of a request
+     * @param _requestId Request id
+     * @return subContract address
+     */
     function getSubContract(uint _requestId)
         public
-        whenNotPaused
+        constant
         returns(address)
     {
         return requests[_requestId].subContract;
     }
-    
+
+    /*
+     * @dev Get amount paid of a request
+     * @param _requestId Request id
+     * @return amount paid
+     */     
     function getAmountPaid(uint _requestId)
         public
-        whenNotPaused
+        constant
         returns(uint)
     {
         return requests[_requestId].amountPaid;
     }
-      
+
+    /*
+     * @dev Get amount additional of a request
+     * @param _requestId Request id
+     * @return amount additional
+     */ 
     function getAmountAdditional(uint _requestId)
         public
-        whenNotPaused
+        constant
         returns(uint)
     {
         return requests[_requestId].amountAdditional;
     }
 
+    /*
+     * @dev Get amount subtract of a request
+     * @param _requestId Request id
+     * @return amount subtract
+     */ 
     function getAmountSubtract(uint _requestId)
         public
-        whenNotPaused
+        constant
         returns(uint)
     {
         return requests[_requestId].amountSubtract;
     }
 
+    /*
+     * @dev Get state of a request
+     * @param _requestId Request id
+     * @return state
+     */ 
     function getState(uint _requestId)
         public
-        whenNotPaused
+        constant
         returns(State)
     {
         return requests[_requestId].state;
     }
-   
+
+    /*
+     * @dev Get extensions of a request
+     * @param _requestId Request id
+     * @return array of address
+     */
     function getExtensions(uint _requestId)
         public
-        whenNotPaused
+        constant
         returns(address[3])
     {
         return requests[_requestId].extensions;
     } 
 
-
-    modifier checkActorsAmount(address _creator, address _payee, address _payer, uint _amountExpected) {
-        require(_creator!=0 && _payee!=0 && _payer!=0 && _payee!=_payer && _amountExpected!=0);
-        _;
+    /*
+     * @dev Check parameters before creating a request
+     * @param _creator Request
+     * @param _payee future payee
+     * @param _payer future payer
+     * @param _amountInitial future amount initial
+     */
+    function isParametersValidForFutureRequest(address _creator, address _payee, address _payer, uint _amountInitial) 
+        internal
+        returns(bool)
+    {
+        return _creator!=0 && _payee!=0 && _payer!=0 && _payee!=_payer && _amountInitial!=0;
     }
 }
