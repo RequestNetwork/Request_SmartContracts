@@ -60,7 +60,7 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Fonction used by Subcontracts to create a request in the Core
+     * @dev Function used by Subcontracts to create a request in the Core
      * @param _creator Request creator
      * @param _payee Entity which will receive the payment
      * @param _payer Entity supposed to pay
@@ -84,7 +84,7 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Fonction used by Subcontracts to accept a request in the Core. A request accepted is recognized by the payer as legit
+     * @dev Function used by Subcontracts to accept a request in the Core. A request accepted is recognized by the payer as legit
      * @param _requestId Request id
      */ 
     function accept(uint _requestId) 
@@ -98,7 +98,7 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Fonction used by Subcontracts to decline a request in the Core. A request declined is recognized by the payer as not legit and might be spam
+     * @dev Function used by Subcontracts to decline a request in the Core. A request declined is recognized by the payer as not legit and might be spam
      * @param _requestId Request id
      */ 
     function decline(uint _requestId)
@@ -112,7 +112,7 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Fonction used by Subcontracts to cancel a request in the Core. Several reasons can lead to cancel a reason, see request life cycle for more info.
+     * @dev Function used by Subcontracts to cancel a request in the Core. Several reasons can lead to cancel a reason, see request life cycle for more info.
      * @param _requestId Request id
      */ 
     function cancel(uint _requestId)
@@ -127,7 +127,7 @@ contract RequestCore is Administrable {
     }   
 
     /*
-     * @dev Fonction used by Subcontracts to declare a payment in the Core. The subcontract guarantee that the request was paid for a specific amount
+     * @dev Function used by Subcontracts to declare a payment in the Core. The subcontract guarantee that the request was paid for a specific amount
      * @param _requestId Request id
      * @param _amount amount paid
      */ 
@@ -144,7 +144,7 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Fonction used by Subcontracts to declare a refund in the Core. A refund is initiated by the payee to the payer and decrease the amount paid in the request
+     * @dev Function used by Subcontracts to declare a refund in the Core. A refund is initiated by the payee to the payer and decrease the amount paid in the request
      * @param _requestId Request id
      * @param _amount amount refunded
      */ 
@@ -161,7 +161,7 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Fonction used by Subcontracts to add an additional amount to pay to the request. The amount initial can not be changed but a tips, a  penalty or several reason can lead to a request being paid an additional
+     * @dev Function used by Subcontracts to add an additional amount to pay to the request. The amount initial can not be changed but a tips, a  penalty or several reason can lead to a request being paid an additional
      * @param _requestId Request id
      * @param _amount additional amount
      */ 
@@ -180,7 +180,7 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Fonction used by Subcontracts to add a Substract amount to the request. A substract lead to a lower payment needed for the request. It can happens for several reasons including credit note, discount, reimbursement.
+     * @dev Function used by Subcontracts to add a Substract amount to the request. A substract lead to a lower payment needed for the request. It can happens for several reasons including credit note, discount, reimbursement.
      * @param _requestId Request id
      * @param _amount subtract amount
      */ 

@@ -35,7 +35,7 @@ contract RequestEthereum {
     }
 
     /*
-     * @dev Fonction to create a request 
+     * @dev Function to create a request 
      *
      * @dev msg.sender must be _payee or _payer
      *
@@ -48,7 +48,7 @@ contract RequestEthereum {
      * @return Returns the id of the request 
      */
     function createRequest(address _payee, address _payer, uint _amountInitial, address[3] _extensions, bytes32[9] _extensionParams)
-        public
+        external
         condition(msg.sender==_payee || msg.sender==_payer)
         returns(uint)
     {
@@ -74,7 +74,7 @@ contract RequestEthereum {
     }
 
     /*
-     * @dev Fonction to broadcast and accept an offchain signed request (can be paid and tips also)
+     * @dev Function to broadcast and accept an offchain signed request (can be paid and tips also)
      *
      * @dev msg.sender must be _payer
      * @dev the _payer can tips 
@@ -92,7 +92,7 @@ contract RequestEthereum {
      * @return Returns the id of the request 
      */
    function createQuickRequest(address _payee, address _payer, uint _amountInitial, address[3] _extensions, bytes32[9] _extensionParams, uint _tips, uint8 v, bytes32 r, bytes32 s)
-        public
+        external
         payable
         returns(uint)
     {
@@ -137,18 +137,35 @@ contract RequestEthereum {
     }
 
     // ---- INTERFACE FUNCTIONS ------------------------------------------------------------------------------------
-    // the payer can accept an Request 
+
+    /*
+     * @dev Function to accept a request
+     *
+     * @dev msg.sender must be _payer or an extension used by the request
+     *
+     * @param _requestId id of the request 
+     *
+     * @return true if the request is accepted, false otherwise
+     */
     function accept(uint _requestId) 
-        public
+        external
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
         returns(bool)
     {
         return acceptInternal(_requestId);
     }
 
-    // the payer can decline an Request
+    /*
+     * @dev Function to decline a request
+     *
+     * @dev msg.sender must be _payer or an extension used by the request
+     *
+     * @param _requestId id of the request 
+     *
+     * @return true if the request is declined, false otherwise
+     */
     function decline(uint _requestId)
-        public
+        external
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
         returns(bool)
     {
@@ -169,25 +186,55 @@ contract RequestEthereum {
         return isOK;
     }
 
+    /*
+     * @dev Function to declare a payment a request
+     *
+     * @dev msg.sender must be an extension used by the request
+     *
+     * @param _requestId id of the request 
+     * @param _amount amount of the payment to declare
+     *
+     * @return true if the payment is declared, false otherwise
+     */
     function payment(uint _requestId, uint _amount)
-        public
+        external
         onlyRequestExtensions(_requestId)
         returns(bool)
     {
         return paymentInternal(_requestId, _amount);
     }
 
+    /*
+     * @dev Function to order a fund mouvment 
+     *
+     * @dev msg.sender must be an extension used by the request
+     *
+     * @param _requestId id of the request 
+     * @param _recipient adress where the wei has to me send to
+     * @param _amount amount in wei to send
+     *
+     * @return true if the fund mouvement is done, false otherwise
+     */
     function fundOrder(uint _requestId, address _recipient, uint _amount)
-        public
+        external
         onlyRequestExtensions(_requestId)
         returns(bool)
     {
         return fundOrderInternal(_requestId, _recipient, _amount);
     }
 
-
+    /*
+     * @dev Function to cancel a request
+     *
+     * @dev msg.sender must be _payee or an extension used by the request
+     * @dev only request with amountPaid equals to zero can be cancel
+     *
+     * @param _requestId id of the request 
+     *
+     * @return true if the request is canceled, false otherwise
+     */
     function cancel(uint _requestId)
-        public
+        external
         condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && (requestCore.getState(_requestId)==RequestCore.State.Created || requestCore.getState(_requestId)==RequestCore.State.Accepted)))
         returns(bool)
     {
@@ -214,22 +261,39 @@ contract RequestEthereum {
 
 
     // ---- CONTRACT FUNCTIONS ------------------------------------------------------------------------------------
-    // Someone pay the Request with ether
-    function pay(uint _requestId, uint tips)
-        public
+    /*
+     * @dev Function PAYABLE to pay in ether a request
+     *
+     * @dev the request must be accepted
+     * @dev tips must be lower than the actual amount of wei sent
+     *
+     * @param _requestId id of the request
+     * @param _tips amount of tips in wei to declare 
+     */
+    function pay(uint _requestId, uint _tips)
+        external
         payable
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
-        condition(msg.value >= tips) // tips declare must be lower than amount sent
-        condition(requestCore.getAmountInitialAfterSubAdd(_requestId).add(tips) >= msg.value) // You can pay more than amount needed
+        condition(msg.value >= _tips) // tips declare must be lower than amount sent
+        condition(requestCore.getAmountInitialAfterSubAdd(_requestId).add(_tips) >= msg.value) // You can pay more than amount needed
     {
-        if(tips > 0) {
-            addAdditionalInternal(_requestId, tips);
+        if(_tips > 0) {
+            addAdditionalInternal(_requestId, _tips);
         }
         paymentInternal(_requestId, msg.value);
     }
 
+    /*
+     * @dev Function PAYABLE to pay back in ether a request to the payee
+     *
+     * @dev msg.sender must be _payer
+     * @dev the request must be accepted
+     * @dev the payback must be lower than the amount already paid for the request
+     *
+     * @param _requestId id of the request
+     */
     function payback(uint _requestId)
-        public
+        external
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
         onlyRequestPayee(_requestId)
         condition(msg.value <= requestCore.getAmountPaid(_requestId))
@@ -239,7 +303,15 @@ contract RequestEthereum {
         refundInternal(_requestId, msg.value);
     }
 
-    // declare a discount from 
+    /*
+     * @dev Function to declare a discount
+     *
+     * @dev msg.sender must be _payee or an extension used by the request
+     * @dev the request must be accepted or created
+     *
+     * @param _requestId id of the request
+     * @param _tips amount of discount in wei to declare 
+     */
     function discount(uint _requestId, uint _amount)
         public
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
@@ -249,12 +321,14 @@ contract RequestEthereum {
         addSubtractInternal(_requestId, _amount);
     }
 
-    // The payer pay the Request with ether - available only if subContract is the system itself (no subcontract)
+
+    /*
+     * @dev Function to withdraw ether
+     */
     function withdraw()
         public
     {
         uint amount = ethToWithdraw[msg.sender];
-        require(amount>0);
         ethToWithdraw[msg.sender] = 0;
         msg.sender.transfer(amount);
     }
