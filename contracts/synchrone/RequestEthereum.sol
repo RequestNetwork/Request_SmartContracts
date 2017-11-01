@@ -336,7 +336,15 @@ contract RequestEthereum {
 
 
     // ---- INTERNAL FUNCTIONS ------------------------------------------------------------------------------------
-    function  paymentInternal(uint _requestId, uint _amount) 
+    /*
+     * @dev Function internal to manage payment declaration
+     *
+     * @param _requestId id of the request
+     * @param _amount amount of payment in wei to declare 
+     *
+     * @return true if the payment is done, false otherwise
+     */
+    function paymentInternal(uint _requestId, uint _amount) 
         internal
         returns(bool)
     {
@@ -359,7 +367,15 @@ contract RequestEthereum {
         return isOK;
     }
 
-    function  addSubtractInternal(uint _requestId, uint _amount) 
+    /*
+     * @dev Function internal to manage discount declaration
+     *
+     * @param _requestId id of the request
+     * @param _amount amount of discount in wei to declare 
+     *
+     * @return true if the discount is declared, false otherwise
+     */
+    function addSubtractInternal(uint _requestId, uint _amount) 
         internal
         returns(bool)
     {
@@ -380,6 +396,14 @@ contract RequestEthereum {
         return isOK;
     }
 
+    /*
+     * @dev Function internal to manage tips declaration
+     *
+     * @param _requestId id of the request
+     * @param _amount amount of tips in wei to declare 
+     *
+     * @return true if the tips is declared, false otherwise
+     */
     function  addAdditionalInternal(uint _requestId, uint _amount) 
         internal
         returns(bool)
@@ -401,6 +425,14 @@ contract RequestEthereum {
         return isOK;
     }
 
+    /*
+     * @dev Function internal to manage refund declaration
+     *
+     * @param _requestId id of the request
+     * @param _amount amount of refund in wei to declare 
+     *
+     * @return true if the refund is done, false otherwise
+     */
     function refundInternal(uint _requestId, uint _amount) 
         internal
         onlyRequestState(_requestId, RequestCore.State.Accepted)
@@ -424,6 +456,15 @@ contract RequestEthereum {
         }
     }
 
+    /*
+     * @dev Function internal to manage fund mouvement
+     *
+     * @param _requestId id of the request 
+     * @param _recipient adress where the wei has to me send to
+     * @param _amount amount in wei to send
+     *
+     * @return true if the fund mouvement is done, false otherwise
+     */
     function fundOrderInternal(uint _requestId, address _recipient, uint _amount) 
         internal
         returns(bool)
@@ -446,6 +487,13 @@ contract RequestEthereum {
         return isOK;
     }
 
+    /*
+     * @dev Function internal to manage acceptance
+     *
+     * @param _requestId id of the request 
+     *
+     * @return true if the request is accept, false otherwise
+     */
     function acceptInternal(uint _requestId) 
         internal
         returns(bool)
@@ -466,24 +514,35 @@ contract RequestEthereum {
         }  
         return isOK;
     }
-    // ----------------------------------------------------------------------------------------
 
-    /// @dev Calculates Keccak-256 hash of a request with specified parameters.
+    /*
+     * @dev Function internal to calculate Keccak-256 hash of a request with specified parameters
+     *
+     * @param _payee Entity which will receive the payment
+     * @param _payer Entity supposed to pay
+     * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
+     * @param _extensions Up to 3 extensions can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
+     * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32, the 3 first element are for the first extension, the 3 next for the second extension and the last 3 for the third extension.
+     *
+     * @return Keccak-256 hash of a request
+     */
     function getRequestHash(address _payee, address _payer, uint _amountInitial, address[3] _extensions, bytes32[9] _extensionParams)
-        public
+        internal
         view
-        returns (bytes32)
+        returns(bytes32)
     {
         return keccak256(this,_payee,_payer,_amountInitial,_extensions,_extensionParams);
     }
 
-    /// @dev Verifies that a hash signature is valid. 0x style
-    /// @param signer address of signer.
-    /// @param hash Signed Keccak-256 hash.
-    /// @param v ECDSA signature parameter v.
-    /// @param r ECDSA signature parameters r.
-    /// @param s ECDSA signature parameters s.
-    /// @return Validity of order signature.
+    /*
+     * @dev Verifies that a hash signature is valid. 0x style
+     * @param signer address of signer.
+     * @param hash Signed Keccak-256 hash.
+     * @param v ECDSA signature parameter v.
+     * @param r ECDSA signature parameters r.
+     * @param s ECDSA signature parameters s.
+     * @return Validity of order signature.
+     */
     function isValidSignature(
         address signer,
         bytes32 hash,
@@ -502,6 +561,13 @@ contract RequestEthereum {
         );
     }
 
+    /*
+     * @dev Function internal to check if the msg.sender is an extension of the request
+     *
+     * @param _requestId id of the request 
+     *
+     * @return true if msg.sender is an extension of the request
+     */
     function isOnlyRequestExtensions(uint _requestId) 
         internal 
         view
@@ -522,36 +588,60 @@ contract RequestEthereum {
         require(c);
         _;
     }
-    
+
+    /*
+     * @dev Modifier to check if msg.sender is payer
+     * @dev Revert if msg.sender is not payer
+     * @param _requestId id of the request 
+     */    
     modifier onlyRequestPayer(uint _requestId) 
     {
         require(requestCore.getPayer(_requestId)==msg.sender);
         _;
     }
     
+    /*
+     * @dev Modifier to check if msg.sender is payee
+     * @dev Revert if msg.sender is not payee
+     * @param _requestId id of the request 
+     */    
     modifier onlyRequestPayee(uint _requestId) 
     {
         require(requestCore.getPayee(_requestId)==msg.sender);
         _;
     }
 
+    /*
+     * @dev Modifier to check if msg.sender is payee or payer
+     * @dev Revert if msg.sender is not payee or payer
+     * @param _requestId id of the request 
+     */
     modifier onlyRequestPayeeOrPayer(uint _requestId) 
     {
         require(requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender);
         _;
     }
 
-    modifier onlyRequestState(uint _requestId, RequestCore.State state) 
+    /*
+     * @dev Modifier to check if request is in a specify state
+     * @dev Revert if request not in a specify state
+     * @param _requestId id of the request 
+     * @param _state state to check
+     */
+    modifier onlyRequestState(uint _requestId, RequestCore.State _state) 
     {
-        require(requestCore.getState(_requestId)==state);
+        require(requestCore.getState(_requestId)==_state);
         _;
     }
 
+    /*
+     * @dev Modifier to check if the msg.sender is an extension of the request
+     * @dev Revert if msg.sender is not an extension of the request
+     * @param _requestId id of the request
+     */
     modifier onlyRequestExtensions(uint _requestId) 
     {
         require(isOnlyRequestExtensions(_requestId));
         _;
     }
-
-
 }
