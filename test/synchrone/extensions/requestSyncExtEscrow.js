@@ -18,12 +18,10 @@ var ethABI = require("../../../lib/ethereumjs-abi-perso.js");
 var ethUtil = require("ethereumjs-util");
 var BigNumber = require('bignumber.js');
 
-var SolidityCoder = require("web3/lib/solidity/coder.js");
-
 function addressToByte32str(str) {
 	return str.indexOf('0x') == 0 ?  str.replace('0x','0x000000000000000000000000') : '0x000000000000000000000000'+str;
 }
-
+var abiUtils = require("web3-eth-abi");
 var getEventFromReceipt = function(log, abi) {
 	var event = null;
 
@@ -40,7 +38,7 @@ var getEventFromReceipt = function(log, abi) {
 
 	if (event != null) {
 	  var inputs = event.inputs.map(function(input) {return input.type;});
-	  var data = SolidityCoder.decodeParams(inputs, log.data.replace("0x", ""));
+	  var data = abiUtils.decodeParameters(inputs, log.data.replace("0x", ""));
 	  // Do something with the data. Depends on the log and what you're using the data for.
 	  return {name:event.name , data:data};
 	}
@@ -79,7 +77,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	var requestSynchroneExtensionEscrow;
 	var testRequestSynchroneSubContractLauncher;
 
-	var arbitraryAmount = 100000000;
+	var arbitraryAmount = 1000;
 
     beforeEach(async () => {
 		requestCore = await RequestCore.new({from:admin});
@@ -456,7 +454,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after refundToPayer()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args constant_id");
-		assert.equal(l.data[2],payer,"Event LogTestFundOrder wrong args _recipient");
+		assert.equal(l.data[2].toLowerCase(),payer,"Event LogTestFundOrder wrong args _recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args _amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], testRequestSynchroneSubContractLauncher.abi);

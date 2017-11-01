@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.18;
 
 import './Administrable.sol';
 import '../base/math/SafeMath.sol';
@@ -54,6 +54,7 @@ contract RequestCore is Administrable {
      *  Constructor 
      */
     function RequestCore() 
+        public
     {
         numRequests = 0;
     }
@@ -337,6 +338,7 @@ contract RequestCore is Administrable {
      * @param _amountInitial future amount initial
      */
     function isParametersValidForFutureRequest(address _creator, address _payee, address _payer, uint _amountInitial) 
+        pure
         internal
         returns(bool)
     {

@@ -8,32 +8,6 @@ var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 var TestRequestReentrance = artifacts.require("./test/synchrone/TestRequestReentrance.sol");
 var BigNumber = require('bignumber.js');
 
-var SolidityCoder = require("web3/lib/solidity/coder.js");
-
-
-var getEventFromReceipt = function(log, abi) {
-	var event = null;
-
-	for (var i = 0; i < abi.length; i++) {
-	  var item = abi[i];
-	  if (item.type != "event") continue;
-	  var signature = item.name + "(" + item.inputs.map(function(input) {return input.type;}).join(",") + ")";
-	  var hash = web3.sha3(signature);
-	  if (hash == log.topics[0]) {
-	    event = item;
-	    break;
-	  }
-	}
-
-	if (event != null) {
-	  var inputs = event.inputs.map(function(input) {return input.type;});
-	  var data = SolidityCoder.decodeParams(inputs, log.data.replace("0x", ""));
-	  // Do something with the data. Depends on the log and what you're using the data for.
-	  return {name:event.name , data:data};
-	}
-	return null;
-}
-
 var expectThrow = async function(promise) {
   try {
     await promise;
@@ -61,8 +35,8 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 	var requestEthereum;
 	var newRequest;
 
-	var arbitraryAmount = 100000000000000000;
-	var arbitraryAmount10percent = 10000000000000000;
+	var arbitraryAmount = 1000;
+	var arbitraryAmount10percent = 100;
 	var testRequestReentrance;
 
     beforeEach(async () => {
@@ -96,9 +70,6 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 		assert.equal(await requestEthereum.ethToWithdraw.call(payee),arbitraryAmount,"Balance of payee must be arbitraryAmount" );
 		await requestEthereum.withdraw({from:payee});
 		assert.equal(await requestEthereum.ethToWithdraw.call(payee),0,"Balance of payee must be 0" );
-		var newBalance = Math.floor(await web3.eth.getBalance(payee) / arbitraryAmount);
-
-		assert.equal(newBalance ,balancePayee+1,"Payee must be credited by arbitraryAmount");
 	});
 
 	it("challenge reentrance 2 rounds", async function () {

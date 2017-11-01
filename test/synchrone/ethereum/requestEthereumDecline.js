@@ -12,9 +12,7 @@ var TestRequestSynchroneInterfaceInterception = artifacts.require("./test/synchr
 var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneExtensionLauncher.sol");
 var BigNumber = require('bignumber.js');
 
-var SolidityCoder = require("web3/lib/solidity/coder.js");
-
-
+var abiUtils = require("web3-eth-abi");
 var getEventFromReceipt = function(log, abi) {
 	var event = null;
 
@@ -31,7 +29,7 @@ var getEventFromReceipt = function(log, abi) {
 
 	if (event != null) {
 	  var inputs = event.inputs.map(function(input) {return input.type;});
-	  var data = SolidityCoder.decodeParams(inputs, log.data.replace("0x", ""));
+	  var data = abiUtils.decodeParameters(inputs, log.data.replace("0x", ""));
 	  // Do something with the data. Depends on the log and what you're using the data for.
 	  return {name:event.name , data:data};
 	}
@@ -78,7 +76,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	var requestEthereum;
 	var newRequest;
 
-	var arbitraryAmount = 100000000;
+	var arbitraryAmount = 1000;
 
     beforeEach(async () => {
     	fakeExtentionContinue1 = await TestRequestSynchroneInterfaceContinue.new(1);

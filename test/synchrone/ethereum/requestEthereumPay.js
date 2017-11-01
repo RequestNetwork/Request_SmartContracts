@@ -11,9 +11,7 @@ var TestRequestSynchroneInterfaceInterception = artifacts.require("./test/synchr
 var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneExtensionLauncher.sol");
 var BigNumber = require('bignumber.js');
 
-var SolidityCoder = require("web3/lib/solidity/coder.js");
-
-
+var abiUtils = require("web3-eth-abi");
 var getEventFromReceipt = function(log, abi) {
 	var event = null;
 
@@ -30,7 +28,7 @@ var getEventFromReceipt = function(log, abi) {
 
 	if (event != null) {
 	  var inputs = event.inputs.map(function(input) {return input.type;});
-	  var data = SolidityCoder.decodeParams(inputs, log.data.replace("0x", ""));
+	  var data = abiUtils.decodeParameters(inputs, log.data.replace("0x", ""));
 	  // Do something with the data. Depends on the log and what you're using the data for.
 	  return {name:event.name , data:data};
 	}
@@ -85,10 +83,10 @@ contract('RequestEthereum Pay', function(accounts) {
 	var requestEthereum;
 	var newRequest;
 
-	var arbitraryAmount = 1000000;
-	var arbitraryAmount2 = 3000;
-	var arbitraryAmount3 = 1000;
-	var arbitraryTips = 1000;
+	var arbitraryAmount = 1000;
+	var arbitraryAmount2 = 300;
+	var arbitraryAmount3 = 100;
+	var arbitraryTips = 100;
 
 
     beforeEach(async () => {
@@ -272,7 +270,7 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		var newReq = await requestCore.requests.call(2);
@@ -340,7 +338,7 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],22,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		var newReq = await requestCore.requests.call(2);
@@ -414,14 +412,14 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[4], fakeExtentionContinue2.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],2,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		var newReq = await requestCore.requests.call(2);
@@ -468,14 +466,14 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[4], fakeExtentionLauncherFundOrderFalse2.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],32,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		var newReq = await requestCore.requests.call(2);
@@ -590,7 +588,7 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],22,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		var newReq = await requestCore.requests.call(2);
@@ -636,7 +634,7 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],22,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		var newReq = await requestCore.requests.call(2);
@@ -988,21 +986,21 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[5], fakeExtentionContinue2.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],2,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[6], fakeExtentionContinue3.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],3,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		var newReq = await requestCore.requests.call(2);
@@ -1055,21 +1053,21 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[5], fakeExtentionContinue2.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],2,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[6], fakeExtentionLauncherFundOrderFalse3.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],42,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		var newReq = await requestCore.requests.call(2);
@@ -1123,14 +1121,14 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[5], fakeExtentionLauncherFundOrderFalse2.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],32,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		var newReq = await requestCore.requests.call(2);
@@ -1183,7 +1181,7 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],22,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		var newReq = await requestCore.requests.call(2);

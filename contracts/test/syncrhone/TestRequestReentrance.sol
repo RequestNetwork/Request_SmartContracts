@@ -1,10 +1,10 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.18;
 
 contract RequestEthereumWeak {
 
-    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams0) returns(uint);
+    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams0) public returns(uint);
 
-    function withdraw();
+    function withdraw() public;
 
 }
 
@@ -16,12 +16,12 @@ contract TestRequestReentrance {
 
     event Log(uint id);
 
-    function TestRequestReentrance(address _contract, uint8 _round) {
+    function TestRequestReentrance(address _contract, uint8 _round) public {
         contractAdd = _contract;
         round = _round;
     }
 
-    function init(address _payer) {
+    function init(address _payer) public {
         RequestEthereumWeak weakContract = RequestEthereumWeak(contractAdd);
         bytes32[9] memory empty;
         address[3] memory emptyAddress;
@@ -29,7 +29,7 @@ contract TestRequestReentrance {
         Log(id);
     }
 
-    function start() {
+    function start() public {
         round--;
         RequestEthereumWeak weakContract = RequestEthereumWeak(contractAdd);
         weakContract.withdraw();
@@ -37,6 +37,7 @@ contract TestRequestReentrance {
 
     // Launcher -------------------------------------------------
     function ()
+        public
         payable
     {   
         if(round != 0) {

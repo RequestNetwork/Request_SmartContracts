@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.18;
 
 import '../../core/RequestCore.sol';
 import './RequestSynchroneInterface.sol';
@@ -29,11 +29,13 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 	// contract constructor
 	function RequestSynchroneExtensionEscrow(address _requestCoreAddress) 
+		public
 	{
 		requestCore= RequestCore(_requestCoreAddress);
 	}
 
 	function createRequest(uint _requestId, bytes32[9] _params, uint8 _index)
+		public
 		isSubContractTrusted(msg.sender)
     	condition(_params[0]!=0)
 		returns(bool)
@@ -43,11 +45,12 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	}
 
 	function payment(uint _requestId, uint _amount)
+		public
 		isSubContractRight(_requestId)
 		inNOTEscrowState(_requestId, EscrowState.Refunded)
 		returns(bool)
 	{
-		require(_amount.add(escrows[_requestId].amountPaid).sub(escrows[_requestId].amountRefunded) <= requestCore.getAmountExpectedAfterSubAdd(_requestId)); // value must be greater than 0 and all the payments should not overpass the amountExpected
+		require(_amount.add(escrows[_requestId].amountPaid).sub(escrows[_requestId].amountRefunded) <= requestCore.getAmountInitialAfterSubAdd(_requestId)); // value must be greater than 0 and all the payments should not overpass the amountExpected
 
 		escrows[_requestId].amountPaid = escrows[_requestId].amountPaid.add(_amount);
 
@@ -58,6 +61,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
     // cancel request
     function cancel(uint _requestId) 
+		public
 		isSubContractRight(_requestId)
 		returns(bool)
     {
@@ -106,7 +110,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 
 	// internal function 
-	function isEscrowReleasedPayment(uint _requestId) internal returns(bool) 
+	function isEscrowReleasedPayment(uint _requestId) view internal returns(bool) 
 	{
 		return escrows[_requestId].state == EscrowState.Released;
 	}

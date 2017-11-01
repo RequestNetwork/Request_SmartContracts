@@ -16,12 +16,12 @@ var BigNumber = require('bignumber.js');
 
 var ethABI = require("../../../lib/ethereumjs-abi-perso.js");
 var ethUtil = require("ethereumjs-util");
-var SolidityCoder = require("web3/lib/solidity/coder.js");
 
 function addressToByte32str(str) {
 	return str.indexOf('0x') == 0 ?  str.replace('0x','0x000000000000000000000000') : '0x000000000000000000000000'+str;
 }
 
+var abiUtils = require("web3-eth-abi");
 var getEventFromReceipt = function(log, abi) {
 	var event = null;
 
@@ -38,13 +38,12 @@ var getEventFromReceipt = function(log, abi) {
 
 	if (event != null) {
 	  var inputs = event.inputs.map(function(input) {return input.type;});
-	  var data = SolidityCoder.decodeParams(inputs, log.data.replace("0x", ""));
+	  var data = abiUtils.decodeParameters(inputs, log.data.replace("0x", ""));
 	  // Do something with the data. Depends on the log and what you're using the data for.
 	  return {name:event.name , data:data};
 	}
 	return null;
 }
-
 var expectThrow = async function(promise) {
   try {
     await promise;
@@ -76,7 +75,7 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 	var newRequest;
 	var requestSynchroneExtensionEscrow;
 
-	var arbitraryAmount = 100000000;
+	var arbitraryAmount = 1000;
 
     beforeEach(async () => {
 		requestCore = await RequestCore.new({from:admin});

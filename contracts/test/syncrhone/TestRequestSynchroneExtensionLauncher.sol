@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.18;
 
 import '../../synchrone/extensions/RequestSynchroneInterface.sol';
 
@@ -18,7 +18,9 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
     bool addSubtractReturn;
 
 
-    function TestRequestSynchroneExtensionLauncher (uint _id, bool _createRequest,bool _accept,bool _decline,bool _cancel,bool _fundOrder,bool _payment,bool _refund,bool _addAdditional,bool _addSubtract) {
+    function TestRequestSynchroneExtensionLauncher (uint _id, bool _createRequest,bool _accept,bool _decline,bool _cancel,bool _fundOrder,bool _payment,bool _refund,bool _addAdditional,bool _addSubtract) 
+        public
+    {
         constant_id = _id;
 
         createRequestReturn = _createRequest;
@@ -34,41 +36,48 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
 
     // Launcher -------------------------------------------------
     function launchCancel(uint _requestId)
+        public
     {
         RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
         subContract.cancel(_requestId);
     } 
 
     function launchAccept(uint _requestId)
+        public
     {
         RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
         subContract.accept(_requestId);
     } 
 
     function launchDecline(uint _requestId)
+        public
     {
         RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
         subContract.decline(_requestId);
     } 
 
-   function launchPayment(uint _requestId, uint _amount)
+    function launchPayment(uint _requestId, uint _amount)
+        public
     {
         RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
         subContract.payment(_requestId,_amount);
     } 
 
     function launchRefund(uint _requestId, uint _amount)
+        public
     {
         RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
         subContract.refund(_requestId,_amount);
     } 
     function launchAddAdditional(uint _requestId, uint _amount)
+        public
     {
         RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
         subContract.addAdditional(_requestId,_amount);
     } 
 
     function launchAddSubtract(uint _requestId, uint _amount)
+        public
     {
         RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
         subContract.addSubtract(_requestId,_amount);
@@ -76,7 +85,7 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
     // --------------------------------------------------------
 
     event LogTestCreateRequest(uint requestId, uint id, bytes32[9] _params);
-    function createRequest(uint _requestId, bytes32[9] _params, uint8 _index) returns(bool) 
+    function createRequest(uint _requestId, bytes32[9] _params, uint8 _index) public returns(bool) 
     {
         contractLaunchedAddress[_requestId] = msg.sender;
         LogTestCreateRequest(_requestId, constant_id, _params);
@@ -84,56 +93,56 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
     }
 
     event LogTestAccept(uint requestId, uint id);
-    function accept(uint _requestId) returns(bool)
+    function accept(uint _requestId) public returns(bool)
     {
         LogTestAccept(_requestId, constant_id);
         return acceptReturn;
     } 
 
     event LogTestDecline(uint requestId, uint id);
-    function decline(uint _requestId) returns(bool)
+    function decline(uint _requestId) public returns(bool)
     {
         LogTestDecline(_requestId, constant_id);
         return declineReturn;
     } 
 
     event LogTestCancel(uint requestId, uint id);
-    function cancel(uint _requestId) returns(bool)
+    function cancel(uint _requestId) public returns(bool)
     {
         LogTestCancel(_requestId, constant_id);
         return cancelReturn;
     } 
  
     event LogTestFundOrder(uint requestId, uint id, address _recipient, uint _amount);
-    function fundOrder(uint _requestId, address _recipient, uint _amount) returns(bool)
+    function fundOrder(uint _requestId, address _recipient, uint _amount) public returns(bool)
     {
         LogTestFundOrder(_requestId, constant_id, _recipient, _amount);
         return fundOrderReturn;
     } 
 
     event LogTestPayment(uint requestId, uint id, uint _amount);
-    function payment(uint _requestId, uint _amount) returns(bool)
+    function payment(uint _requestId, uint _amount) public returns(bool)
     {
         LogTestPayment(_requestId, constant_id, _amount);
         return paymentReturn;
     } 
 
     event LogTestRefund(uint requestId, uint id, uint _amount);
-    function refund(uint _requestId, uint _amount) returns(bool)
+    function refund(uint _requestId, uint _amount) public returns(bool)
     {
         LogTestRefund(_requestId, constant_id, _amount);
         return refundReturn;
     } 
 
     event LogTestAddAdditional(uint requestId, uint id, uint _amount);
-    function addAdditional(uint _requestId, uint _amount) returns(bool)
+    function addAdditional(uint _requestId, uint _amount) public returns(bool)
     {
         LogTestAddAdditional(_requestId, constant_id, _amount);
         return addAdditionalReturn;
     } 
 
     event LogTestAddSubtract(uint requestId, uint id, uint _amount);
-    function addSubtract(uint _requestId, uint _amount) returns(bool)
+    function addSubtract(uint _requestId, uint _amount) public returns(bool)
     {
         LogTestAddSubtract(_requestId, constant_id, _amount);
         return addSubtractReturn;

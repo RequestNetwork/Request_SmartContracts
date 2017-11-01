@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.18;
 
 import '../base/lifecycle/Pausable.sol';
 
@@ -81,6 +81,7 @@ contract Administrable is Pausable {
 	 * @return The status of the subContract. If trusted 1, otherwise 0
 	 */
 	function getStatusContract(address _contractAddress)
+		view
 		external
 		returns(uint8) 
 	{
@@ -94,6 +95,7 @@ contract Administrable is Pausable {
 	 * @return The status of the extension. If trusted 1, otherwise 0
 	 */
 	function getStatusExtension(address _extension) 
+		view
 		external
 		returns(uint8) 
 	{

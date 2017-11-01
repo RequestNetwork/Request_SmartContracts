@@ -1,10 +1,17 @@
-pragma solidity ^0.4.11;
+pragma solidity 0.4.18;
 
 import '../core/RequestCore.sol';
 import './extensions/RequestSynchroneInterface.sol';
 import '../base/math/SafeMath.sol';
 
-
+/**
+ * @title RequestEthereum
+ *
+ * @dev RequestEthereum is the sub contract managing the request payed in Ethereum
+ *
+ * @dev Requests can be created by the Payee with createRequest() or by the payer from a request signed offchain by the payee with createQuickRequest
+ * @dev Requests can have 3 extensions. They have to implement RequestSynchroneInterface and declared trusted on the Core
+ */
 contract RequestEthereum {
     using SafeMath for uint;
 
@@ -18,19 +25,34 @@ contract RequestEthereum {
     }
     mapping(address => uint) public ethToWithdraw;
 
-
-    // contract constructor
-    function RequestEthereum(address _requestCoreAddress) 
+    /*
+     * @dev Constructor
+     * @param _requestCoreAddress Request Core address
+     */  
+    function RequestEthereum(address _requestCoreAddress) public
     {
         requestCore=RequestCore(_requestCoreAddress);
     }
 
-    function createRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams)
+    /*
+     * @dev Fonction to create a request 
+     *
+     * @dev msg.sender must be _payee or _payer
+     *
+     * @param _payee Entity which will receive the payment
+     * @param _payer Entity supposed to pay
+     * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
+     * @param _extensions Up to 3 extensions can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
+     * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32, the 3 first element are for the first extension, the 3 next for the second extension and the last 3 for the third extension.
+     *
+     * @return Returns the id of the request 
+     */
+    function createRequest(address _payee, address _payer, uint _amountInitial, address[3] _extensions, bytes32[9] _extensionParams)
         public
         condition(msg.sender==_payee || msg.sender==_payer)
         returns(uint)
     {
-        uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
+        uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountInitial, _extensions);
 
         RequestSynchroneInterface extension;
         if(_extensions[0]!=0) {
@@ -51,21 +73,39 @@ contract RequestEthereum {
         return requestId;
     }
 
-   function createQuickRequest(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams, uint tips, uint8 v, bytes32 r, bytes32 s)
+    /*
+     * @dev Fonction to broadcast and accept an offchain signed request (can be paid and tips also)
+     *
+     * @dev msg.sender must be _payer
+     * @dev the _payer can tips 
+     *
+     * @param _payee Entity which will receive the payment
+     * @param _payer Entity supposed to pay
+     * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
+     * @param _extensions Up to 3 extensions can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
+     * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32, the 3 first element are for the first extension, the 3 next for the second extension and the last 3 for the third extension.
+     * @param _tips amount of tips the payer want to declare
+     * @param v ECDSA signature parameter v.
+     * @param r ECDSA signature parameters r.
+     * @param s ECDSA signature parameters s.
+     *
+     * @return Returns the id of the request 
+     */
+   function createQuickRequest(address _payee, address _payer, uint _amountInitial, address[3] _extensions, bytes32[9] _extensionParams, uint _tips, uint8 v, bytes32 r, bytes32 s)
         public
         payable
         returns(uint)
     {
         require(msg.sender==_payer);
-        require(msg.value >= tips); // tips declare must be lower than amount sent
-        require(_amountExpected.add(tips) >= msg.value); // You cannot pay more than amount needed
+        require(msg.value >= _tips); // tips declare must be lower than amount sent
+        require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
     
-        bytes32 hash = getRequestHash(_payee,_payer,_amountExpected,_extensions,_extensionParams);
+        bytes32 hash = getRequestHash(_payee,_payer,_amountInitial,_extensions,_extensionParams);
 
         // check the signature
         require(isValidSignature(_payee, hash, v, r, s));
 
-        uint requestId=requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extensions);
+        uint requestId=requestCore.createRequest(msg.sender, _payee, _payer, _amountInitial, _extensions);
 
         RequestSynchroneInterface extension;
         if(_extensions[0]!=0) {
@@ -86,8 +126,8 @@ contract RequestEthereum {
         // accept must succeed
         require(acceptInternal(requestId));
 
-        if(tips > 0) {
-            addAdditionalInternal(requestId, tips);
+        if(_tips > 0) {
+            addAdditionalInternal(requestId, _tips);
         }
         if(msg.value > 0) {
             paymentInternal(requestId, msg.value);
@@ -180,7 +220,7 @@ contract RequestEthereum {
         payable
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
         condition(msg.value >= tips) // tips declare must be lower than amount sent
-        condition(requestCore.getAmountExpectedAfterSubAdd(_requestId).add(tips) >= msg.value) // You can pay more than amount needed
+        condition(requestCore.getAmountInitialAfterSubAdd(_requestId).add(tips) >= msg.value) // You can pay more than amount needed
     {
         if(tips > 0) {
             addAdditionalInternal(_requestId, tips);
@@ -204,7 +244,7 @@ contract RequestEthereum {
         public
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
         onlyRequestPayee(_requestId)
-        condition(_amount.add(requestCore.getAmountPaid(_requestId)) <= requestCore.getAmountExpectedAfterSubAdd(_requestId))
+        condition(_amount.add(requestCore.getAmountPaid(_requestId)) <= requestCore.getAmountInitialAfterSubAdd(_requestId))
     {
         addSubtractInternal(_requestId, _amount);
     }
@@ -355,12 +395,12 @@ contract RequestEthereum {
     // ----------------------------------------------------------------------------------------
 
     /// @dev Calculates Keccak-256 hash of a request with specified parameters.
-    function getRequestHash(address _payee, address _payer, uint _amountExpected, address[3] _extensions, bytes32[9] _extensionParams)
+    function getRequestHash(address _payee, address _payer, uint _amountInitial, address[3] _extensions, bytes32[9] _extensionParams)
         public
-        constant
+        view
         returns (bytes32)
     {
-        return keccak256(this,_payee,_payer,_amountExpected,_extensions,_extensionParams);
+        return keccak256(this,_payee,_payer,_amountInitial,_extensions,_extensionParams);
     }
 
     /// @dev Verifies that a hash signature is valid. 0x style
@@ -377,7 +417,7 @@ contract RequestEthereum {
         bytes32 r,
         bytes32 s)
         public
-        constant
+        pure
         returns (bool)
     {
         return signer == ecrecover(
@@ -390,6 +430,7 @@ contract RequestEthereum {
 
     function isOnlyRequestExtensions(uint _requestId) 
         internal 
+        view
         returns(bool)
     {
         address[3] memory extensions = requestCore.getExtensions(_requestId);

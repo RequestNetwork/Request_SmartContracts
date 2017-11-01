@@ -21,10 +21,8 @@ var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/
 
 var BigNumber = require('bignumber.js');
 
-var SolidityCoder = require("web3/lib/solidity/coder.js");
-
+var abiUtils = require("web3-eth-abi");
 var getEventFromReceipt = function(log, abi) {
-
 	var event = null;
 
 	for (var i = 0; i < abi.length; i++) {
@@ -40,7 +38,7 @@ var getEventFromReceipt = function(log, abi) {
 
 	if (event != null) {
 	  var inputs = event.inputs.map(function(input) {return input.type;});
-	  var data = SolidityCoder.decodeParams(inputs, log.data.replace("0x", ""));
+	  var data = abiUtils.decodeParameters(inputs, log.data.replace("0x", ""));
 	  // Do something with the data. Depends on the log and what you're using the data for.
 	  return {name:event.name , data:data};
 	}
@@ -93,9 +91,10 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 	var fakeContract = accounts[2];
 	var payer = accounts[3];
 	var payee = accounts[4];
-	var privateKeyOtherGuy = "1ba414a85acdd19339dacd7febb40893458433bee01201b7ae8ca3d6f4e90994";
-	var privateKeyPayer = "b383a09e0c750bcbfe094b9e17ee31c6a9bb4f2fcdc821d97a34cf3e5b7f5429";
-	var privateKeyPayee = "5f1859eee362d44b90d4f3cdd14a8775f682e08d34ff7cdca7e903d7ee956b6a";
+	var privateKeyOtherGuy = "258b7f85027d7b20f74ecfbfca556aad8eff933365fe5b7473355040c09db418";
+	var privateKeyPayer = "6ccfcaa51011057276ef4f574a3186c1411d256e4d7731bdf8743f34e608d1d1";
+	var privateKeyPayee = "60090a13d72f682c03db585bf6c3a296600b5d50598a9ceef3291534dede6bea";
+
 	// var creator = accounts[5];
 	var fakeExtention1;
 	var fakeExtention2;
@@ -106,8 +105,8 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 	var requestCore;
 	var requestEthereum;
 
-	var arbitraryAmount = 100000000;
-	var arbitraryAmount10percent = 10000000;
+	var arbitraryAmount = 1000;
+	var arbitraryAmount10percent = 100;
 
     beforeEach(async () => {
     	fakeExtention1 = await TestRequestSynchroneInterfaceContinue.new(1);
@@ -146,8 +145,8 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
 		assert.equal(l.data[0],1,"Event Created wrong args requestId");
-		assert.equal(l.data[1],payee,"Event Created wrong args payee");
-		assert.equal(l.data[2],payer,"Event Created wrong args payer");
+		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
+		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after createQuickRequest()");
@@ -262,8 +261,8 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
 		assert.equal(l.data[0],1,"Event Created wrong args requestId");
-		assert.equal(l.data[1],payee,"Event Created wrong args payee");
-		assert.equal(l.data[2],payer,"Event Created wrong args payer");
+		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
+		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after createQuickRequest()");
@@ -428,8 +427,8 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
 		assert.equal(l.data[0],1,"Event Created wrong args requestId");
-		assert.equal(l.data[1],payee,"Event Created wrong args payee");
-		assert.equal(l.data[2],payer,"Event Created wrong args payer");
+		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
+		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after createQuickRequest()");
@@ -475,8 +474,8 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
 		assert.equal(l.data[0],1,"Event Created wrong args requestId");
-		assert.equal(l.data[1],payee,"Event Created wrong args payee");
-		assert.equal(l.data[2],payer,"Event Created wrong args payer");
+		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
+		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after createQuickRequest()");
@@ -587,8 +586,8 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
 		assert.equal(l.data[0],1,"Event Created wrong args requestId");
-		assert.equal(l.data[1],payee,"Event Created wrong args payee");
-		assert.equal(l.data[2],payer,"Event Created wrong args payer");
+		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
+		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], fakeExtention1.abi);
 		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequest()");
@@ -661,21 +660,21 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],1,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[13], fakeExtention2.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],1,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],2,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[14], fakeExtention3.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
 		assert.equal(l.data[0],1,"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],3,"Event LogTestFundOrder wrong args ID");
-		assert.equal(l.data[2],payee,"Event LogTestFundOrder wrong args recipient");
+		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
 		var newReq = await requestCore.requests.call(1);
