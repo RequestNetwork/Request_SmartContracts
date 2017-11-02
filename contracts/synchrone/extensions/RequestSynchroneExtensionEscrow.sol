@@ -31,7 +31,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	function RequestSynchroneExtensionEscrow(address _requestCoreAddress) 
 		public
 	{
-		requestCore= RequestCore(_requestCoreAddress);
+		requestCore = RequestCore(_requestCoreAddress);
 	}
 
 	function createRequest(uint _requestId, bytes32[9] _params, uint8 _index)
@@ -72,7 +72,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	// escrow can release the payment to the seller
 	function releaseToPayee(uint _requestId)
 		public
-		onlyRequestEscrow(_requestId)
+		onlyRequestEscrowOrPayer(_requestId)
 		inEscrowState(_requestId, EscrowState.Created)
 		onlyRequestState(_requestId, RequestCore.State.Accepted)
 	{
@@ -91,7 +91,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	// escrow can refund the payment to the âyer
 	function refundToPayer(uint _requestId)
 		public
-		onlyRequestEscrow(_requestId)
+		onlyRequestEscrowOrPayee(_requestId)
 		inEscrowState(_requestId, EscrowState.Created)
 		onlyRequestState(_requestId, RequestCore.State.Accepted)
 	{
@@ -124,6 +124,16 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 	modifier onlyRequestEscrow(uint _requestId) {
 		require(escrows[_requestId].escrow==msg.sender);
+		_;
+	}
+
+	modifier onlyRequestEscrowOrPayer(uint _requestId) {
+		require(escrows[_requestId].escrow==msg.sender || requestCore.getPayer(_requestId)==msg.sender);
+		_;
+	}
+
+	modifier onlyRequestEscrowOrPayee(uint _requestId) {
+		require(escrows[_requestId].escrow==msg.sender || requestCore.getPayee(_requestId)==msg.sender);
 		_;
 	}
 
