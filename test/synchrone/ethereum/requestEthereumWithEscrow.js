@@ -86,7 +86,7 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedExtension(requestSynchroneExtensionEscrow.address, {from:admin});
 
-		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [requestSynchroneExtensionEscrow.address], [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:payee});
+		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:payee});
     });
 
 	// ##################################################################################################

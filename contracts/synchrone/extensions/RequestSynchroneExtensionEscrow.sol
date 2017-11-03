@@ -34,13 +34,13 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		requestCore = RequestCore(_requestCoreAddress);
 	}
 
-	function createRequest(uint _requestId, bytes32[9] _params, uint8 _index)
+	function createRequest(uint _requestId, bytes32[9] _params)
 		public
 		isSubContractTrusted(msg.sender)
     	condition(_params[0]!=0)
 		returns(bool)
 	{
-		escrows[_requestId] = RequestEscrow(msg.sender, address(_params[_index*2+0]), EscrowState.Created, 0,0); // create RequestEscrow
+		escrows[_requestId] = RequestEscrow(msg.sender, address(_params[0]), EscrowState.Created, 0,0); // create RequestEscrow
 		return true;
 	}
 
@@ -78,9 +78,9 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	{
 		// release the money
 		escrows[_requestId].state = EscrowState.Released;
-   		EscrowReleaseRequest(_requestId);
+		EscrowReleaseRequest(_requestId);
 
-    	uint amountToPaid = escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded);
+		uint amountToPaid = escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded);
 
 		if(amountToPaid > 0) {
 			RequestSynchroneInterface subContract = RequestSynchroneInterface(escrows[_requestId].subContract);

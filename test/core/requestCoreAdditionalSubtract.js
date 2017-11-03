@@ -50,7 +50,7 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedSubContract(fakeContract2, {from:admin});
 
-		var newRequest = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, [], {from:fakeContract});
+		var newRequest = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, {from:fakeContract});
     })
 
 	// ##################################################################################################
@@ -484,7 +484,7 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 	});
 
 	it("new subtract _amount+request.amountSubtract >= 2^256 (overflow) impossible", async function () {
-		newRequest = await requestCore.createRequest(creator, payee, payer, new BigNumber(2).pow(256).minus(1), [], {from:fakeContract});
+		newRequest = await requestCore.createRequest(creator, payee, payer, new BigNumber(2).pow(256).minus(1), 0, {from:fakeContract});
 		await requestCore.addSubtract(2, new BigNumber(2).pow(255), {from:fakeContract});
 		await expectThrow(requestCore.addSubtract(2, new BigNumber(2).pow(255), {from:fakeContract}));
 

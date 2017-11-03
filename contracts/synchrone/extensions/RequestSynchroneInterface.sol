@@ -2,7 +2,7 @@ pragma solidity 0.4.18;
 
 contract RequestSynchroneInterface {
     
-    function createRequest(uint _requestId, bytes32[9] _params, uint8 _index) public returns(bool);
+    function createRequest(uint _requestId, bytes32[9] _params) public returns(bool);
 
     // accept request
     function accept(uint _requestId) public returns(bool)

@@ -29,7 +29,7 @@ contract RequestCore is Administrable {
         uint amountAdditional;
         uint amountSubtract;
         State state;
-        address[3] extensions;
+        address extension;
     }
 
     // index of the Request in the mapping
@@ -65,19 +65,19 @@ contract RequestCore is Administrable {
      * @param _payee Entity which will receive the payment
      * @param _payer Entity supposed to pay
      * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
-     * @param _extensions Up to 3 extensions can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
+     * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
      * @return Returns the id of the request 
      */   
-    function createRequest(address _creator, address _payee, address _payer, uint _amountInitial, address[3] _extensions) 
+    function createRequest(address _creator, address _payee, address _payer, uint _amountInitial, address _extension) 
         public
         whenNotPaused 
         isTrustedContract(msg.sender)
-        areTrustedExtensions(_extensions)
+        isTrustedExtension(_extension)
         returns (uint) 
     {
         require(isParametersValidForFutureRequest(_creator, _payee, _payer, _amountInitial));
         numRequests = numRequests.add(1); 
-        requests[numRequests] = Request(_creator, _payee, _payer, _amountInitial, msg.sender, 0, 0, 0, State.Created, _extensions); 
+        requests[numRequests] = Request(_creator, _payee, _payer, _amountInitial, msg.sender, 0, 0, 0, State.Created, _extension); 
 
         Created(numRequests, _payee, _payer);
         return numRequests;
@@ -318,16 +318,16 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Get extensions of a request
+     * @dev Get extension of a request
      * @param _requestId Request id
-     * @return array of address
+     * @return address
      */
-    function getExtensions(uint _requestId)
+    function getExtension(uint _requestId)
         public
         constant
-        returns(address[3])
+        returns(address)
     {
-        return requests[_requestId].extensions;
+        return requests[_requestId].extension;
     } 
 
     /*
