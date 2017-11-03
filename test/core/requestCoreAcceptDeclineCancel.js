@@ -45,7 +45,7 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedSubContract(fakeContract2, {from:admin});
 
-		var newRequest = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, [], {from:fakeContract});
+		var newRequest = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, {from:fakeContract});
     })
 
 
@@ -130,9 +130,12 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		assert.equal(r[8],1,"new request wrong data : state");
 	});
 
-	it("impossible to accept if Core Paused", async function () {
+	it("accept if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		await expectThrow(requestCore.accept(1, {from:fakeContract}));
+		var r = await requestCore.accept(1, {from:fakeContract});
+
+		assert.equal(r.logs[0].event,"Accepted","Event Accepted is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Accepted wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -143,7 +146,7 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		assert.equal(r[5],0,"new request wrong data : amountPaid");
 		assert.equal(r[6],0,"new request wrong data : amountAdditional");
 		assert.equal(r[7],0,"new request wrong data : amountSubtract");
-		assert.equal(r[8],0,"new request wrong data : state");
+		assert.equal(r[8],1,"new request wrong data : state");
 	});
 
 	it("accept request not exist impossible", async function () {
@@ -277,9 +280,12 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 
-	it("impossible to decline if Core Paused", async function () {
+	it("decline if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		await expectThrow(requestCore.decline(1, {from:fakeContract}));
+		var r = await requestCore.decline(1, {from:fakeContract});
+
+		assert.equal(r.logs[0].event,"Declined","Event Declined is missing after decline()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Declined wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -290,7 +296,7 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		assert.equal(r[5],0,"new request wrong data : amountPaid");
 		assert.equal(r[6],0,"new request wrong data : amountAdditional");
 		assert.equal(r[7],0,"new request wrong data : amountSubtract");
-		assert.equal(r[8],0,"new request wrong data : state");
+		assert.equal(r[8],2,"new request wrong data : state");
 	});
 
 	it("decline request not exist impossible", async function () {
@@ -423,9 +429,12 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		assert.equal(r[8],3,"new request wrong data : state");
 	});
 
-	it("impossible to cancel if Core Paused", async function () {
+	it("cancel if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		await expectThrow(requestCore.cancel(1, {from:fakeContract}));
+		var r = await requestCore.cancel(1, {from:fakeContract});
+
+		assert.equal(r.logs[0].event,"Canceled","Event Canceled is missing after cancel()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Canceled wrong args requestId");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -436,7 +445,7 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 		assert.equal(r[5],0,"new request wrong data : amountPaid");
 		assert.equal(r[6],0,"new request wrong data : amountAdditional");
 		assert.equal(r[7],0,"new request wrong data : amountSubtract");
-		assert.equal(r[8],0,"new request wrong data : state");
+		assert.equal(r[8],3,"new request wrong data : state");
 	});
 
 	it("cancel request not exist impossible", async function () {

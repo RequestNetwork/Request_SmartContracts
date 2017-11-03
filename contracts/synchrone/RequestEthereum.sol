@@ -3,6 +3,7 @@ pragma solidity 0.4.18;
 import '../core/RequestCore.sol';
 import './extensions/RequestSynchroneInterface.sol';
 import '../base/math/SafeMath.sol';
+import '../base/lifecycle/Pausable.sol';
 
 /**
  * @title RequestEthereum
@@ -10,9 +11,9 @@ import '../base/math/SafeMath.sol';
  * @dev RequestEthereum is the sub contract managing the request payed in Ethereum
  *
  * @dev Requests can be created by the Payee with createRequest() or by the payer from a request signed offchain by the payee with createQuickRequest
- * @dev Requests can have 3 extensions. They have to implement RequestSynchroneInterface and declared trusted on the Core
+ * @dev Requests can have 1 extension. it has to implement RequestSynchroneInterface and declared trusted on the Core
  */
-contract RequestEthereum {
+contract RequestEthereum is Pausable {
     using SafeMath for uint;
 
     // RequestCore object
@@ -35,43 +36,75 @@ contract RequestEthereum {
     }
 
     /*
-     * @dev Function to create a request 
+     * @dev Function to create a request as payee
      *
-     * @dev msg.sender must be _payee or _payer
+     * @dev msg.sender must be _payee
      *
-     * @param _payee Entity which will receive the payment
      * @param _payer Entity supposed to pay
      * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
-     * @param _extensions Up to 3 extensions can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
-     * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32, the 3 first element are for the first extension, the 3 next for the second extension and the last 3 for the third extension.
+     * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
+     * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32.
      *
      * @return Returns the id of the request 
      */
-    function createRequest(address _payee, address _payer, uint _amountInitial, address[3] _extensions, bytes32[9] _extensionParams)
+    function createRequestAsPayee(address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams)
         external
-        condition(msg.sender==_payee || msg.sender==_payer)
+        whenNotPaused
         returns(uint)
     {
-        uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountInitial, _extensions);
+        uint requestId= requestCore.createRequest(msg.sender, msg.sender, _payer, _amountInitial, _extension);
 
-        RequestSynchroneInterface extension;
-        if(_extensions[0]!=0) {
-            extension = RequestSynchroneInterface(_extensions[0]);
-            extension.createRequest(requestId, _extensionParams, 0);
-
-            if(_extensions[1]!=0) {
-                extension = RequestSynchroneInterface(_extensions[1]);
-                extension.createRequest(requestId, _extensionParams, 1);
-
-                if(_extensions[2]!=0) {
-                    extension = RequestSynchroneInterface(_extensions[2]);
-                    extension.createRequest(requestId, _extensionParams, 2);
-                }
-            }
+        if(_extension!=0) {
+            RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
+            extension.createRequest(requestId, _extensionParams);
         }
 
         return requestId;
     }
+
+
+    /*
+     * @dev Function to create a request as payer
+     *
+     * @dev msg.sender must be _payee or _payer
+     *
+     * @param _payee Entity which will receive the payment
+     * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
+     * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
+     * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32.
+     *
+     * @return Returns the id of the request 
+     */
+    function createRequestAsPayer(address _payee, uint _amountInitial, address _extension, bytes32[9] _extensionParams, uint _tips)
+        external
+        payable
+        whenNotPaused
+        returns(uint)
+    {
+        require(msg.value >= _tips); // tips declare must be lower than amount sent
+        require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
+
+        uint requestId= requestCore.createRequest(msg.sender, _payee, msg.sender, _amountInitial, _extension);
+
+        if(_extension!=0) {
+            RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
+            extension.createRequest(requestId, _extensionParams);
+        }
+
+        // accept must succeed
+        require(acceptInternal(requestId));
+
+        if(_tips > 0) {
+            addAdditionalInternal(requestId, _tips);
+        }
+        if(msg.value > 0) {
+            paymentInternal(requestId, msg.value);
+        }
+
+        return requestId;
+    }
+
+
 
     /*
      * @dev Function to broadcast and accept an offchain signed request (can be paid and tips also)
@@ -82,8 +115,8 @@ contract RequestEthereum {
      * @param _payee Entity which will receive the payment
      * @param _payer Entity supposed to pay
      * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
-     * @param _extensions Up to 3 extensions can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
-     * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32, the 3 first element are for the first extension, the 3 next for the second extension and the last 3 for the third extension.
+     * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
+     * @param _extensionParams Parameters for the extension. It is an array of 9 bytes32
      * @param _tips amount of tips the payer want to declare
      * @param v ECDSA signature parameter v.
      * @param r ECDSA signature parameters r.
@@ -91,36 +124,25 @@ contract RequestEthereum {
      *
      * @return Returns the id of the request 
      */
-   function createQuickRequest(address _payee, address _payer, uint _amountInitial, address[3] _extensions, bytes32[9] _extensionParams, uint _tips, uint8 v, bytes32 r, bytes32 s)
+   function broadcastSignedRequestAsPayer(address _payee, uint _amountInitial, address _extension, bytes32[9] _extensionParams, uint _tips, uint8 v, bytes32 r, bytes32 s)
         external
         payable
+        whenNotPaused
         returns(uint)
     {
-        require(msg.sender==_payer);
         require(msg.value >= _tips); // tips declare must be lower than amount sent
         require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
     
-        bytes32 hash = getRequestHash(_payee,_payer,_amountInitial,_extensions,_extensionParams);
+        bytes32 hash = getRequestHash(_payee,msg.sender,_amountInitial,_extension,_extensionParams);
 
         // check the signature
         require(isValidSignature(_payee, hash, v, r, s));
 
-        uint requestId=requestCore.createRequest(msg.sender, _payee, _payer, _amountInitial, _extensions);
+        uint requestId=requestCore.createRequest(_payee, _payee, msg.sender, _amountInitial, _extension);
 
-        RequestSynchroneInterface extension;
-        if(_extensions[0]!=0) {
-            extension = RequestSynchroneInterface(_extensions[0]);
-            extension.createRequest(requestId, _extensionParams, 0);
-
-            if(_extensions[1]!=0) {
-                extension = RequestSynchroneInterface(_extensions[1]);
-                extension.createRequest(requestId, _extensionParams, 1);
-                
-                if(_extensions[2]!=0) {
-                    extension = RequestSynchroneInterface(_extensions[2]);
-                    extension.createRequest(requestId, _extensionParams, 2);
-                }
-            }
+        if(_extension!=0) {
+            RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
+            extension.createRequest(requestId, _extensionParams);
         }
 
         // accept must succeed
@@ -149,7 +171,8 @@ contract RequestEthereum {
      */
     function accept(uint _requestId) 
         external
-        condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
+        whenNotPaused
+        condition(isOnlyRequestExtension(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
         returns(bool)
     {
         return acceptInternal(_requestId);
@@ -158,7 +181,7 @@ contract RequestEthereum {
     /*
      * @dev Function to decline a request
      *
-     * @dev msg.sender must be _payer or an extension used by the request
+     * @dev msg.sender must be _payer or the extension used by the request
      *
      * @param _requestId id of the request 
      *
@@ -166,19 +189,19 @@ contract RequestEthereum {
      */
     function decline(uint _requestId)
         external
-        condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
+        whenNotPaused
+        condition(isOnlyRequestExtension(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
         returns(bool)
     {
-        address[3] memory extensions = requestCore.getExtensions(_requestId);
+        address extensionAddr = requestCore.getExtension(_requestId);
 
-        var isOK = true;
-        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        bool isOK = true;
+        if(extensionAddr!=0 && extensionAddr!=msg.sender)  
         {
-            if(msg.sender != extensions[i]) {
-                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-                isOK = isOK && extension.decline(_requestId);
-            }
+            RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
+            isOK = extension.decline(_requestId);
         }
+
         if(isOK) 
         {
             requestCore.decline(_requestId);
@@ -198,6 +221,7 @@ contract RequestEthereum {
      */
     function payment(uint _requestId, uint _amount)
         external
+        whenNotPaused
         onlyRequestExtensions(_requestId)
         returns(bool)
     {
@@ -217,6 +241,7 @@ contract RequestEthereum {
      */
     function fundOrder(uint _requestId, address _recipient, uint _amount)
         external
+        whenNotPaused
         onlyRequestExtensions(_requestId)
         returns(bool)
     {
@@ -235,24 +260,25 @@ contract RequestEthereum {
      */
     function cancel(uint _requestId)
         external
-        condition(isOnlyRequestExtensions(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && (requestCore.getState(_requestId)==RequestCore.State.Created || requestCore.getState(_requestId)==RequestCore.State.Accepted)))
+        whenNotPaused
+        condition(isOnlyRequestExtension(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && (requestCore.getState(_requestId)==RequestCore.State.Created || requestCore.getState(_requestId)==RequestCore.State.Accepted)))
         returns(bool)
     {
         // impossible to cancel a Request with a balance != 0
         require(requestCore.getAmountPaid(_requestId) == 0);
-        address[3] memory extensions = requestCore.getExtensions(_requestId);
 
-        var isOK = true;
-        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        address extensionAddr = requestCore.getExtension(_requestId);
+
+        bool isOK = true;
+        if(extensionAddr!=0 && extensionAddr!=msg.sender)  
         {
-            if(msg.sender != extensions[i]) {
-                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-                isOK = isOK && extension.cancel(_requestId);
-            }
+            RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
+            isOK = extension.cancel(_requestId);
         }
+        
         if(isOK) 
         {
-            requestCore.cancel(_requestId);
+          requestCore.cancel(_requestId);
         }
         return isOK;
     }
@@ -272,6 +298,7 @@ contract RequestEthereum {
      */
     function pay(uint _requestId, uint _tips)
         external
+        whenNotPaused
         payable
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
         condition(msg.value >= _tips) // tips declare must be lower than amount sent
@@ -294,13 +321,27 @@ contract RequestEthereum {
      */
     function payback(uint _requestId)
         external
+        whenNotPaused
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
         onlyRequestPayee(_requestId)
         condition(msg.value <= requestCore.getAmountPaid(_requestId))
         payable
     {   
-        // we cannot refund more than already paid
-        refundInternal(_requestId, msg.value);
+        address extensionAddr = requestCore.getExtension(_requestId);
+
+        bool isOK = true;
+        if(extensionAddr!=0 && extensionAddr!=msg.sender)  
+        {
+            RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
+            isOK = extension.refund(_requestId, msg.value);
+        }
+
+        if(isOK) 
+        {
+            requestCore.refund(_requestId, msg.value);
+            // refund done, the money is ready to withdraw by the payer
+            fundOrderInternal(_requestId, requestCore.getPayer(_requestId), msg.value);
+        }
     }
 
     /*
@@ -313,12 +354,25 @@ contract RequestEthereum {
      * @param _tips amount of discount in wei to declare 
      */
     function discount(uint _requestId, uint _amount)
-        public
+        external
+        whenNotPaused
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
         onlyRequestPayee(_requestId)
         condition(_amount.add(requestCore.getAmountPaid(_requestId)) <= requestCore.getAmountInitialAfterSubAdd(_requestId))
     {
-        addSubtractInternal(_requestId, _amount);
+        address extensionAddr = requestCore.getExtension(_requestId);
+
+        bool isOK = true;
+        if(extensionAddr!=0 && extensionAddr!=msg.sender)  
+        {
+            RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
+            isOK = extension.addSubtract(_requestId, _amount);
+        }
+
+        if(isOK) 
+        {
+            requestCore.addSubtract(_requestId, _amount);
+        }
     }
 
 
@@ -348,50 +402,20 @@ contract RequestEthereum {
         internal
         returns(bool)
     {
-        address[3] memory extensions = requestCore.getExtensions(_requestId);
+        address extensionAddr = requestCore.getExtension(_requestId);
 
-        var isOK = true;
-        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        bool isOK = true;
+        if(extensionAddr!=0 && extensionAddr!=msg.sender) 
         {
-            if(msg.sender != extensions[i]) {
-                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-                isOK = isOK && extension.payment(_requestId, _amount);  
-            }
+            RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
+            isOK = extension.payment(_requestId, _amount);
         }
+
         if(isOK) 
         {
             requestCore.payment(_requestId, _amount);
             // payment done, the money is ready to withdraw by the payee
             fundOrderInternal(_requestId, requestCore.getPayee(_requestId), _amount);
-        }
-        return isOK;
-    }
-
-    /*
-     * @dev Function internal to manage discount declaration
-     *
-     * @param _requestId id of the request
-     * @param _amount amount of discount in wei to declare 
-     *
-     * @return true if the discount is declared, false otherwise
-     */
-    function addSubtractInternal(uint _requestId, uint _amount) 
-        internal
-        returns(bool)
-    {
-        address[3] memory extensions = requestCore.getExtensions(_requestId);
-
-        var isOK = true;
-        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
-        {
-            if(msg.sender != extensions[i]) {
-                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-                isOK = isOK && extension.addSubtract(_requestId, _amount);  
-            }
-        }
-        if(isOK) 
-        {
-            requestCore.addSubtract(_requestId, _amount);
         }
         return isOK;
     }
@@ -408,52 +432,20 @@ contract RequestEthereum {
         internal
         returns(bool)
     {
-        address[3] memory extensions = requestCore.getExtensions(_requestId);
+        address extensionAddr = requestCore.getExtension(_requestId);
 
-        var isOK = true;
-        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        bool isOK = true;
+        if(extensionAddr!=0 && extensionAddr!=msg.sender)  
         {
-            if(msg.sender != extensions[i]) {
-                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-                isOK = isOK && extension.addAdditional(_requestId, _amount);  
-            }
+            RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
+            isOK = extension.addAdditional(_requestId, _amount);
         }
+
         if(isOK) 
         {
             requestCore.addAdditional(_requestId, _amount);
         }
         return isOK;
-    }
-
-    /*
-     * @dev Function internal to manage refund declaration
-     *
-     * @param _requestId id of the request
-     * @param _amount amount of refund in wei to declare 
-     *
-     * @return true if the refund is done, false otherwise
-     */
-    function refundInternal(uint _requestId, uint _amount) 
-        internal
-        onlyRequestState(_requestId, RequestCore.State.Accepted)
-        returns(bool)
-    {
-        address[3] memory extensions = requestCore.getExtensions(_requestId);
-
-        var isOK = true;
-        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
-        {
-            if(msg.sender != extensions[i]) {
-                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-                isOK = isOK && extension.refund(_requestId, _amount);  
-            }
-        }
-        if(isOK) 
-        {
-            requestCore.refund(_requestId, _amount);
-            // refund done, the money is ready to withdraw by the payer
-            fundOrderInternal(_requestId, requestCore.getPayer(_requestId), _amount);
-        }
     }
 
     /*
@@ -469,16 +461,15 @@ contract RequestEthereum {
         internal
         returns(bool)
     {
-        address[3] memory extensions = requestCore.getExtensions(_requestId);
+        address extensionAddr = requestCore.getExtension(_requestId);
 
-        var isOK = true;
-        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        bool isOK = true;
+        if(extensionAddr!=0 && extensionAddr!=msg.sender)  
         {
-            if(msg.sender != extensions[i]) {
-                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-                isOK = isOK && extension.fundOrder(_requestId, _recipient, _amount);
-            }
+            RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
+            isOK = extension.fundOrder(_requestId,_recipient,_amount);
         }
+
         if(isOK) 
         {
             // sending fund means make it availbale to withdraw here
@@ -498,16 +489,15 @@ contract RequestEthereum {
         internal
         returns(bool)
     {
-        address[3] memory extensions = requestCore.getExtensions(_requestId);
+        address extensionAddr = requestCore.getExtension(_requestId);
 
-        var isOK = true;
-        for (uint i = 0; isOK && i < extensions.length && extensions[i]!=0; i++) 
+        bool isOK = true;
+        if(extensionAddr!=0 && extensionAddr!=msg.sender)  
         {
-            if(msg.sender != extensions[i]) {
-                RequestSynchroneInterface extension = RequestSynchroneInterface(extensions[i]);
-                isOK = isOK && extension.accept(_requestId);
-            }
+            RequestSynchroneInterface extension = RequestSynchroneInterface(requestCore.getExtension(_requestId));
+            isOK = extension.accept(_requestId);
         }
+
         if(isOK) 
         {
             requestCore.accept(_requestId);
@@ -526,12 +516,12 @@ contract RequestEthereum {
      *
      * @return Keccak-256 hash of a request
      */
-    function getRequestHash(address _payee, address _payer, uint _amountInitial, address[3] _extensions, bytes32[9] _extensionParams)
+    function getRequestHash(address _payee, address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams)
         internal
         view
         returns(bytes32)
     {
-        return keccak256(this,_payee,_payer,_amountInitial,_extensions,_extensionParams);
+        return keccak256(this,_payee,_payer,_amountInitial,_extension,_extensionParams);
     }
 
     /*
@@ -568,18 +558,12 @@ contract RequestEthereum {
      *
      * @return true if msg.sender is an extension of the request
      */
-    function isOnlyRequestExtensions(uint _requestId) 
+    function isOnlyRequestExtension(uint _requestId) 
         internal 
         view
         returns(bool)
     {
-        address[3] memory extensions = requestCore.getExtensions(_requestId);
-        bool found = false;
-        for (uint i = 0; !found && i < extensions.length && extensions[i]!=0; i++) 
-        {
-            found= msg.sender==extensions[i] ;
-        }
-        return found;
+        return msg.sender==requestCore.getExtension(_requestId);
     }
 
     //modifier
@@ -641,7 +625,7 @@ contract RequestEthereum {
      */
     modifier onlyRequestExtensions(uint _requestId) 
     {
-        require(isOnlyRequestExtensions(_requestId));
+        require(isOnlyRequestExtension(_requestId));
         _;
     }
 }

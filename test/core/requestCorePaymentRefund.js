@@ -49,7 +49,7 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedSubContract(fakeContract2, {from:admin});
 
-		var newRequest = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, [], {from:fakeContract});
+		var newRequest = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, {from:fakeContract});
     })
 
 	// ##################################################################################################
@@ -116,9 +116,13 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[8],3,"new request wrong data : state");
 	});
 
-	it("impossible to payment if Core Paused", async function () {
+	it("payment if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		await expectThrow(requestCore.payment(1, arbitraryAmount10percent, {from:fakeContract}));
+		var r = await requestCore.payment(1, arbitraryAmount10percent, {from:fakeContract});
+
+		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after payment()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Payment wrong args requestId");
+		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount10percent,"Event Payment wrong args amountPaid");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -126,7 +130,7 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[2],payer,"request wrong data : payer");
 		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
 		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
-		assert.equal(r[5],0,"new request wrong data : amountPaid");
+		assert.equal(r[5],arbitraryAmount10percent,"new request wrong data : amountPaid");
 		assert.equal(r[6],0,"new request wrong data : amountAdditional");
 		assert.equal(r[7],0,"new request wrong data : amountSubtract");
 		assert.equal(r[8],0,"new request wrong data : state");
@@ -361,11 +365,15 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[8],3,"new request wrong data : state");
 	});
 
-	it("impossible to refund if Core Paused", async function () {
+	it("refund if Core Paused OK", async function () {
 		await requestCore.payment(1, arbitraryAmount30percent, {from:fakeContract});
 		await requestCore.pause({from:admin});
 
-		await expectThrow(requestCore.refund(1, arbitraryAmount10percent, {from:fakeContract}));
+		var r = await requestCore.refund(1, arbitraryAmount20percent, {from:fakeContract});
+
+		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,1,"Event Refunded wrong args requestId");
+		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event Refunded wrong args amountRefunded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -373,7 +381,7 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[2],payer,"request wrong data : payer");
 		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
 		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
-		assert.equal(r[5],arbitraryAmount30percent,"new request wrong data : amountPaid");
+		assert.equal(r[5],arbitraryAmount10percent,"new request wrong data : amountPaid");
 		assert.equal(r[6],0,"new request wrong data : amountAdditional");
 		assert.equal(r[7],0,"new request wrong data : amountSubtract");
 		assert.equal(r[8],0,"new request wrong data : state");

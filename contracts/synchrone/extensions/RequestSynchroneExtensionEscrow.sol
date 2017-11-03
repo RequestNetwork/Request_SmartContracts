@@ -6,8 +6,8 @@ import '../../base/math/SafeMath.sol';
 
 // many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs
 contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
-    using SafeMath for uint;
-    
+	using SafeMath for uint;
+
 	enum EscrowState { Created, Refunded, Released }
 
 	// mapping of requestId => escrow
@@ -34,18 +34,20 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		requestCore = RequestCore(_requestCoreAddress);
 	}
 
-	function createRequest(uint _requestId, bytes32[9] _params, uint8 _index)
+	function createRequest(uint _requestId, bytes32[9] _params)
 		public
+		whenNotPaused
 		isSubContractTrusted(msg.sender)
-    	condition(_params[0]!=0)
+		condition(_params[0]!=0)
 		returns(bool)
 	{
-		escrows[_requestId] = RequestEscrow(msg.sender, address(_params[_index*2+0]), EscrowState.Created, 0,0); // create RequestEscrow
+		escrows[_requestId] = RequestEscrow(msg.sender, address(_params[0]), EscrowState.Created, 0,0); // create RequestEscrow
 		return true;
 	}
 
 	function payment(uint _requestId, uint _amount)
 		public
+		whenNotPaused
 		isSubContractRight(_requestId)
 		inNOTEscrowState(_requestId, EscrowState.Refunded)
 		returns(bool)
@@ -59,28 +61,30 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		return isEscrowReleasedPayment(_requestId);
 	}
 
-    // cancel request
-    function cancel(uint _requestId) 
+	// cancel request
+	function cancel(uint _requestId) 
 		public
+		whenNotPaused
 		isSubContractRight(_requestId)
 		returns(bool)
-    {
-        return escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded) == 0;
-    } 
- 
+	{
+		return escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded) == 0;
+	}
+
 		// Escrow Function
 	// escrow can release the payment to the seller
 	function releaseToPayee(uint _requestId)
-		public
+		external
+		whenNotPaused
 		onlyRequestEscrowOrPayer(_requestId)
 		inEscrowState(_requestId, EscrowState.Created)
 		onlyRequestState(_requestId, RequestCore.State.Accepted)
 	{
 		// release the money
 		escrows[_requestId].state = EscrowState.Released;
-   		EscrowReleaseRequest(_requestId);
+		EscrowReleaseRequest(_requestId);
 
-    	uint amountToPaid = escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded);
+		uint amountToPaid = escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded);
 
 		if(amountToPaid > 0) {
 			RequestSynchroneInterface subContract = RequestSynchroneInterface(escrows[_requestId].subContract);
@@ -90,15 +94,16 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 	// escrow can refund the payment to the âyer
 	function refundToPayer(uint _requestId)
-		public
+		external
+		whenNotPaused
 		onlyRequestEscrowOrPayee(_requestId)
 		inEscrowState(_requestId, EscrowState.Created)
 		onlyRequestState(_requestId, RequestCore.State.Accepted)
 	{
 		// Refund the money
 		escrows[_requestId].state = EscrowState.Refunded;
-    	EscrowRefundRequest(_requestId);
-    
+		EscrowRefundRequest(_requestId);
+
 		uint amountToRefund = escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded);
 		escrows[_requestId].amountRefunded = escrows[_requestId].amountPaid;
 
@@ -110,7 +115,10 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 
 	// internal function 
-	function isEscrowReleasedPayment(uint _requestId) view internal returns(bool) 
+	function isEscrowReleasedPayment(uint _requestId) 
+		view 
+		internal 
+		returns(bool) 
 	{
 		return escrows[_requestId].state == EscrowState.Released;
 	}
