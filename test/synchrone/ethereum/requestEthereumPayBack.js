@@ -133,7 +133,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncherFundOrderFalse3.address, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncherFundOrderFalseAndRefundFalse3.address, {from:admin});
 
-		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], {from:payee});
+		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [], [], {from:payee});
 		await requestEthereum.accept(1, {from:payer});
 		await requestEthereum.pay(1, 0, {value:arbitraryAmount, from:payer})
     });
@@ -141,11 +141,36 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	// ##################################################################################################
 	// ### Accept test unit #############################################################################
 	// ##################################################################################################
-	it("impossible to payback if Core Paused", async function () {
+	it("payback if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		await expectThrow(requestEthereum.payback(1, {value:arbitraryAmount, from:payee}));
+		var r = await requestEthereum.payback(1, {value:arbitraryAmount10percent, from:payee});
+
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payBack()");
+		assert.equal(l.data[0],1,"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount-arbitraryAmount10percent,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new request wrong data : state");
+
+		var r = await requestEthereum.ethToWithdraw.call(payer);
+		assert.equal(r,arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
 	});
 
+	it("payback request Ethereum pause impossible", async function () {
+		await requestEthereum.pause({from:admin});
+		await expectThrow(requestEthereum.payback(1, {value:arbitraryAmount10percent, from:payee}));
+	});
+	
 	it("payback request not exist impossible", async function () {
 		await expectThrow(requestEthereum.payback(666, {value:arbitraryAmount, from:payee}));
 	});
@@ -153,17 +178,17 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 
 	it("payback request just created Impossible", async function () {
-		await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], {from:payee});
+		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [], [], {from:payee});
 		await expectThrow(requestEthereum.payback(2, {value:arbitraryAmount, from:payee}));
 	});
 
 	it("payback request declined impossible", async function () {
-		await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], {from:payee});
+		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [], [], {from:payee});
 		await requestEthereum.decline(2, {from:payer});
 		await expectThrow(requestEthereum.payback(2, {value:arbitraryAmount, from:payee}));
 	});
 	it("payback request canceled impossible", async function () {
-		await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], {from:payee});
+		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [], [], {from:payee});
 		await requestEthereum.cancel(2, {from:payee});
 		await expectThrow(requestEthereum.payback(2, {value:arbitraryAmount, from:payee}));
 	});
@@ -201,7 +226,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request accepted OK - with 1 extension, continue: [{true,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionContinue1.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -243,7 +268,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request accepted OK - with 1 extension, continue: [{false,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherRefundFalse1.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherRefundFalse1.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -272,7 +297,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request accepted OK - with 1 extension, continue: [{true,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -313,7 +338,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 		it("payback request accepted OK - with 1 extension, continue: [{false,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -342,7 +367,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request created OK - with 2 extensions, continue: [{true,true}, {true,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -397,7 +422,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 
 	it("payback request created OK - with 2 extensions, continue: [{true,true}, {true,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherFundOrderFalse2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherFundOrderFalse2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -451,7 +476,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request created OK - with 2 extensions, continue: [{true,true}, {false,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -486,7 +511,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request created OK - with 2 extensions, continue: [{true,true}, {false,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherRefundFalse1.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherRefundFalse1.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -521,7 +546,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request created OK - with 2 extensions, continue: [{true,false}, {true,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionContinue2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionContinue2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -568,7 +593,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request created OK - with 2 extensions, continue: [{true,false}, {true,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionLauncherFundOrderFalse2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionLauncherFundOrderFalse2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -615,7 +640,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request created OK - with 2 extensions, continue: [{true,false}, {false,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionLauncherFundOrderFalseAndRefundFalse2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionLauncherFundOrderFalseAndRefundFalse2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -652,7 +677,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 
 	it("payback request created OK - with 2 extensions, continue: [{true,false}, {false,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionLauncherRefundFalse2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionLauncherRefundFalse2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -688,7 +713,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 
 	it("payback request created OK - with 2 extensions, continue: [{false,true}, {true,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherRefundFalse1.address,fakeExtentionContinue2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherRefundFalse1.address,fakeExtentionContinue2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -717,7 +742,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request created OK - with 2 extensions, continue: [{false,true}, {true,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherRefundFalse1.address,fakeExtentionLauncherFundOrderFalse2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherRefundFalse1.address,fakeExtentionLauncherFundOrderFalse2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -746,7 +771,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request created OK - with 2 extensions, continue: [{false,true}, {false,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherRefundFalse1.address,fakeExtentionLauncherFundOrderFalseAndRefundFalse2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherRefundFalse1.address,fakeExtentionLauncherFundOrderFalseAndRefundFalse2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -775,7 +800,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request created OK - with 2 extensions, continue: [{false,true}, {false,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherRefundFalse1.address,fakeExtentionLauncherRefundFalse2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherRefundFalse1.address,fakeExtentionLauncherRefundFalse2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -805,7 +830,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 
 	it("payback request created OK - with 2 extensions, continue: [{false,false}, {true,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address,fakeExtentionContinue2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address,fakeExtentionContinue2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -834,7 +859,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request created OK - with 2 extensions, continue: [{false,false}, {true,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address,fakeExtentionLauncherFundOrderFalse2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address,fakeExtentionLauncherFundOrderFalse2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -863,7 +888,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request created OK - with 2 extensions, continue: [{false,false}, {false,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address,fakeExtentionLauncherFundOrderFalseAndRefundFalse2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address,fakeExtentionLauncherFundOrderFalseAndRefundFalse2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -892,7 +917,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request created OK - with 2 extensions, continue: [{false,false}, {false,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address,fakeExtentionLauncherRefundFalse2.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address,fakeExtentionLauncherRefundFalse2.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -922,7 +947,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	// {true,true}, {true,true}, {true,true}
 	it("payback request created OK - with 3 extensions, continue: [{true,true}, {true,true}, {true,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionContinue3.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionContinue3.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -990,7 +1015,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	// {true,true}, {true,true}, {true,false}
 	it("payback request created OK - with 3 extensions, continue: [{true,true}, {true,true}, {true,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionLauncherFundOrderFalse3.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionLauncherFundOrderFalse3.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -1059,7 +1084,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	// {true,true}, {true,false}, {true,X}
 	it("payback request created OK - with 3 extensions, continue: [{true,true}, {true,false}, {true,X}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherFundOrderFalse2.address,fakeExtentionContinue3.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherFundOrderFalse2.address,fakeExtentionContinue3.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -1120,7 +1145,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	// {true,false}, {true,X}, {true,X}
 	it("payback request created OK - with 3 extensions, continue: [{true,false}, {true,X}, {true,X}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionContinue2.address,fakeExtentionContinue3.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherFundOrderFalse1.address,fakeExtentionContinue2.address,fakeExtentionContinue3.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -1175,7 +1200,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	// {true,X}, {true,X}, {false,X}
 	it("payback request created OK - with 3 extensions, continue: [{true,X}, {true,X}, {false,X}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionLauncherRefundFalse3.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionLauncherRefundFalse3.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -1217,7 +1242,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	// {true,X}, {false,X}, {X,X}
 	it("payback request created OK - with 3 extensions, continue: [{true,X}, {false,X}, {X,X}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherRefundFalse2.address,fakeExtentionContinue3.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionLauncherRefundFalse2.address,fakeExtentionContinue3.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 
@@ -1253,7 +1278,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	// {false,X}, {X,X}, {X,X}
 	it("payback request created OK - with 3 extensions, continue: [{false,X}, {X,X}, {X,X}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncherRefundFalse1.address,fakeExtentionContinue2.address,fakeExtentionContinue3.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, [fakeExtentionLauncherRefundFalse1.address,fakeExtentionContinue2.address,fakeExtentionContinue3.address], [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 		await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
 

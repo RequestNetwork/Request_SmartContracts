@@ -50,7 +50,7 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedSubContract(fakeContract2, {from:admin});
 
-		var newRequest = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, [], {from:fakeContract});
+		var newRequest = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, {from:fakeContract});
     })
 
 	// ##################################################################################################
@@ -135,9 +135,13 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[8],3,"new request wrong data : state");
 	});
 
-	it("impossible to addAdditional if Core Paused", async function () {
+	it("addAdditional if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		await expectThrow(requestCore.addAdditional(1, arbitraryAmount10percent, {from:fakeContract}));
+		var r = await requestCore.addAdditional(1, arbitraryAmount10percent, {from:fakeContract});
+
+		assert.equal(r.logs[0].event,"AddAdditional","Event AddAdditional is missing after addAdditional()");
+		assert.equal(r.logs[0].args.requestId,1,"Event AddAdditional wrong args requestId");
+		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event AddAdditional wrong args amountAdded");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -146,7 +150,7 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
 		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
 		assert.equal(r[5],0,"new request wrong data : amountPaid");
-		assert.equal(r[6],0,"new request wrong data : amountAdditional");
+		assert.equal(r[6],arbitraryAmount10percent,"new request wrong data : amountAdditional");
 		assert.equal(r[7],0,"new request wrong data : amountSubtract");
 		assert.equal(r[8],0,"new request wrong data : state");
 	});
@@ -373,9 +377,13 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[8],3,"new request wrong data : state");
 	});
 
-	it("impossible to addSubtract if Core Paused", async function () {
+	it("addSubtract if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		await expectThrow(requestCore.addSubtract(1, arbitraryAmount10percent, {from:fakeContract}));
+		var r = await requestCore.addSubtract(1, arbitraryAmount10percent, {from:fakeContract});
+
+		assert.equal(r.logs[0].event,"AddSubtract","Event AddSubtract is missing after addSubtract()");
+		assert.equal(r.logs[0].args.requestId,1,"Event AddSubtract wrong args requestId");
+		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event AddSubtract wrong args amountSubtracted");
 
 		var r = await requestCore.requests.call(1, {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -385,8 +393,7 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
 		assert.equal(r[5],0,"new request wrong data : amountPaid");
 		assert.equal(r[6],0,"new request wrong data : amountAdditional");
-		assert.equal(r[7],0,"new request wrong data : amountSubtract");
-		assert.equal(r[8],0,"new request wrong data : state");
+		assert.equal(r[7],arbitraryAmount10percent,"new request wrong data : amountSubtract");
 	});
 
 	it("addSubtract request not exist impossible", async function () {
@@ -484,7 +491,7 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 	});
 
 	it("new subtract _amount+request.amountSubtract >= 2^256 (overflow) impossible", async function () {
-		newRequest = await requestCore.createRequest(creator, payee, payer, new BigNumber(2).pow(256).minus(1), [], {from:fakeContract});
+		newRequest = await requestCore.createRequest(creator, payee, payer, new BigNumber(2).pow(256).minus(1), 0, {from:fakeContract});
 		await requestCore.addSubtract(2, new BigNumber(2).pow(255), {from:fakeContract});
 		await expectThrow(requestCore.addSubtract(2, new BigNumber(2).pow(255), {from:fakeContract}));
 

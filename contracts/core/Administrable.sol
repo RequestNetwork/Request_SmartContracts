@@ -114,28 +114,13 @@ contract Administrable is Pausable {
 	}
 
 	/**
-	 * @dev Modifier: check if the extensions are trusted
-	 * @dev if extensions have 0 before extensions address, Revert 
-	 * @dev if there is two similar extensions, Revert 
-	 * @dev if an extension is not trusted, Revert 
+	 * @dev Modifier: check if the extension is trusted
+	 * @dev Revert if extension status is not 1
 	 *
-	 * @param _extensions The array of addresses of the extensions
+	 * @param _extension The address of the extension
 	 */
-	modifier areTrustedExtensions(address[3] _extensions) {
-		// no zero before
-		require(_extensions[2]==0 || _extensions[1]!=0);
-		require(_extensions[1]==0 || _extensions[0]!=0);
-
-		// not two equals
-		require(_extensions[0] != _extensions[1] || _extensions[0]==0 || _extensions[1]==0);
-		require(_extensions[1] != _extensions[2] || _extensions[1]==0 || _extensions[2]==0);
-		require(_extensions[0] != _extensions[2] || _extensions[0]==0 || _extensions[2]==0);
-
-		// check if extensions are trusted
-		for (uint i = 0; i < _extensions.length && _extensions[i]!=0; i++) 
-		{
-			require(trustedExtensions[_extensions[i]] == 1);
-		}
+	modifier isTrustedExtension(address _extension) {
+		require(_extension==0 || trustedExtensions[_extension]==1);
 		_;
 	}
 }

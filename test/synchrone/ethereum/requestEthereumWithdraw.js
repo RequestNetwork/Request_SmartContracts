@@ -45,7 +45,7 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 
-		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], {from:payee});
+		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
 		await requestEthereum.accept(1, {from:payer});
     });
 

@@ -108,14 +108,34 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncher2.address, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncher3.address, {from:admin});
 
-		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [], [], {from:payee});
+		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
     });
 
 	// ##################################################################################################
 	// ### Cancel test unit #############################################################################
 	// ##################################################################################################
-	it("impossible to cancel if Core Paused", async function () {
+	it("cancel if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
+		var r = await requestEthereum.cancel(1, {from:payee});
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"Canceled","Event Canceled is missing after cancel()");
+		assert.equal(l.data[0],1,"Event Canceled wrong args requestId");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],3,"new request wrong data : state");
+	});
+
+	it("cancel request Ethereum pause impossible", async function () {
+		await requestEthereum.pause({from:admin});
 		await expectThrow(requestEthereum.cancel(1, {from:payee}));
 	});
 
@@ -191,8 +211,8 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	});
 
 
-	it("cancel request created OK - with 1 extension, continue: [true]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address], [], {from:payee});
+	it("cancel request created OK - with 1 extension, continue: true", async function () {
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionContinue1.address, [], {from:payee});
 
 		var r = await requestEthereum.cancel(2, {from:payee});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
@@ -218,7 +238,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	});
 
 	it("cancel request created OK - with 1 extension, continue: [false]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionInterception1.address, [], {from:payee});
 
 		var r = await requestEthereum.cancel(2, {from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -238,326 +258,9 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],0,"new request wrong data : state");
 	});
-
-	it("cancel request created OK - with 2 extensions, continue: [true,true]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address], [], {from:payee});
-
-		var r = await requestEthereum.cancel(2, {from:payee});
-		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],1,"Event LogTestCancel wrong args ID");
-
-		var l = getEventFromReceipt(r.receipt.logs[1], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],2,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(l.data[0],2,"Event Canceled wrong args requestId");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
-	});
-
-	it("cancel request created OK - with 2 extensions, continue: [true,false]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionInterception1.address], [], {from:payee});
-
-		var r = await requestEthereum.cancel(2, {from:payee});
-		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],1,"Event LogTestCancel wrong args ID");
-
-		var l = getEventFromReceipt(r.receipt.logs[1], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],11,"Event LogTestCancel wrong args ID");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],0,"new request wrong data : state");
-	});
-
-	it("cancel request created OK - with 2 extensions, continue: [false,true]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionContinue1.address], [], {from:payee});
-
-		var r = await requestEthereum.cancel(2, {from:payee});
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],11,"Event LogTestCancel wrong args ID");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],0,"new request wrong data : state");
-	});
-
-	it("cancel request created OK - with 2 extensions, continue: [false,false]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionInterception2.address], [], {from:payee});
-
-		var r = await requestEthereum.cancel(2, {from:payee});
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],11,"Event LogTestCancel wrong args ID");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],0,"new request wrong data : state");
-	});
-
-
-
-	it("cancel request created OK - with 3 extensions, continue: [true,true,true]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionContinue3.address], [], {from:payee});
-
-		var r = await requestEthereum.cancel(2, {from:payee});
-		assert.equal(r.receipt.logs.length,4,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],1,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[1], fakeExtentionContinue2.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],2,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[2], fakeExtentionContinue3.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],3,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(l.data[0],2,"Event Canceled wrong args requestId");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
-	});
-
-	it("cancel request created OK - with 3 extensions, continue: [true,true,false]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionContinue2.address,fakeExtentionInterception1.address], [], {from:payee});
-
-		var r = await requestEthereum.cancel(2, {from:payee});
-		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],1,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[1], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],2,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[2], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],11,"Event LogTestCancel wrong args ID");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],0,"new request wrong data : state");
-	});
-
-
-	it("cancel request created OK - with 3 extensions, continue: [true,false,true]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionInterception1.address,fakeExtentionContinue3.address], [], {from:payee});
-
-		var r = await requestEthereum.cancel(2, {from:payee});
-		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],1,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[1], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],11,"Event LogTestCancel wrong args ID");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],0,"new request wrong data : state");
-	});
-
-	it("cancel request created OK - with 3 extensions, continue: [true,false,false]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionContinue1.address,fakeExtentionInterception1.address,fakeExtentionInterception2.address], [], {from:payee});
-
-		var r = await requestEthereum.cancel(2, {from:payee});
-		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],1,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[1], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],11,"Event LogTestCancel wrong args ID");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],0,"new request wrong data : state");
-	});
-
-
-	it("cancel request created OK - with 3 extensions, continue: [false,true,true]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionContinue1.address,fakeExtentionContinue2.address], [], {from:payee});
-
-		var r = await requestEthereum.cancel(2, {from:payee});
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],11,"Event LogTestCancel wrong args ID");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],0,"new request wrong data : state");
-	});
-
-	it("cancel request created OK - with 3 extensions, continue: [false,false,true]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionInterception2.address,fakeExtentionContinue2.address], [], {from:payee});
-
-		var r = await requestEthereum.cancel(2, {from:payee});
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],11,"Event LogTestCancel wrong args ID");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],0,"new request wrong data : state");
-	});
-
-	it("cancel request created OK - with 3 extensions, continue: [false,true,false]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionContinue2.address,fakeExtentionInterception2.address], [], {from:payee});
-
-		var r = await requestEthereum.cancel(2, {from:payee});
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],11,"Event LogTestCancel wrong args ID");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],0,"new request wrong data : state");
-	});
-
-	it("cancel request created OK - with 3 extensions, continue: [false,false,false]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionInterception1.address,fakeExtentionInterception2.address,fakeExtentionInterception3.address], [], {from:payee});
-
-		var r = await requestEthereum.cancel(2, {from:payee});
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],11,"Event LogTestCancel wrong args ID");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],0,"new request wrong data : state");
-	});
-
 
 	it("cancel by extension request created OK", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchCancel(2);
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -578,7 +281,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	});
 
 	it("cancel by extension request accepted OK", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
 		var r = await fakeExtentionLauncher1.launchCancel(2);
@@ -600,7 +303,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	});
 
 	it("cancel by extension request declined OK", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
 		await requestEthereum.decline(2, {from:payer});
 
 		var r = await fakeExtentionLauncher1.launchCancel(2);
@@ -622,7 +325,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	});
 
 	it("cancel by extension request canceled OK", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
 		await requestEthereum.cancel(2, {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchCancel(2);
@@ -644,102 +347,10 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	});
 
 	it("cancel by an extension not from request impossible", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address], [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
 		await expectThrow(fakeExtentionLauncher2.launchCancel(2));
 	});
 
-	it("cancel by extension 1 ask only extensions 2 and 3", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address,fakeExtentionLauncher2.address,fakeExtentionLauncher3.address], [], {from:payee});
-
-		var r = await fakeExtentionLauncher1.launchCancel(2);
-		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],22,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[1], fakeExtentionContinue2.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],23,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"Canceled","Event Canceled is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event Canceled wrong args requestId");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
-	});
-
-	it("cancel by extension 2 ask only extensions 1 and 3", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address,fakeExtentionLauncher2.address,fakeExtentionLauncher3.address], [], {from:payee});
-
-		var r = await fakeExtentionLauncher2.launchCancel(2);
-		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],21,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[1], fakeExtentionContinue2.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],23,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"Canceled","Event Canceled is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event Canceled wrong args requestId");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
-	});
-
-	it("cancel by extension 3 ask only extensions 1 and 2", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, [fakeExtentionLauncher1.address,fakeExtentionLauncher2.address,fakeExtentionLauncher3.address], [], {from:payee});
-
-		var r = await fakeExtentionLauncher3.launchCancel(2);
-		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],21,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[1], fakeExtentionContinue2.abi);
-		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogTestCancel wrong args requestId");
-		assert.equal(l.data[1],22,"Event LogTestCancel wrong args ID");
-
-		l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"Canceled","Event Canceled is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event Canceled wrong args requestId");
-
-		var newReq = await requestCore.requests.call(2);
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
-	});
 	// ##################################################################################################
 	// ##################################################################################################
 	// ##################################################################################################

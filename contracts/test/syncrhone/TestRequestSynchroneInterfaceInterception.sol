@@ -10,7 +10,7 @@ contract TestRequestSynchroneInterfaceInterception is RequestSynchroneInterface{
     }
 
     event LogTestCreateRequest(uint requestId, uint id, bytes32[9] _params);
-    function createRequest(uint _requestId, bytes32[9] _params, uint8 _index) public returns(bool) 
+    function createRequest(uint _requestId, bytes32[9] _params) public returns(bool) 
     {
         LogTestCreateRequest(_requestId, constant_id, _params);
         return true;
