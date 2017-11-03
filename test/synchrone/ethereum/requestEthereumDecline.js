@@ -107,7 +107,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncher3.address, {from:admin});
 
 
-		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, 0, [], {from:payee});
+		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
     });
 
 	// ##################################################################################################
@@ -118,7 +118,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 		var r = await requestEthereum.decline(1, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Declined","Event Declined is missing after createRequest()");
+		assert.equal(l.name,"Declined","Event Declined is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],1,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(1);
@@ -167,7 +167,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 		var r = await requestEthereum.decline(1, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Declined","Event Declined is missing after createRequest()");
+		assert.equal(l.name,"Declined","Event Declined is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],1,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(1);
@@ -184,17 +184,17 @@ contract('RequestEthereum Decline',  function(accounts) {
 
 
 	it("decline request created OK - with 1 extension, continue: true", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionContinue1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionContinue1.address, [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestDecline","Event LogTestDecline is missing after createRequest()");
+		assert.equal(l.name,"LogTestDecline","Event LogTestDecline is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],2,"Event LogTestDecline wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestDecline wrong args ID");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"Declined","Event Declined is missing after createRequest()");
+		assert.equal(l.name,"Declined","Event Declined is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
 		var newReq = await requestCore.requests.call(2);
@@ -210,12 +210,12 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline request created OK - with 1 extension, continue: false", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionInterception1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionInterception1.address, [], {from:payee});
 
 		var r = await requestEthereum.decline(2, {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestDecline","Event LogTestDecline is missing after createRequest()");
+		assert.equal(l.name,"LogTestDecline","Event LogTestDecline is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],2,"Event LogTestDecline wrong args requestId");
 		assert.equal(l.data[1],11,"Event LogTestDecline wrong args ID");
 
@@ -234,7 +234,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 
 
 	it("decline by extension request created OK", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchDecline(2);
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -255,7 +255,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline by extension request declined OK", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
 		await requestEthereum.decline(2, {from:payer});
 
 		var r = await fakeExtentionLauncher1.launchDecline(2);
@@ -277,7 +277,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline by extension request canceled OK", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
 		await requestEthereum.cancel(2, {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchDecline(2);
@@ -299,7 +299,7 @@ contract('RequestEthereum Decline',  function(accounts) {
 	});
 
 	it("decline by an extension not from request impossible", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
 		await expectThrow(fakeExtentionLauncher2.launchDecline(2));
 	});
 	// ##################################################################################################

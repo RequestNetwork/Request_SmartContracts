@@ -85,7 +85,7 @@ var signHashRequest = function(hash,privateKey) {
 
 
 
-contract('RequestEthereum createQuickRequest',  function(accounts) {
+contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 	var admin = accounts[0];
 	var otherguy = accounts[1];
 	var fakeContract = accounts[2];
@@ -133,7 +133,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													arbitraryAmount10percent, 
@@ -143,27 +143,27 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		assert.equal(r.receipt.logs.length,4,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
+		assert.equal(l.name,"Created","Event Created is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"Accepted","Event Accepted is missing after createQuickRequest()");
+		assert.equal(l.name,"Accepted","Event Accepted is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after createQuickRequest()");
+		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event AddAdditional wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddAdditional wrong args amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after createQuickRequest()");
+		assert.equal(l.name,"Payment","Event Payment is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount+1,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
+		assert.equal(newReq[0],payee,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
@@ -185,7 +185,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													1, 
@@ -201,7 +201,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													1, 
@@ -217,7 +217,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													0, 
@@ -233,7 +233,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													arbitraryAmount10percent, 
@@ -249,7 +249,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													arbitraryAmount10percent, 
@@ -259,27 +259,27 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		assert.equal(r.receipt.logs.length,4,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
+		assert.equal(l.name,"Created","Event Created is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"Accepted","Event Accepted is missing after createQuickRequest()");
+		assert.equal(l.name,"Accepted","Event Accepted is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after createQuickRequest()");
+		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event AddAdditional wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddAdditional wrong args amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after createQuickRequest()");
+		assert.equal(l.name,"Payment","Event Payment is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
+		assert.equal(newReq[0],payee,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
@@ -301,7 +301,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, payer, 0, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, 0, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -317,7 +317,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, payee, arbitraryAmount, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payer, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -333,7 +333,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(0, payer, arbitraryAmount, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(0, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -341,21 +341,6 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 									{from:payer, value:arbitraryAmount}));
 	});
 
-	it("new quick request payer==0 impossible", async function () {
-		var extension = 0;
-		var listParamsExtensions = [];
-		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions);
-		
-		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
-		var sig = signHashRequest(hash,ecprivkey);
-
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, 0, arbitraryAmount, 
-									extension,
-									listParamsExtensions, 
-									0, 
-									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
-									{from:payer, value:arbitraryAmount}));
-	});
 
 	it("new quick request msg.sender==payee impossible", async function () {
 		var extension = 0;
@@ -365,7 +350,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -381,7 +366,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -399,7 +384,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -415,7 +400,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													0, 
@@ -425,22 +410,22 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
+		assert.equal(l.name,"Created","Event Created is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"Accepted","Event Accepted is missing after createQuickRequest()");
+		assert.equal(l.name,"Accepted","Event Accepted is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after createQuickRequest()");
+		assert.equal(l.name,"Payment","Event Payment is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
+		assert.equal(newReq[0],payee,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
@@ -462,7 +447,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													0, 
@@ -472,17 +457,17 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Created","Event Created is missing after createQuickRequest()");
+		assert.equal(l.name,"Created","Event Created is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"Accepted","Event Accepted is missing after createQuickRequest()");
+		assert.equal(l.name,"Accepted","Event Accepted is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
 
 		var newReq = await requestCore.requests.call(1);
-		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
+		assert.equal(newReq[0],payee,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
@@ -504,7 +489,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayer, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -520,7 +505,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyOtherGuy, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -536,7 +521,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.createQuickRequest(otherguy, payer, arbitraryAmount, 
+		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(otherguy, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -558,7 +543,7 @@ contract('RequestEthereum createQuickRequest',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		await expectThrow(requestEthereum.createQuickRequest(payee, payer, arbitraryAmount, 
+		await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													0, 

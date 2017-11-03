@@ -9,6 +9,8 @@ var config = {
 	// },
 	// "synchrone.js": {
 	//	 	"ethereum.js": {
+				"requestEthereumCreateRequestAsPayee.js":false,
+				"requestEthereumBroadcastSignedRequestAsPayer.js":false,
 				"requestEthereumAccept.js":false, 
 				"requestEthereumDecline.js":false, 
 				"requestEthereumWithdraw.js":false, 

@@ -135,7 +135,7 @@ contract('RequestEthereum Pay', function(accounts) {
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncherFundOrderFalse3.address, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncherFundOrderFalseAndPaymentFalse3.address, {from:admin});
 
-		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, 0, [], {from:payee});
+		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
 		await requestEthereum.accept(1, {from:payer});
     });
 
@@ -148,7 +148,7 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
@@ -184,17 +184,17 @@ contract('RequestEthereum Pay', function(accounts) {
 
 
 	it("pay request just created Impossible", async function () {
-		await requestEthereum.createRequest(payee, payer, arbitraryAmount, 0, [], {from:payee});
+		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
 		await expectThrow(requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer}));
 	});
 
 	it("pay request declined impossible", async function () {
-		await requestEthereum.createRequest(payee, payer, arbitraryAmount, 0, [], {from:payee});
+		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
 		await requestEthereum.decline(2, {from:payer});
 		await expectThrow(requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer}));
 	});
 	it("pay request canceled impossible", async function () {
-		await requestEthereum.createRequest(payee, payer, arbitraryAmount, 0, [], {from:payee});
+		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
 		await requestEthereum.cancel(2, {from:payee});
 		await expectThrow(requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer}));
 	});
@@ -205,7 +205,7 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
@@ -229,7 +229,7 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
@@ -253,7 +253,7 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
@@ -273,7 +273,7 @@ contract('RequestEthereum Pay', function(accounts) {
 	});
 
 	it("pay request accepted OK - with 1 extension, continue: [{true,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionContinue1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionContinue1.address, [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
 		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
@@ -314,7 +314,7 @@ contract('RequestEthereum Pay', function(accounts) {
 	});
 
 	it("pay request accepted OK - with 1 extension, continue: [{false,true}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionLauncherPaymentFalse1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncherPaymentFalse1.address, [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
 		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
@@ -342,7 +342,7 @@ contract('RequestEthereum Pay', function(accounts) {
 	});
 
 	it("pay request accepted OK - with 1 extension, continue: [{true,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionLauncherFundOrderFalse1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncherFundOrderFalse1.address, [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
 		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
@@ -382,7 +382,7 @@ contract('RequestEthereum Pay', function(accounts) {
 	});
 
 		it("pay request accepted OK - with 1 extension, continue: [{false,false}]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.address, [], {from:payee});
 		await requestEthereum.accept(2, {from:payer});
 
 		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
@@ -418,7 +418,7 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],0,"Event Payment wrong args amountPaid");
 
@@ -442,7 +442,7 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount3,"Event Payment wrong args amountPaid");
 
@@ -465,7 +465,7 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount2,"Event Payment wrong args amountPaid");
 
@@ -488,7 +488,7 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 

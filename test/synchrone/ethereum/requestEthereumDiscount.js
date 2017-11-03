@@ -95,7 +95,7 @@ contract('RequestEthereum Discount',  function(accounts) {
 		await requestCore.adminAddTrustedExtension(fakeExtentionInterception2.address, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtentionInterception3.address, {from:admin});
 
-		var newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, 0, [], {from:payee});
+		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
 		
     });
 
@@ -197,7 +197,7 @@ contract('RequestEthereum Discount',  function(accounts) {
 
 
 	it("discount request created OK - with 1 extension, continue: [true]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionContinue1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionContinue1.address, [], {from:payee});
 
 		var r = await requestEthereum.discount(2, arbitraryAmount10percent, {from:payee});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
@@ -224,7 +224,7 @@ contract('RequestEthereum Discount',  function(accounts) {
 	});
 
 	it("discount request created OK - with 1 extension, continue: [false]", async function () {
-		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionInterception1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionInterception1.address, [], {from:payee});
 
 		var r = await requestEthereum.discount(2, arbitraryAmount10percent, {from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");

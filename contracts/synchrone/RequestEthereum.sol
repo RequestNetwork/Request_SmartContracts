@@ -36,11 +36,10 @@ contract RequestEthereum is Pausable {
     }
 
     /*
-     * @dev Function to create a request 
+     * @dev Function to create a request as payee
      *
-     * @dev msg.sender must be _payee or _payer
+     * @dev msg.sender must be _payee
      *
-     * @param _payee Entity which will receive the payment
      * @param _payer Entity supposed to pay
      * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
      * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
@@ -48,13 +47,12 @@ contract RequestEthereum is Pausable {
      *
      * @return Returns the id of the request 
      */
-    function createRequest(address _payee, address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams)
+    function createRequestAsPayee(address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams)
         external
-        condition(msg.sender==_payee || msg.sender==_payer)
         whenNotPaused
         returns(uint)
     {
-        uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountInitial, _extension);
+        uint requestId= requestCore.createRequest(msg.sender, msg.sender, _payer, _amountInitial, _extension);
 
         if(_extension!=0) {
             RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -63,6 +61,50 @@ contract RequestEthereum is Pausable {
 
         return requestId;
     }
+
+
+    /*
+     * @dev Function to create a request as payer
+     *
+     * @dev msg.sender must be _payee or _payer
+     *
+     * @param _payee Entity which will receive the payment
+     * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
+     * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
+     * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32.
+     *
+     * @return Returns the id of the request 
+     */
+    function createRequestAsPayer(address _payee, uint _amountInitial, address _extension, bytes32[9] _extensionParams, uint _tips)
+        external
+        payable
+        whenNotPaused
+        returns(uint)
+    {
+        require(msg.value >= _tips); // tips declare must be lower than amount sent
+        require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
+
+        uint requestId= requestCore.createRequest(msg.sender, _payee, msg.sender, _amountInitial, _extension);
+
+        if(_extension!=0) {
+            RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
+            extension.createRequest(requestId, _extensionParams);
+        }
+
+        // accept must succeed
+        require(acceptInternal(requestId));
+
+        if(_tips > 0) {
+            addAdditionalInternal(requestId, _tips);
+        }
+        if(msg.value > 0) {
+            paymentInternal(requestId, msg.value);
+        }
+
+        return requestId;
+    }
+
+
 
     /*
      * @dev Function to broadcast and accept an offchain signed request (can be paid and tips also)
@@ -82,22 +124,21 @@ contract RequestEthereum is Pausable {
      *
      * @return Returns the id of the request 
      */
-   function createQuickRequest(address _payee, address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams, uint _tips, uint8 v, bytes32 r, bytes32 s)
+   function broadcastSignedRequestAsPayer(address _payee, uint _amountInitial, address _extension, bytes32[9] _extensionParams, uint _tips, uint8 v, bytes32 r, bytes32 s)
         external
         payable
         whenNotPaused
         returns(uint)
     {
-        require(msg.sender==_payer);
         require(msg.value >= _tips); // tips declare must be lower than amount sent
         require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
     
-        bytes32 hash = getRequestHash(_payee,_payer,_amountInitial,_extension,_extensionParams);
+        bytes32 hash = getRequestHash(_payee,msg.sender,_amountInitial,_extension,_extensionParams);
 
         // check the signature
         require(isValidSignature(_payee, hash, v, r, s));
 
-        uint requestId=requestCore.createRequest(msg.sender, _payee, _payer, _amountInitial, _extension);
+        uint requestId=requestCore.createRequest(_payee, _payee, msg.sender, _amountInitial, _extension);
 
         if(_extension!=0) {
             RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -286,8 +327,21 @@ contract RequestEthereum is Pausable {
         condition(msg.value <= requestCore.getAmountPaid(_requestId))
         payable
     {   
-        // we cannot refund more than already paid
-        refundInternal(_requestId, msg.value);
+        address extensionAddr = requestCore.getExtension(_requestId);
+
+        bool isOK = true;
+        if(extensionAddr!=0 && extensionAddr!=msg.sender)  
+        {
+            RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
+            isOK = extension.refund(_requestId, msg.value);
+        }
+
+        if(isOK) 
+        {
+            requestCore.refund(_requestId, msg.value);
+            // refund done, the money is ready to withdraw by the payer
+            fundOrderInternal(_requestId, requestCore.getPayer(_requestId), msg.value);
+        }
     }
 
     /*
@@ -306,7 +360,19 @@ contract RequestEthereum is Pausable {
         onlyRequestPayee(_requestId)
         condition(_amount.add(requestCore.getAmountPaid(_requestId)) <= requestCore.getAmountInitialAfterSubAdd(_requestId))
     {
-        addSubtractInternal(_requestId, _amount);
+        address extensionAddr = requestCore.getExtension(_requestId);
+
+        bool isOK = true;
+        if(extensionAddr!=0 && extensionAddr!=msg.sender)  
+        {
+            RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
+            isOK = extension.addSubtract(_requestId, _amount);
+        }
+
+        if(isOK) 
+        {
+            requestCore.addSubtract(_requestId, _amount);
+        }
     }
 
 
@@ -355,34 +421,6 @@ contract RequestEthereum is Pausable {
     }
 
     /*
-     * @dev Function internal to manage discount declaration
-     *
-     * @param _requestId id of the request
-     * @param _amount amount of discount in wei to declare 
-     *
-     * @return true if the discount is declared, false otherwise
-     */
-    function addSubtractInternal(uint _requestId, uint _amount) 
-        internal
-        returns(bool)
-    {
-        address extensionAddr = requestCore.getExtension(_requestId);
-
-        bool isOK = true;
-        if(extensionAddr!=0 && extensionAddr!=msg.sender)  
-        {
-            RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
-            isOK = extension.addSubtract(_requestId, _amount);
-        }
-
-        if(isOK) 
-        {
-            requestCore.addSubtract(_requestId, _amount);
-        }
-        return isOK;
-    }
-
-    /*
      * @dev Function internal to manage tips declaration
      *
      * @param _requestId id of the request
@@ -408,36 +446,6 @@ contract RequestEthereum is Pausable {
             requestCore.addAdditional(_requestId, _amount);
         }
         return isOK;
-    }
-
-    /*
-     * @dev Function internal to manage refund declaration
-     *
-     * @param _requestId id of the request
-     * @param _amount amount of refund in wei to declare 
-     *
-     * @return true if the refund is done, false otherwise
-     */
-    function refundInternal(uint _requestId, uint _amount) 
-        internal
-        onlyRequestState(_requestId, RequestCore.State.Accepted)
-        returns(bool)
-    {
-        address extensionAddr = requestCore.getExtension(_requestId);
-
-        bool isOK = true;
-        if(extensionAddr!=0 && extensionAddr!=msg.sender)  
-        {
-            RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
-            isOK = extension.refund(_requestId, _amount);
-        }
-
-        if(isOK) 
-        {
-            requestCore.refund(_requestId, _amount);
-            // refund done, the money is ready to withdraw by the payer
-            fundOrderInternal(_requestId, requestCore.getPayer(_requestId), _amount);
-        }
     }
 
     /*
