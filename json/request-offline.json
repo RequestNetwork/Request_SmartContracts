@@ -3,17 +3,13 @@
 	"payee": "0x1d9a1c95748dee73c8bd801a763833bb7ba71e07",
 	"payer": "0x095f32f02282a043c709bbc45854e72965e94bf2",
 	"amount": 100,
-	"extensions": [
-		{
-			"contract": "0x85ea0a69f9cf594e65fb326df30db98216d47cb1",
-			"params": [
-				"0xaaea0a69f9cf594e65fb326df30db98216d47cb2",
-				1
-			]
-		},
-		{
-			"contract": "0x85ea0a69f9cf594e65fb326df30db98216d47cb1"
-		}
-	],
+	"extension": 
+	{
+		"contract": "0x85ea0a69f9cf594e65fb326df30db98216d47cb1",
+		"params": [
+			"0xaaea0a69f9cf594e65fb326df30db98216d47cb2",
+			1
+		]
+	},
 	"signature": "0x99c00b8550a6ea83a150628dc8b02058ff3041f405d901513ba724c249ddc20c6fd25d19cb246fcb7e3f2b0d5fcfdec9750ab464450d5b60c80dc8ed0cc4ecca1b"
 }
