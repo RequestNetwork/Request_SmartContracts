@@ -134,6 +134,11 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		assert.equal(newReq[8],3,"new request wrong data : state");
 	});
 
+	it("cancel request Ethereum pause impossible", async function () {
+		await requestEthereum.pause({from:admin});
+		await expectThrow(requestEthereum.cancel(1, {from:payee}));
+	});
+
 	it("cancel request not exist impossible", async function () {
 		await expectThrow(requestEthereum.cancel(666, {from:payer}));
 	});

@@ -133,6 +133,11 @@ contract('RequestEthereum Decline',  function(accounts) {
 		assert.equal(newReq[8],2,"new request wrong data : state");
 	});
 
+	it("decline request Ethereum pause impossible", async function () {
+		await requestEthereum.pause({from:admin});
+		await expectThrow(requestEthereum.decline(1, {from:payer}));
+	});
+
 	it("decline request not exist impossible", async function () {
 		await expectThrow(requestEthereum.decline(666, {from:payer}));
 	});

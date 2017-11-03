@@ -126,6 +126,11 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
 		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
 	});
+
+	it("Create Escrow request if escrow paused impossible", async function () {
+		await requestSynchroneExtensionEscrow.pause({from:admin})
+		await expectThrow(requestSynchroneExtensionEscrow.createRequest(3, [addressToByte32str(escrow)], {from:fakeTrustedContract}));
+	});
 	// ##################################################################################################
 	// ##################################################################################################
 	// ##################################################################################################
@@ -239,6 +244,11 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		await expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(1, {from:escrow}));
 	});
 
+	it("release if escrow paused Impossible", async function () {
+		await requestCore.accept(1,{from:fakeTrustedContract});
+		await requestSynchroneExtensionEscrow.pause({from:admin});
+		await expectThrow( requestSynchroneExtensionEscrow.releaseToPayee(1, {from:escrow}));
+	});
 
 	it("release if request is Accepted OK", async function () {
 		await requestCore.accept(1,{from:fakeTrustedContract});
@@ -374,6 +384,11 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	it("escrow refund if request is Canceled Impossible", async function () {
 		await testRequestSynchroneSubContractLauncher.cancel(2,{from:payer});
 		await expectThrow(requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow}));
+	});
+
+	it("refund if escrow paused Impossible", async function () {
+		await requestSynchroneExtensionEscrow.pause({from:admin});
+		await expectThrow( requestSynchroneExtensionEscrow.refundToPayer(2, {from:escrow}));
 	});
 
 	it("escrow refund if request is Accepted OK", async function () {

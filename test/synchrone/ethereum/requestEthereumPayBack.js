@@ -166,6 +166,11 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(r,arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
 	});
 
+	it("payback request Ethereum pause impossible", async function () {
+		await requestEthereum.pause({from:admin});
+		await expectThrow(requestEthereum.payback(1, {value:arbitraryAmount10percent, from:payee}));
+	});
+	
 	it("payback request not exist impossible", async function () {
 		await expectThrow(requestEthereum.payback(666, {value:arbitraryAmount, from:payee}));
 	});

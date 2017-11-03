@@ -167,6 +167,11 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(r,arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
+	it("pay request Ethereum pause impossible", async function () {
+		await requestEthereum.pause({from:admin});
+		await expectThrow(requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer}));
+	});
+
 	// it("impossible to pay if Core Deprecated", async function () {
 	// 	await requestCore.adminDeprecate({from:admin});
 	// 	await expectThrow(requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer}));
