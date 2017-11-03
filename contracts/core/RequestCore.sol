@@ -89,7 +89,6 @@ contract RequestCore is Administrable {
      */ 
     function accept(uint _requestId) 
         public
-        whenNotPaused
     {
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
@@ -103,7 +102,6 @@ contract RequestCore is Administrable {
      */ 
     function decline(uint _requestId)
         public
-        whenNotPaused
     {
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
@@ -117,7 +115,6 @@ contract RequestCore is Administrable {
      */ 
     function cancel(uint _requestId)
         public
-        whenNotPaused
     {
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender);
@@ -133,7 +130,6 @@ contract RequestCore is Administrable {
      */ 
     function payment(uint _requestId, uint _amount)
         public
-        whenNotPaused
     {   
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
@@ -150,7 +146,6 @@ contract RequestCore is Administrable {
      */ 
     function refund(uint _requestId, uint _amount)
         public
-        whenNotPaused
     {   
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
@@ -167,7 +162,6 @@ contract RequestCore is Administrable {
      */ 
     function addAdditional(uint _requestId, uint _amount)
         public
-        whenNotPaused
     {   
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
@@ -186,7 +180,6 @@ contract RequestCore is Administrable {
      */ 
     function addSubtract(uint _requestId, uint _amount)
         public
-        whenNotPaused
     {   
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender);

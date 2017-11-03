@@ -3,6 +3,7 @@ pragma solidity 0.4.18;
 import '../core/RequestCore.sol';
 import './extensions/RequestSynchroneInterface.sol';
 import '../base/math/SafeMath.sol';
+import '../base/lifecycle/Pausable.sol';
 
 /**
  * @title RequestEthereum
@@ -12,7 +13,7 @@ import '../base/math/SafeMath.sol';
  * @dev Requests can be created by the Payee with createRequest() or by the payer from a request signed offchain by the payee with createQuickRequest
  * @dev Requests can have 1 extension. it has to implement RequestSynchroneInterface and declared trusted on the Core
  */
-contract RequestEthereum {
+contract RequestEthereum is Pausable {
     using SafeMath for uint;
 
     // RequestCore object
@@ -50,6 +51,7 @@ contract RequestEthereum {
     function createRequest(address _payee, address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams)
         external
         condition(msg.sender==_payee || msg.sender==_payer)
+        whenNotPaused
         returns(uint)
     {
         uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountInitial, _extension);
@@ -83,6 +85,7 @@ contract RequestEthereum {
    function createQuickRequest(address _payee, address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams, uint _tips, uint8 v, bytes32 r, bytes32 s)
         external
         payable
+        whenNotPaused
         returns(uint)
     {
         require(msg.sender==_payer);
@@ -127,6 +130,7 @@ contract RequestEthereum {
      */
     function accept(uint _requestId) 
         external
+        whenNotPaused
         condition(isOnlyRequestExtension(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
         returns(bool)
     {
@@ -144,6 +148,7 @@ contract RequestEthereum {
      */
     function decline(uint _requestId)
         external
+        whenNotPaused
         condition(isOnlyRequestExtension(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
         returns(bool)
     {
@@ -175,6 +180,7 @@ contract RequestEthereum {
      */
     function payment(uint _requestId, uint _amount)
         external
+        whenNotPaused
         onlyRequestExtensions(_requestId)
         returns(bool)
     {
@@ -194,6 +200,7 @@ contract RequestEthereum {
      */
     function fundOrder(uint _requestId, address _recipient, uint _amount)
         external
+        whenNotPaused
         onlyRequestExtensions(_requestId)
         returns(bool)
     {
@@ -212,6 +219,7 @@ contract RequestEthereum {
      */
     function cancel(uint _requestId)
         external
+        whenNotPaused
         condition(isOnlyRequestExtension(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && (requestCore.getState(_requestId)==RequestCore.State.Created || requestCore.getState(_requestId)==RequestCore.State.Accepted)))
         returns(bool)
     {
@@ -249,6 +257,7 @@ contract RequestEthereum {
      */
     function pay(uint _requestId, uint _tips)
         external
+        whenNotPaused
         payable
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
         condition(msg.value >= _tips) // tips declare must be lower than amount sent
@@ -271,6 +280,7 @@ contract RequestEthereum {
      */
     function payback(uint _requestId)
         external
+        whenNotPaused
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
         onlyRequestPayee(_requestId)
         condition(msg.value <= requestCore.getAmountPaid(_requestId))
@@ -290,7 +300,8 @@ contract RequestEthereum {
      * @param _tips amount of discount in wei to declare 
      */
     function discount(uint _requestId, uint _amount)
-        public
+        external
+        whenNotPaused
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
         onlyRequestPayee(_requestId)
         condition(_amount.add(requestCore.getAmountPaid(_requestId)) <= requestCore.getAmountInitialAfterSubAdd(_requestId))

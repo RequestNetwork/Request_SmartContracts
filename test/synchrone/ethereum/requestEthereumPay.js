@@ -142,9 +142,29 @@ contract('RequestEthereum Pay', function(accounts) {
 	// ##################################################################################################
 	// ### Pay test unit #############################################################################
 	// ##################################################################################################
-	it("impossible to pay if Core Paused", async function () {
+	it("pay if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		await expectThrow(requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer}));
+		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer});
+
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"Payment","Event Payment is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new request wrong data : state");
+
+		var r = await requestEthereum.ethToWithdraw.call(payee);
+		assert.equal(r,arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
 	// it("impossible to pay if Core Deprecated", async function () {

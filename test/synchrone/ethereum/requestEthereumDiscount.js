@@ -102,9 +102,26 @@ contract('RequestEthereum Discount',  function(accounts) {
 	// ##################################################################################################
 	// ### Accept test unit #############################################################################
 	// ##################################################################################################
-	it("impossible to discount if Core Paused", async function () {
+	it("discount if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		await expectThrow(requestEthereum.discount(1, arbitraryAmount10percent, {from:payee}));
+		var r = await requestEthereum.discount(1,arbitraryAmount10percent, {from:payee});
+
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"AddSubtract","Event AddSubtract is missing after discount()");
+		assert.equal(l.data[0],1,"Event AddSubtract wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddSubtract wrong args amount");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],arbitraryAmount10percent,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],0,"new request wrong data : state");
 	});
 
 	it("discount request not exist impossible", async function () {

@@ -113,9 +113,24 @@ contract('RequestEthereum Accept',  function(accounts) {
 	// ##################################################################################################
 	// ### Accept test unit #############################################################################
 	// ##################################################################################################
-	it("impossible to accept if Core Paused", async function () {
+	it("accept if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		await expectThrow(requestEthereum.accept(1, {from:payer}));
+		var r = await requestEthereum.accept(1, {from:payer});
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"Accepted","Event Accepted is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new request wrong data : state");
 	});
 
 	it("accept request not exist impossible", async function () {
@@ -216,14 +231,9 @@ contract('RequestEthereum Accept',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchAccept(2);
-		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncher1.abi);
-		assert.equal(l.name,"LogTestAccept","Event LogTestAccept is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogTestAccept wrong args requestId");
-		assert.equal(l.data[1],21,"Event LogTestAccept wrong args ID");
-
-		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after accept()");
 		assert.equal(l.data[0],2,"Event Accepted wrong args requestId");
 
@@ -244,14 +254,9 @@ contract('RequestEthereum Accept',  function(accounts) {
 		await requestEthereum.accept(2, {from:payer});
 
 		var r = await fakeExtentionLauncher1.launchAccept(2);
-		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncher1.abi);
-		assert.equal(l.name,"LogTestAccept","Event LogTestAccept is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogTestAccept wrong args requestId");
-		assert.equal(l.data[1],21,"Event LogTestAccept wrong args ID");
-
-		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after accept()");
 		assert.equal(l.data[0],2,"Event Accepted wrong args requestId");
 
@@ -272,14 +277,9 @@ contract('RequestEthereum Accept',  function(accounts) {
 		await requestEthereum.decline(2, {from:payer});
 
 		var r = await fakeExtentionLauncher1.launchAccept(2);
-		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncher1.abi);
-		assert.equal(l.name,"LogTestAccept","Event LogTestAccept is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogTestAccept wrong args requestId");
-		assert.equal(l.data[1],21,"Event LogTestAccept wrong args ID");
-
-		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after accept()");
 		assert.equal(l.data[0],2,"Event Accepted wrong args requestId");
 
@@ -300,14 +300,9 @@ contract('RequestEthereum Accept',  function(accounts) {
 		await requestEthereum.cancel(2, {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchAccept(2);
-		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncher1.abi);
-		assert.equal(l.name,"LogTestAccept","Event LogTestAccept is missing after createRequest()");
-		assert.equal(l.data[0],2,"Event LogTestAccept wrong args requestId");
-		assert.equal(l.data[1],21,"Event LogTestAccept wrong args ID");
-
-		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after accept()");
 		assert.equal(l.data[0],2,"Event Accepted wrong args requestId");
 

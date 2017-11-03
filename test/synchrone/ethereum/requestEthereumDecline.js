@@ -113,9 +113,24 @@ contract('RequestEthereum Decline',  function(accounts) {
 	// ##################################################################################################
 	// ### Decline test unit #############################################################################
 	// ##################################################################################################
-	it("impossible to decline if Core Paused", async function () {
+	it("decline if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		await expectThrow(requestEthereum.decline(1, {from:payer}));
+		var r = await requestEthereum.decline(1, {from:payer});
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"Declined","Event Declined is missing after createRequest()");
+		assert.equal(l.data[0],1,"Event Declined wrong args requestId");
+
+		var newReq = await requestCore.requests.call(1);
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],2,"new request wrong data : state");
 	});
 
 	it("decline request not exist impossible", async function () {
@@ -217,8 +232,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		newRequest = await requestEthereum.createRequest(payee, payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchDecline(2);
-		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Declined","Event Declined is missing after decline()");
 		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
@@ -239,8 +254,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		await requestEthereum.decline(2, {from:payer});
 
 		var r = await fakeExtentionLauncher1.launchDecline(2);
-		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Declined","Event Declined is missing after decline()");
 		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
@@ -261,8 +276,8 @@ contract('RequestEthereum Decline',  function(accounts) {
 		await requestEthereum.cancel(2, {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchDecline(2);
-		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Declined","Event Declined is missing after decline()");
 		assert.equal(l.data[0],2,"Event Declined wrong args requestId");
 
