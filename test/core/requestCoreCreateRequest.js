@@ -1,28 +1,11 @@
 var config = require("../config.js");
+var utils = require("../utils.js");
 if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 	return;
 }
-
 var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
-
 var BigNumber = require('bignumber.js');
-
-var expectThrow = async function(promise) {
-  try {
-    await promise;
-  } catch (error) {
-    const invalidOpcode = error.message.search('invalid opcode') >= 0;
-    const invalidJump = error.message.search('invalid JUMP') >= 0;
-    const outOfGas = error.message.search('out of gas') >= 0;
-    assert(
-      invalidOpcode || invalidJump || outOfGas,
-      "Expected throw, got '" + error + "' instead",
-    );
-    return;
-  }
-  assert.fail('Expected throw not received');
-};
 
 
 contract('RequestCore Create Request', function(accounts) {
@@ -49,7 +32,7 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request from non trustable sender (contract trusted) impossible
 	it("request from non trustable sender (contract trusted) impossible", async function () {
 		var requestCore = await RequestCore.new();
-		await expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, {from:fakeContract}));
+		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, {from:fakeContract}));
 	});
 
 	// impossible to createRequest if Core Paused
@@ -58,7 +41,7 @@ contract('RequestCore Create Request', function(accounts) {
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 		await requestCore.pause({from:admin});
 
-		await expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, {from:fakeContract}));
+		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, {from:fakeContract}));
 	});
 
 	// new request _creator==0 impossible
@@ -70,10 +53,10 @@ contract('RequestCore Create Request', function(accounts) {
 
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
-		await expectThrow(requestCore.createRequest(0, payee, payer, arbitraryAmount, 0, {from:fakeContract}));
-		await expectThrow(requestCore.createRequest(creator, 0, payer, arbitraryAmount, 0, {from:fakeContract}));
-		await expectThrow(requestCore.createRequest(creator, payee, 0, arbitraryAmount, 0, {from:fakeContract}));
-		await expectThrow(requestCore.createRequest(creator, payee, payee, arbitraryAmount, 0, {from:fakeContract}));
+		await utils.expectThrow(requestCore.createRequest(0, payee, payer, arbitraryAmount, 0, {from:fakeContract}));
+		await utils.expectThrow(requestCore.createRequest(creator, 0, payer, arbitraryAmount, 0, {from:fakeContract}));
+		await utils.expectThrow(requestCore.createRequest(creator, payee, 0, arbitraryAmount, 0, {from:fakeContract}));
+		await utils.expectThrow(requestCore.createRequest(creator, payee, payee, arbitraryAmount, 0, {from:fakeContract}));
 	});
 
 
@@ -85,27 +68,25 @@ contract('RequestCore Create Request', function(accounts) {
 
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
-		await expectThrow(requestCore.createRequest(creator, payee, payer, 0, 0, {from:fakeContract}));
+		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, 0, 0, {from:fakeContract}));
 		// problem here : how to test it ? /!\
-		// await expectThrow(requestCore.createRequest(payee, payee, payer, -1, [], {from:fakeContract}));
-		await expectThrow(requestCore.createRequest(creator, payee, payer, new BigNumber(2).pow(256), 0, {from:fakeContract}));
+		// await utils.expectThrow(requestCore.createRequest(payee, payee, payer, -1, [], {from:fakeContract}));
+		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, new BigNumber(2).pow(256), 0, {from:fakeContract}));
 	});
 
 
 	// new request without extensions
 	it("new request without extensions", async function () {
 		var requestCore = await RequestCore.new();
-
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
 		var r = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, {from:fakeContract});
-
 		assert.equal(r.logs[0].event,"Created","Event Created is missing after createRequest()");
-		assert.equal(r.logs[0].args.requestId,"1","Event Created wrong args requestId");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(r.logs[0].args.payee,payee,"Event Created wrong args payee");
 		assert.equal(r.logs[0].args.payer,payer,"Event Created wrong args payer");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],creator,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -116,7 +97,7 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],0,"new request wrong data : state");
 
-		var newReqExtension = await requestCore.getExtension.call(1);
+		var newReqExtension = await requestCore.getExtension.call(utils.getHashRequest(1));
 		assert.equal(newReqExtension,0,"new request wrong data : Extension[0]");
 	});
 
@@ -130,11 +111,11 @@ contract('RequestCore Create Request', function(accounts) {
 		var r = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, fakeExtention1, {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Created","Event Created is missing after createRequest()");
-		assert.equal(r.logs[0].args.requestId,"1","Event Created wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(r.logs[0].args.payee,payee,"Event Created wrong args payee");
 		assert.equal(r.logs[0].args.payer,payer,"Event Created wrong args payer");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],creator,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -146,7 +127,7 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[8],0,"new request wrong data : state");
 
 
-		var newReqExtension = await requestCore.getExtension.call(1);
+		var newReqExtension = await requestCore.getExtension.call(utils.getHashRequest(1));
 		assert.equal(newReqExtension,fakeExtention1,"new request wrong data : Extension");
 	});
 
@@ -157,7 +138,7 @@ contract('RequestCore Create Request', function(accounts) {
 
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
-		await expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, fakeExtention1, {from:fakeContract}));
+		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, fakeExtention1, {from:fakeContract}));
 	});
 
 });

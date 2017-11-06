@@ -15,6 +15,9 @@ import '../base/math/SafeMath.sol';
  * @dev Request Network will develop one subcontracts per currency and anyone can creates its own subcontracts.
  */
 contract RequestCore is Administrable {
+    // current version of the core
+    uint public constant VERSION = 1;
+
     using SafeMath for uint;
 
     enum State { Created, Accepted, Declined, Canceled }
@@ -36,19 +39,19 @@ contract RequestCore is Administrable {
     uint public numRequests; 
     
     // mapping of all the Requests
-    mapping(uint => Request) public requests;
+    mapping(bytes32 => Request) public requests;
 
     /*
      *  Events 
      */
-    event Created(uint requestId, address payee, address payer);
-    event Accepted(uint requestId);
-    event Declined(uint requestId);
-    event Canceled(uint requestId);
-    event Payment(uint requestId, uint amountPaid);
-    event Refunded(uint requestId, uint amountRefunded);
-    event AddAdditional(uint requestId, uint amountAdded);
-    event AddSubtract(uint requestId, uint amountSubtracted);
+    event Created(bytes32 requestId, address payee, address payer);
+    event Accepted(bytes32 requestId);
+    event Declined(bytes32 requestId);
+    event Canceled(bytes32 requestId);
+    event Payment(bytes32 requestId, uint amountPaid);
+    event Refunded(bytes32 requestId, uint amountRefunded);
+    event AddAdditional(bytes32 requestId, uint amountAdded);
+    event AddSubtract(bytes32 requestId, uint amountSubtracted);
 
     /*
      *  Constructor 
@@ -73,21 +76,24 @@ contract RequestCore is Administrable {
         whenNotPaused 
         isTrustedContract(msg.sender)
         isTrustedExtension(_extension)
-        returns (uint) 
+        returns (bytes32 requestId) 
     {
         require(isParametersValidForFutureRequest(_creator, _payee, _payer, _amountInitial));
-        numRequests = numRequests.add(1); 
-        requests[numRequests] = Request(_creator, _payee, _payer, _amountInitial, msg.sender, 0, 0, 0, State.Created, _extension); 
 
-        Created(numRequests, _payee, _payer);
-        return numRequests;
+        numRequests = numRequests.add(1);
+        requestId = keccak256(numRequests,VERSION);
+
+        requests[requestId] = Request(_creator, _payee, _payer, _amountInitial, msg.sender, 0, 0, 0, State.Created, _extension); 
+
+        Created(requestId, _payee, _payer);
+        return requestId;
     }
 
     /*
      * @dev Function used by Subcontracts to accept a request in the Core. A request accepted is recognized by the payer as legit
      * @param _requestId Request id
      */ 
-    function accept(uint _requestId) 
+    function accept(bytes32 _requestId) 
         public
     {
         Request storage r = requests[_requestId];
@@ -100,7 +106,7 @@ contract RequestCore is Administrable {
      * @dev Function used by Subcontracts to decline a request in the Core. A request declined is recognized by the payer as not legit and might be spam
      * @param _requestId Request id
      */ 
-    function decline(uint _requestId)
+    function decline(bytes32 _requestId)
         public
     {
         Request storage r = requests[_requestId];
@@ -113,7 +119,7 @@ contract RequestCore is Administrable {
      * @dev Function used by Subcontracts to cancel a request in the Core. Several reasons can lead to cancel a reason, see request life cycle for more info.
      * @param _requestId Request id
      */ 
-    function cancel(uint _requestId)
+    function cancel(bytes32 _requestId)
         public
     {
         Request storage r = requests[_requestId];
@@ -128,7 +134,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @param _amount amount paid
      */ 
-    function payment(uint _requestId, uint _amount)
+    function payment(bytes32 _requestId, uint _amount)
         public
     {   
         Request storage r = requests[_requestId];
@@ -144,7 +150,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @param _amount amount refunded
      */ 
-    function refund(uint _requestId, uint _amount)
+    function refund(bytes32 _requestId, uint _amount)
         public
     {   
         Request storage r = requests[_requestId];
@@ -160,7 +166,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @param _amount additional amount
      */ 
-    function addAdditional(uint _requestId, uint _amount)
+    function addAdditional(bytes32 _requestId, uint _amount)
         public
     {   
         Request storage r = requests[_requestId];
@@ -178,7 +184,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @param _amount subtract amount
      */ 
-    function addSubtract(uint _requestId, uint _amount)
+    function addSubtract(bytes32 _requestId, uint _amount)
         public
     {   
         Request storage r = requests[_requestId];
@@ -198,7 +204,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @return payee address
      */ 
-    function getPayee(uint _requestId)
+    function getPayee(bytes32 _requestId)
         public
         constant
         returns(address)
@@ -211,7 +217,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @return payer address
      */ 
-    function getPayer(uint _requestId)
+    function getPayer(bytes32 _requestId)
         public
         constant
         returns(address)
@@ -224,7 +230,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @return amount initial
      */     
-    function getAmountInitial(uint _requestId)
+    function getAmountInitial(bytes32 _requestId)
         public
         constant
         returns(uint)
@@ -237,7 +243,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @return amount initial plus additional and minus subtract
      */ 
-    function getAmountInitialAfterSubAdd(uint _requestId)
+    function getAmountInitialAfterSubAdd(bytes32 _requestId)
         public
         constant
         returns(uint)
@@ -250,7 +256,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @return subContract address
      */
-    function getSubContract(uint _requestId)
+    function getSubContract(bytes32 _requestId)
         public
         constant
         returns(address)
@@ -263,7 +269,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @return amount paid
      */     
-    function getAmountPaid(uint _requestId)
+    function getAmountPaid(bytes32 _requestId)
         public
         constant
         returns(uint)
@@ -276,7 +282,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @return amount additional
      */ 
-    function getAmountAdditional(uint _requestId)
+    function getAmountAdditional(bytes32 _requestId)
         public
         constant
         returns(uint)
@@ -289,7 +295,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @return amount subtract
      */ 
-    function getAmountSubtract(uint _requestId)
+    function getAmountSubtract(bytes32 _requestId)
         public
         constant
         returns(uint)
@@ -302,7 +308,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @return state
      */ 
-    function getState(uint _requestId)
+    function getState(bytes32 _requestId)
         public
         constant
         returns(State)
@@ -315,7 +321,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @return address
      */
-    function getExtension(uint _requestId)
+    function getExtension(bytes32 _requestId)
         public
         constant
         returns(address)

@@ -1,4 +1,4 @@
-var config = require("../../config.js");
+var config = require("../../config.js"); var utils = require("../../utils.js");
 if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 	return;
 }
@@ -34,23 +34,6 @@ var getEventFromReceipt = function(log, abi) {
 	}
 	return null;
 }
-
-var expectThrow = async function(promise) {
-  try {
-    await promise;
-  } catch (error) {
-    const invalidOpcode = error.message.search('invalid opcode') >= 0;
-    const invalidJump = error.message.search('invalid JUMP') >= 0;
-    const outOfGas = error.message.search('out of gas') >= 0;
-    assert(
-      invalidOpcode || invalidJump || outOfGas,
-      "Expected throw, got '" + error + "' instead",
-    );
-    return;
-  }
-  assert.fail('Expected throw not received');
-};
-
 
 contract('RequestEthereum Pay', function(accounts) {
 	var admin = accounts[0];
@@ -136,7 +119,7 @@ contract('RequestEthereum Pay', function(accounts) {
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncherFundOrderFalseAndPaymentFalse3.address, {from:admin});
 
 		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
-		await requestEthereum.accept(1, {from:payer});
+		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
     });
 
 	// ##################################################################################################
@@ -144,15 +127,15 @@ contract('RequestEthereum Pay', function(accounts) {
 	// ##################################################################################################
 	it("pay if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(utils.getHashRequest(1),0, {value:arbitraryAmount, from:payer});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -169,47 +152,47 @@ contract('RequestEthereum Pay', function(accounts) {
 
 	it("pay request Ethereum pause impossible", async function () {
 		await requestEthereum.pause({from:admin});
-		await expectThrow(requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer}));
+		await utils.expectThrow(requestEthereum.pay(utils.getHashRequest(1),0, {value:arbitraryAmount, from:payer}));
 	});
 
 	// it("impossible to pay if Core Deprecated", async function () {
 	// 	await requestCore.adminDeprecate({from:admin});
-	// 	await expectThrow(requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer}));
+	// 	await utils.expectThrow(requestEthereum.pay(utils.getHashRequest(1),0, {value:arbitraryAmount, from:payer}));
 	// });
 
 	it("pay request not exist impossible", async function () {
-		await expectThrow(requestEthereum.pay(666,0, {value:arbitraryAmount, from:payer}));
+		await utils.expectThrow(requestEthereum.pay(666,0, {value:arbitraryAmount, from:payer}));
 	});
 
 
 
 	it("pay request just created Impossible", async function () {
 		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
-		await expectThrow(requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer}));
+		await utils.expectThrow(requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer}));
 	});
 
 	it("pay request declined impossible", async function () {
 		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
-		await requestEthereum.decline(2, {from:payer});
-		await expectThrow(requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer}));
+		await requestEthereum.decline(utils.getHashRequest(2), {from:payer});
+		await utils.expectThrow(requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer}));
 	});
 	it("pay request canceled impossible", async function () {
 		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
-		await requestEthereum.cancel(2, {from:payee});
-		await expectThrow(requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer}));
+		await requestEthereum.cancel(utils.getHashRequest(2), {from:payee});
+		await utils.expectThrow(requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer}));
 	});
 
 
 	it("pay request from payee OK", async function () {
-		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount, from:payee});
+		var r = await requestEthereum.pay(utils.getHashRequest(1),0, {value:arbitraryAmount, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -225,15 +208,15 @@ contract('RequestEthereum Pay', function(accounts) {
 	});
 
 	it("pay request from a random guy OK", async function () {
-		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount, from:otherguy});
+		var r = await requestEthereum.pay(utils.getHashRequest(1),0, {value:arbitraryAmount, from:otherguy});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -249,15 +232,15 @@ contract('RequestEthereum Pay', function(accounts) {
 	});
 
 	it("pay request created OK - without extension", async function () {
-		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(utils.getHashRequest(1),0, {value:arbitraryAmount, from:payer});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -274,31 +257,31 @@ contract('RequestEthereum Pay', function(accounts) {
 
 	it("pay request accepted OK - with 1 extension, continue: [{true,true}]", async function () {
 		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionContinue1.address, [], {from:payee});
-		await requestEthereum.accept(2, {from:payer});
+		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
 
-		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestPayment","Event LogTestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogTestPayment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestPayment wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestPayment wrong args ID");
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
-		assert.equal(l.data[0],2,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(2),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		l = getEventFromReceipt(r.receipt.logs[2], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args ID");
 		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
-		var newReq = await requestCore.requests.call(2);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -315,18 +298,18 @@ contract('RequestEthereum Pay', function(accounts) {
 
 	it("pay request accepted OK - with 1 extension, continue: [{false,true}]", async function () {
 		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncherPaymentFalse1.address, [], {from:payee});
-		await requestEthereum.accept(2, {from:payer});
+		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
 
-		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherPaymentFalse1.abi);
 		assert.equal(l.name,"LogTestPayment","Event LogTestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogTestPayment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestPayment wrong args requestId");
 		assert.equal(l.data[1],21,"Event LogTestPayment wrong args ID");
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
-		var newReq = await requestCore.requests.call(2);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -343,30 +326,30 @@ contract('RequestEthereum Pay', function(accounts) {
 
 	it("pay request accepted OK - with 1 extension, continue: [{true,false}]", async function () {
 		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncherFundOrderFalse1.address, [], {from:payee});
-		await requestEthereum.accept(2, {from:payer});
+		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
 
-		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalse1.abi);
 		assert.equal(l.name,"LogTestPayment","Event LogTestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogTestPayment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestPayment wrong args requestId");
 		assert.equal(l.data[1],22,"Event LogTestPayment wrong args ID");
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
-		assert.equal(l.data[0],2,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(2),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], fakeExtentionLauncherFundOrderFalse1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogTestFundOrder wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],22,"Event LogTestFundOrder wrong args ID");
 		assert.equal(l.data[2].toLowerCase(),payee,"Event LogTestFundOrder wrong args recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args amount");
 
-		var newReq = await requestCore.requests.call(2);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -383,18 +366,18 @@ contract('RequestEthereum Pay', function(accounts) {
 
 		it("pay request accepted OK - with 1 extension, continue: [{false,false}]", async function () {
 		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.address, [], {from:payee});
-		await requestEthereum.accept(2, {from:payer});
+		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
 
-		var r = await requestEthereum.pay(2,0, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalseAndPaymentFalse1.abi);
 		assert.equal(l.name,"LogTestPayment","Event LogTestPayment is missing after pay()");
-		assert.equal(l.data[0],2,"Event LogTestPayment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestPayment wrong args requestId");
 		assert.equal(l.data[1],23,"Event LogTestPayment wrong args ID");
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestRefund wrong args amount");
 
-		var newReq = await requestCore.requests.call(2);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -414,15 +397,15 @@ contract('RequestEthereum Pay', function(accounts) {
 	// ##################################################################################################
 
 	it("msg.value == 0 OK", async function () {
-		var r = await requestEthereum.pay(1,0, {value:0, from:payee});
+		var r = await requestEthereum.pay(utils.getHashRequest(1),0, {value:0, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],0,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -438,15 +421,15 @@ contract('RequestEthereum Pay', function(accounts) {
 	});
 
 	it("3 pay request ", async function () {
-		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount3, from:payee});
+		var r = await requestEthereum.pay(utils.getHashRequest(1),0, {value:arbitraryAmount3, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount3,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -461,15 +444,15 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(r,arbitraryAmount3,"new request wrong data : amount to withdraw payee");
 
 		// second
-		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount2, from:payee});
+		var r = await requestEthereum.pay(utils.getHashRequest(1),0, {value:arbitraryAmount2, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount2,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -484,15 +467,15 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(r,arbitraryAmount3+arbitraryAmount2,"new request wrong data : amount to withdraw payee");
 
 		// third
-		var r = await requestEthereum.pay(1,0, {value:arbitraryAmount, from:payee});
+		var r = await requestEthereum.pay(utils.getHashRequest(1),0, {value:arbitraryAmount, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -509,20 +492,20 @@ contract('RequestEthereum Pay', function(accounts) {
 
 
 	it("pay with tips OK", async function () {
-		var r = await requestEthereum.pay(1,arbitraryTips, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.pay(utils.getHashRequest(1),arbitraryTips, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after pay()");
-		assert.equal(l.data[0],1,"Event AddAdditional wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
 		assert.equal(l.data[1],arbitraryTips,"Event AddAdditional wrong args amountAdditional");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -538,32 +521,32 @@ contract('RequestEthereum Pay', function(accounts) {
 	});
 
 	it("pay with more tips than msg.value Impossible", async function () {
-		var r = await expectThrow(requestEthereum.pay(1,arbitraryAmount, {value:arbitraryTips, from:payer}));
+		var r = await utils.expectThrow(requestEthereum.pay(utils.getHashRequest(1),arbitraryAmount, {value:arbitraryTips, from:payer}));
 	});
 
 	it("pay more than amountExpected (without tips) Impossible", async function () {
-		var r = await expectThrow(requestEthereum.pay(1,0, {value:arbitraryAmount+1, from:payer}));
+		var r = await utils.expectThrow(requestEthereum.pay(utils.getHashRequest(1),0, {value:arbitraryAmount+1, from:payer}));
 	});
 
 	it("pay more than amountExpected (without tips but still to much) Impossible", async function () {
-		var r = await expectThrow(requestEthereum.pay(1,1, {value:arbitraryAmount+2, from:payer}));
+		var r = await utils.expectThrow(requestEthereum.pay(utils.getHashRequest(1),1, {value:arbitraryAmount+2, from:payer}));
 	});
 
 	it("pay more than amountExpected (with tips that make the payment under expected) OK", async function () {
-		var r = await requestEthereum.pay(1,arbitraryTips, {value:arbitraryAmount+1, from:payer});
+		var r = await requestEthereum.pay(utils.getHashRequest(1),arbitraryTips, {value:arbitraryAmount+1, from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after pay()");
-		assert.equal(l.data[0],1,"Event AddAdditional wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
 		assert.equal(l.data[1],arbitraryTips,"Event AddAdditional wrong args amountAdditional");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after pay()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount+1,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -581,7 +564,7 @@ contract('RequestEthereum Pay', function(accounts) {
 
 	// turn down the node
 	// it("msg.value >= 2^256 Impossible", async function () {
-	// 	var r = await expectThrow(requestEthereum.pay(1,0, {value:new BigNumber(2).pow(256), from:payee}));
+	// 	var r = await utils.expectThrow(requestEthereum.pay(utils.getHashRequest(1),0, {value:new BigNumber(2).pow(256), from:payee}));
 	// });
 
 });

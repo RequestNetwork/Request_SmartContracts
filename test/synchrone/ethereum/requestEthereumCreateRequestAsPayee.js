@@ -1,4 +1,4 @@
-var config = require("../../config.js");
+var config = require("../../config.js"); var utils = require("../../utils.js");
 if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 	return;
 }
@@ -35,23 +35,6 @@ var getEventFromReceipt = function(log, abi) {
 	return null;
 }
 
-var expectThrow = async function(promise) {
-  try {
-    await promise;
-  } catch (error) {
-    const invalidOpcode = error.message.search('invalid opcode') >= 0;
-    const invalidJump = error.message.search('invalid JUMP') >= 0;
-    const outOfGas = error.message.search('out of gas') >= 0;
-    assert(
-      invalidOpcode || invalidJump || outOfGas,
-      "Expected throw, got '" + error + "' instead",
-    );
-    return;
-  }
-  assert.fail('Expected throw not received');
-};
-
-
 contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 	var admin = accounts[0];
 	var otherguy = accounts[1];
@@ -87,21 +70,21 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 
 	it("basic check on payee payer creator", async function () {
 		// new request payer==0 impossible
-		await expectThrow(requestEthereum.createRequestAsPayee(0, arbitraryAmount, 0, [], {from:payee}));
+		await utils.expectThrow(requestEthereum.createRequestAsPayee(0, arbitraryAmount, 0, [], {from:payee}));
 		// new request payee==payer impossible
-		await expectThrow(requestEthereum.createRequestAsPayee(payee, arbitraryAmount, 0, [], {from:payee}));
+		await utils.expectThrow(requestEthereum.createRequestAsPayee(payee, arbitraryAmount, 0, [], {from:payee}));
 	});
 
 	it("basic check on amountExpected", async function () {
 		// new request _amountExpected == 0 impossible
-		await expectThrow(requestEthereum.createRequestAsPayee(payer, 0, 0, [], {from:payee}));
+		await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, 0, 0, [], {from:payee}));
 		// new request _amountExpected >= 2^256 impossible
-		await expectThrow(requestEthereum.createRequestAsPayee(payer, new BigNumber(2).pow(256), 0, [], {from:payee}));
+		await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, new BigNumber(2).pow(256), 0, [], {from:payee}));
 	});
 
 	it("impossible to createRequest if Core Paused", async function () {
 		await requestCore.pause({from:admin});
-		await expectThrow(requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee}));
+		await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee}));
 	});
 
 	it("new request msg.sender==payee without extensions OK", async function () {
@@ -109,11 +92,11 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
-		var r = await requestCore.requests.call(1);
+		var r = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(r[0],payee,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -124,7 +107,7 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 		assert.equal(r[7],0,"new request wrong data : amountSubtract");
 		assert.equal(r[8],0,"new request wrong data : state");
 
-		var e = await requestCore.getExtension.call(1);
+		var e = await requestCore.getExtension.call(utils.getHashRequest(1));
 		assert.equal(e,0,"new request wrong data : extension1");
 	});
 
@@ -133,19 +116,19 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], fakeExtention1.abi);
 		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event LogTestCreateRequest wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event LogTestCreateRequest wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestCreateRequest wrong args ID");
 		assert.equal(l.data[2][0],0,"Event LogTestCreateRequest wrong args params");
 		assert.equal(l.data[2][1],0,"Event LogTestCreateRequest wrong args params");
 		assert.equal(l.data[2][2],0,"Event LogTestCreateRequest wrong args params");
 
-		var r = await requestCore.requests.call(1);
+		var r = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(r[0],payee,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -156,7 +139,7 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 		assert.equal(r[7],0,"new request wrong data : amountSubtract");
 		assert.equal(r[8],0,"new request wrong data : state");
 
-		var e = await requestCore.getExtension.call(1);
+		var e = await requestCore.getExtension.call(utils.getHashRequest(1));
 		assert.equal(e,fakeExtention1.address,"new request wrong data : extension1");
 	});
 
@@ -166,19 +149,19 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Payment wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Payment wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], fakeExtention1.abi);
 		assert.equal(l.name,"LogTestCreateRequest","Event LogTestCreateRequest is missing from extension after createRequestAsPayee()");
-		assert.equal(l.data[0],1,"Event LogTestCreateRequest wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event LogTestCreateRequest wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestCreateRequest wrong args ID");
 		assert.equal(l.data[2][0].toLowerCase(),otherguy+"000000000000000000000000","Event LogTestCreateRequest wrong args params");
 		assert.equal(l.data[2][1].toLowerCase(),payee+"000000000000000000000000","Event LogTestCreateRequest wrong args params");
 		assert.equal(l.data[2][2],"0x75bcd15000000000000000000000000000000000000000000000000000000000","Event LogTestCreateRequest wrong args params");
 
-		var r = await requestCore.requests.call(1);
+		var r = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(r[0],payee,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -189,12 +172,12 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 		assert.equal(r[7],0,"new request wrong data : amountSubtract");
 		assert.equal(r[8],0,"new request wrong data : state");
 
-		var e = await requestCore.getExtension.call(1);
+		var e = await requestCore.getExtension.call(utils.getHashRequest(1));
 		assert.equal(e,fakeExtention1.address,"new request wrong data : extension1");
 	});
 
 	it("new request with 1 non trustable extension impossible", async function () {
-		var r = await expectThrow(requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtention4Untrusted, [otherguy,payee,123456789], {from:payee}));
+		var r = await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtention4Untrusted, [otherguy,payee,123456789], {from:payee}));
 	});
 });
 

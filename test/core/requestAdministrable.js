@@ -1,4 +1,5 @@
 var config = require("../config.js");
+var utils = require("../utils.js");
 if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 	return;
 }
@@ -31,23 +32,6 @@ var Administrable = artifacts.require("./core/Administrable.sol");
 var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 
-var expectThrow = async function(promise) {
-  try {
-    await promise;
-  } catch (error) {
-    const invalidOpcode = error.message.search('invalid opcode') >= 0;
-    const invalidJump = error.message.search('invalid JUMP') >= 0;
-    const outOfGas = error.message.search('out of gas') >= 0;
-    assert(
-      invalidOpcode || invalidJump || outOfGas,
-      "Expected throw, got '" + error + "' instead",
-    );
-    return;
-  }
-  assert.fail('Expected throw not received');
-};
-
-
 contract('RequestCore Administrative part', function(accounts) {
 	var admin = accounts[0];
 	var otherguy = accounts[1];
@@ -72,13 +56,13 @@ contract('RequestCore Administrative part', function(accounts) {
 	// right to resume, pause
 	it("Core cannot be pause by someone else than admin", async function() {
 		var requestCore = await RequestCore.new();
-		await expectThrow(requestCore.pause({from:otherguy}));
+		await utils.expectThrow(requestCore.pause({from:otherguy}));
 		assert.equal(await requestCore.paused.call(),false,"Core must remain not Paused");
 	});
 	it("Core cannot be unpause by someone else than admin", async function() {
 		var requestCore = await RequestCore.new();
 		var r = await requestCore.pause({from:admin});
-		await expectThrow(requestCore.unpause({from:otherguy}));
+		await utils.expectThrow(requestCore.unpause({from:otherguy}));
 		assert.equal(await requestCore.paused.call(),true,"Core must remain Paused");
 	});
 
@@ -137,27 +121,27 @@ contract('RequestCore Administrative part', function(accounts) {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
 
-		await expectThrow(requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:otherguy}));
+		await utils.expectThrow(requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:otherguy}));
 	});
 	it("adminAddTrustedExtension can be done only by admin", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
 
-		await expectThrow(requestCore.adminAddTrustedExtension(requestEthereum.address, {from:otherguy}));
+		await utils.expectThrow(requestCore.adminAddTrustedExtension(requestEthereum.address, {from:otherguy}));
 	});
 	it("adminRemoveTrustedSubContract can be done only by admin", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
 
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
-		await expectThrow(requestCore.adminRemoveTrustedSubContract(requestEthereum.address, {from:otherguy}));
+		await utils.expectThrow(requestCore.adminRemoveTrustedSubContract(requestEthereum.address, {from:otherguy}));
 	});
 	it("adminRemoveExtension can be done only by admin", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
 
 		await requestCore.adminAddTrustedExtension(requestEthereum.address, {from:admin});
-		await expectThrow(requestCore.adminRemoveExtension(requestEthereum.address, {from:otherguy}));
+		await utils.expectThrow(requestCore.adminRemoveExtension(requestEthereum.address, {from:otherguy}));
 	});
 
 });

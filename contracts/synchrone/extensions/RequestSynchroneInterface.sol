@@ -4,59 +4,59 @@ import '../../base/lifecycle/Pausable.sol';
 
 contract RequestSynchroneInterface is Pausable {
     
-    function createRequest(uint _requestId, bytes32[9] _params) public returns(bool);
+    function createRequest(bytes32 _requestId, bytes32[9] _params) public returns(bool);
 
     // accept request
-    function accept(uint _requestId) public returns(bool)
+    function accept(bytes32 _requestId) public returns(bool)
     {
         // nothing to do
         return true;
     } 
 
     // decline request
-    function decline(uint _requestId) public returns(bool)
+    function decline(bytes32 _requestId) public returns(bool)
     {
         // nothing to do
         return true;
     } 
 
     // cancel request
-    function cancel(uint _requestId) public returns(bool)
+    function cancel(bytes32 _requestId) public returns(bool)
     {
         // nothing to do
         return true;
     } 
  
     // send fund somewhere
-    function fundOrder(uint _requestId, address _recipient, uint _amount) public returns(bool)
+    function fundOrder(bytes32 _requestId, address _recipient, uint _amount) public returns(bool)
     {
         // nothing to do
         return true;
     } 
 
     // declare a payment
-    function payment(uint _requestId, uint _amount) public returns(bool)
+    function payment(bytes32 _requestId, uint _amount) public returns(bool)
     {
         // nothing to do
         return true;
     } 
 
     // declare a refund
-    function refund(uint _requestId, uint _amount) public returns(bool)
+    function refund(bytes32 _requestId, uint _amount) public returns(bool)
     {
         // nothing to do
         return true;
     } 
 
     // declare an additional
-    function addAdditional(uint _requestId, uint _amount) public returns(bool)
+    function addAdditional(bytes32 _requestId, uint _amount) public returns(bool)
     {
         // nothing to do
         return true;
     } 
 
     // declare a subract
-    function addSubtract(uint _requestId, uint _amount) public returns(bool)
+    function addSubtract(bytes32 _requestId, uint _amount) public returns(bool)
     {
         // nothing to do
         return true;

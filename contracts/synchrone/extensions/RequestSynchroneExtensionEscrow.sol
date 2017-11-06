@@ -18,11 +18,11 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		uint amountPaid;
 		uint amountRefunded;
 	}
-	mapping(uint => RequestEscrow) public escrows;
+	mapping(bytes32 => RequestEscrow) public escrows;
 
-	event EscrowPayment(uint requestId, uint amount);
-	event EscrowReleaseRequest(uint requestId);
-	event EscrowRefundRequest(uint requestId);
+	event EscrowPayment(bytes32 requestId, uint amount);
+	event EscrowReleaseRequest(bytes32 requestId);
+	event EscrowRefundRequest(bytes32 requestId);
 
 	// address of the contract of the request system
 	RequestCore public requestCore;
@@ -34,7 +34,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		requestCore = RequestCore(_requestCoreAddress);
 	}
 
-	function createRequest(uint _requestId, bytes32[9] _params)
+	function createRequest(bytes32 _requestId, bytes32[9] _params)
 		public
 		whenNotPaused
 		isSubContractTrusted(msg.sender)
@@ -45,7 +45,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		return true;
 	}
 
-	function payment(uint _requestId, uint _amount)
+	function payment(bytes32 _requestId, uint _amount)
 		public
 		whenNotPaused
 		isSubContractRight(_requestId)
@@ -62,7 +62,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	}
 
 	// cancel request
-	function cancel(uint _requestId) 
+	function cancel(bytes32 _requestId) 
 		public
 		whenNotPaused
 		isSubContractRight(_requestId)
@@ -73,7 +73,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 		// Escrow Function
 	// escrow can release the payment to the seller
-	function releaseToPayee(uint _requestId)
+	function releaseToPayee(bytes32 _requestId)
 		external
 		whenNotPaused
 		onlyRequestEscrowOrPayer(_requestId)
@@ -93,7 +93,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	}
 
 	// escrow can refund the payment to the âyer
-	function refundToPayer(uint _requestId)
+	function refundToPayer(bytes32 _requestId)
 		external
 		whenNotPaused
 		onlyRequestEscrowOrPayee(_requestId)
@@ -115,7 +115,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 
 	// internal function 
-	function isEscrowReleasedPayment(uint _requestId) 
+	function isEscrowReleasedPayment(bytes32 _requestId) 
 		view 
 		internal 
 		returns(bool) 
@@ -130,32 +130,32 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		_;
 	}
 
-	modifier onlyRequestEscrow(uint _requestId) {
+	modifier onlyRequestEscrow(bytes32 _requestId) {
 		require(escrows[_requestId].escrow==msg.sender);
 		_;
 	}
 
-	modifier onlyRequestEscrowOrPayer(uint _requestId) {
+	modifier onlyRequestEscrowOrPayer(bytes32 _requestId) {
 		require(escrows[_requestId].escrow==msg.sender || requestCore.getPayer(_requestId)==msg.sender);
 		_;
 	}
 
-	modifier onlyRequestEscrowOrPayee(uint _requestId) {
+	modifier onlyRequestEscrowOrPayee(bytes32 _requestId) {
 		require(escrows[_requestId].escrow==msg.sender || requestCore.getPayee(_requestId)==msg.sender);
 		_;
 	}
 
-	modifier inEscrowState(uint _requestId, EscrowState es) {
+	modifier inEscrowState(bytes32 _requestId, EscrowState es) {
 		require(escrows[_requestId].state==es);
 		_;
 	}
 
-	modifier inNOTEscrowState(uint _requestId, EscrowState es) {
+	modifier inNOTEscrowState(bytes32 _requestId, EscrowState es) {
 		require(escrows[_requestId].state!=es);
 		_;
 	}
 
-	modifier onlyRequestState(uint _requestId, RequestCore.State state) {
+	modifier onlyRequestState(bytes32 _requestId, RequestCore.State state) {
 		require(requestCore.getState(_requestId)==state);
 		_;
 	}
@@ -165,7 +165,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		_;
 	}
 
-	modifier isSubContractRight(uint _requestId)
+	modifier isSubContractRight(bytes32 _requestId)
 	{
 		require(escrows[_requestId].subContract == msg.sender);
 		_;

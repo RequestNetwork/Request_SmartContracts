@@ -1,4 +1,4 @@
-var config = require("../../config.js");
+var config = require("../../config.js"); var utils = require("../../utils.js");
 if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 	return;
 }
@@ -44,23 +44,6 @@ var getEventFromReceipt = function(log, abi) {
 	}
 	return null;
 }
-
-var expectThrow = async function(promise) {
-  try {
-    await promise;
-  } catch (error) {
-    const invalidOpcode = error.message.search('invalid opcode') >= 0;
-    const invalidJump = error.message.search('invalid JUMP') >= 0;
-    const outOfGas = error.message.search('out of gas') >= 0;
-    assert(
-      invalidOpcode || invalidJump || outOfGas,
-      "Expected throw, got '" + error + "' instead",
-    );
-    return;
-  }
-  assert.fail('Expected throw not received');
-};
-
 
 contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 	var admin = accounts[0];
@@ -113,25 +96,25 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
 		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event AddAdditional wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddAdditional wrong args amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount+1,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
@@ -150,7 +133,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var r = await expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													1,
@@ -161,7 +144,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var r = await expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													1,
@@ -172,7 +155,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var r = await expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													0, 
@@ -183,7 +166,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var r = await expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													arbitraryAmount10percent, 
@@ -204,25 +187,25 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
 		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event AddAdditional wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddAdditional wrong args amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
@@ -241,7 +224,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var r = await expectThrow(requestEthereum.createRequestAsPayer(payee, 0, 
+		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, 0, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -252,7 +235,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var r = await expectThrow(requestEthereum.createRequestAsPayer(payer, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payer, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -263,7 +246,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var r = await expectThrow(requestEthereum.createRequestAsPayer(0, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(0, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -274,7 +257,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var r = await expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -287,7 +270,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var r = await expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -308,20 +291,20 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
@@ -350,15 +333,15 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after createRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
@@ -382,7 +365,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var extension = fakeExtentionLauncherAcceptFalse.address;
 		var listParamsExtensions = [];
 
-		await expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
+		await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													0, 

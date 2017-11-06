@@ -1,4 +1,5 @@
 var config = require("../config.js");
+var utils = require("../utils.js");
 if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 	return;
 }
@@ -7,23 +8,6 @@ var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 
 var BigNumber = require('bignumber.js');
-
-var expectThrow = async function(promise) {
-  try {
-    await promise;
-  } catch (error) {
-    const invalidOpcode = error.message.search('invalid opcode') >= 0;
-    const invalidJump = error.message.search('invalid JUMP') >= 0;
-    const outOfGas = error.message.search('out of gas') >= 0;
-    assert(
-      invalidOpcode || invalidJump || outOfGas,
-      "Expected throw, got '" + error + "' instead",
-    );
-    return;
-  }
-  assert.fail('Expected throw not received');
-};
-
 
 contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	var admin = accounts[0];
@@ -55,12 +39,12 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 
 	// accept request created OK - check event log and request status
 	it("accept request created OK - check event log and request status", async function () {
-		var r = await requestCore.accept(1, {from:fakeContract});
+		var r = await requestCore.accept(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Accepted","Event Accepted is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Accepted wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -74,13 +58,13 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 
 	// accept request already accepted OK
 	it("accept request accepted OK - check event log and request status", async function () {
-		await requestCore.accept(1, {from:fakeContract});
-		var r = await requestCore.accept(1, {from:fakeContract});
+		await requestCore.accept(utils.getHashRequest(1), {from:fakeContract});
+		var r = await requestCore.accept(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Accepted","Event Accepted is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Accepted wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -93,13 +77,13 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 	// accept request already declined OK
 	it("accept request declined OK - check event log and request status", async function () {
-		await requestCore.decline(1, {from:fakeContract});
-		var r = await requestCore.accept(1, {from:fakeContract});
+		await requestCore.decline(utils.getHashRequest(1), {from:fakeContract});
+		var r = await requestCore.accept(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Accepted","Event Accepted is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Accepted wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -112,13 +96,13 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 	// accept request already canceled OK
 	it("accept request canceled OK - check event log and request status", async function () {
-		await requestCore.cancel(1, {from:fakeContract});
-		var r = await requestCore.accept(1, {from:fakeContract});
+		await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
+		var r = await requestCore.accept(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Accepted","Event Accepted is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Accepted wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -132,12 +116,12 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 
 	it("accept if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		var r = await requestCore.accept(1, {from:fakeContract});
+		var r = await requestCore.accept(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Accepted","Event Accepted is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Accepted wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -150,9 +134,9 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 	it("accept request not exist impossible", async function () {
-		await expectThrow(requestCore.accept(2, {from:fakeContract}));
+		await utils.expectThrow(requestCore.accept(utils.getHashRequest(2), {from:fakeContract}));
 
-		var r = await requestCore.requests.call(2, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(2), {from:fakeContract});
 		assert.equal(r[0],0,"request wrong data : creator");
 		assert.equal(r[1],0,"request wrong data : payee");
 		assert.equal(r[2],0,"request wrong data : payer");
@@ -165,9 +149,9 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 	it("accept request from a random guy impossible", async function () {
-		await expectThrow(requestCore.accept(1, {from:otherguy}));
+		await utils.expectThrow(requestCore.accept(utils.getHashRequest(1), {from:otherguy}));
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -180,9 +164,9 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 	it("accept request from other subcontract impossible", async function () {
-		await expectThrow(requestCore.accept(1, {from:fakeContract2}));
+		await utils.expectThrow(requestCore.accept(utils.getHashRequest(1), {from:fakeContract2}));
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -204,12 +188,12 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 
 	// decline request created OK - check event log and request status
 	it("decline request created OK - check event log and request status", async function () {
-		var r = await requestCore.decline(1, {from:fakeContract});
+		var r = await requestCore.decline(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Declined","Event Declined is missing after decline()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Declined wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Declined wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -223,13 +207,13 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 
 	// decline request already accepted OK
 	it("decline request accepted OK - check event log and request status", async function () {
-		await requestCore.decline(1, {from:fakeContract});
-		var r = await requestCore.decline(1, {from:fakeContract});
+		await requestCore.decline(utils.getHashRequest(1), {from:fakeContract});
+		var r = await requestCore.decline(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Declined","Event Declined is missing after decline()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Declined wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Declined wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -242,13 +226,13 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 	// decline request already declined OK
 	it("decline request declined OK - check event log and request status", async function () {
-		await requestCore.decline(1, {from:fakeContract});
-		var r = await requestCore.decline(1, {from:fakeContract});
+		await requestCore.decline(utils.getHashRequest(1), {from:fakeContract});
+		var r = await requestCore.decline(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Declined","Event Declined is missing after decline()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Declined wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Declined wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -261,13 +245,13 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 	// decline request already canceled OK
 	it("decline request canceled OK - check event log and request status", async function () {
-		await requestCore.cancel(1, {from:fakeContract});
-		var r = await requestCore.decline(1, {from:fakeContract});
+		await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
+		var r = await requestCore.decline(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Declined","Event Declined is missing after decline()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Declined wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Declined wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -282,12 +266,12 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 
 	it("decline if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		var r = await requestCore.decline(1, {from:fakeContract});
+		var r = await requestCore.decline(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Declined","Event Declined is missing after decline()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Declined wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Declined wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -300,9 +284,9 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 	it("decline request not exist impossible", async function () {
-		await expectThrow(requestCore.decline(2, {from:fakeContract}));
+		await utils.expectThrow(requestCore.decline(utils.getHashRequest(2), {from:fakeContract}));
 
-		var r = await requestCore.requests.call(2, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(2), {from:fakeContract});
 		assert.equal(r[0],0,"request wrong data : creator");
 		assert.equal(r[1],0,"request wrong data : payee");
 		assert.equal(r[2],0,"request wrong data : payer");
@@ -315,9 +299,9 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 	it("decline request from a random guy impossible", async function () {
-		await expectThrow(requestCore.decline(1, {from:otherguy}));
+		await utils.expectThrow(requestCore.decline(utils.getHashRequest(1), {from:otherguy}));
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -330,9 +314,9 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 	it("decline request from other subcontract impossible", async function () {
-		await expectThrow(requestCore.decline(1, {from:fakeContract2}));
+		await utils.expectThrow(requestCore.decline(utils.getHashRequest(1), {from:fakeContract2}));
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -354,12 +338,12 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 
 	// cancel request created OK - check event log and request status
 	it("cancel request created OK - check event log and request status", async function () {
-		var r = await requestCore.cancel(1, {from:fakeContract});
+		var r = await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Canceled wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Canceled wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -373,13 +357,13 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 
 	// cancel request already accepted OK
 	it("cancel request accepted OK - check event log and request status", async function () {
-		await requestCore.cancel(1, {from:fakeContract});
-		var r = await requestCore.cancel(1, {from:fakeContract});
+		await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
+		var r = await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Canceled wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Canceled wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -392,13 +376,13 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 	// cancel request already canceld OK
 	it("cancel request declined OK - check event log and request status", async function () {
-		await requestCore.decline(1, {from:fakeContract});
-		var r = await requestCore.cancel(1, {from:fakeContract});
+		await requestCore.decline(utils.getHashRequest(1), {from:fakeContract});
+		var r = await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Canceled wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Canceled wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -411,13 +395,13 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 	// cancel request already canceled OK
 	it("cancel request canceled OK - check event log and request status", async function () {
-		await requestCore.cancel(1, {from:fakeContract});
-		var r = await requestCore.cancel(1, {from:fakeContract});
+		await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
+		var r = await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Canceled wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Canceled wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -431,12 +415,12 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 
 	it("cancel if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		var r = await requestCore.cancel(1, {from:fakeContract});
+		var r = await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(r.logs[0].args.requestId,1,"Event Canceled wrong args requestId");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Canceled wrong args requestId");
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -449,9 +433,9 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 	it("cancel request not exist impossible", async function () {
-		await expectThrow(requestCore.cancel(2, {from:fakeContract}));
+		await utils.expectThrow(requestCore.cancel(utils.getHashRequest(2), {from:fakeContract}));
 
-		var r = await requestCore.requests.call(2, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(2), {from:fakeContract});
 		assert.equal(r[0],0,"request wrong data : creator");
 		assert.equal(r[1],0,"request wrong data : payee");
 		assert.equal(r[2],0,"request wrong data : payer");
@@ -464,9 +448,9 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 	it("cancel request from a random guy impossible", async function () {
-		await expectThrow(requestCore.cancel(1, {from:otherguy}));
+		await utils.expectThrow(requestCore.cancel(utils.getHashRequest(1), {from:otherguy}));
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -479,9 +463,9 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 	it("cancel request from other subcontract impossible", async function () {
-		await expectThrow(requestCore.cancel(1, {from:fakeContract2}));
+		await utils.expectThrow(requestCore.cancel(utils.getHashRequest(1), {from:fakeContract2}));
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -494,11 +478,11 @@ contract('RequestCore Accept Decline & Cancel Request', function(accounts) {
 	});
 
 	it("cancel request amountPaid != 0 Impossible", async function () {
-		await requestCore.accept(1, {from:fakeContract});
-		await requestCore.payment(1, 1, {from:fakeContract});
-		await expectThrow(requestCore.cancel(1, {from:fakeContract}));
+		await requestCore.accept(utils.getHashRequest(1), {from:fakeContract});
+		await requestCore.payment(utils.getHashRequest(1), 1, {from:fakeContract});
+		await utils.expectThrow(requestCore.cancel(utils.getHashRequest(1), {from:fakeContract}));
 
-		var r = await requestCore.requests.call(1, {from:fakeContract});
+		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");

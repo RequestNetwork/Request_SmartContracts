@@ -6,7 +6,7 @@ import '../../synchrone/extensions/RequestSynchroneInterface.sol';
 contract TestRequestSynchroneSubContractLauncher {
     
     uint constant_id;
-    mapping(uint => address) extensionAddress;
+    mapping(bytes32 => address) extensionAddress;
 
     // RequestCore object
     RequestCore public requestCore;
@@ -41,48 +41,48 @@ contract TestRequestSynchroneSubContractLauncher {
     }
 
     // Launcher -------------------------------------------------
-    function launchCancel(uint _requestId)
+    function launchCancel(bytes32 _requestId)
         public
     {
         RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
         extension.cancel(_requestId);
     } 
 
-    function launchAccept(uint _requestId)
+    function launchAccept(bytes32 _requestId)
         public
     {
         RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
         extension.accept(_requestId);
     } 
 
-    function launchDecline(uint _requestId)
+    function launchDecline(bytes32 _requestId)
         public
     {
         RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
         extension.decline(_requestId);
     } 
 
-   function launchPayment(uint _requestId, uint _amount)
+   function launchPayment(bytes32 _requestId, uint _amount)
         public
     {
         RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
         extension.payment(_requestId,_amount);
     } 
 
-    function launchRefund(uint _requestId, uint _amount)
+    function launchRefund(bytes32 _requestId, uint _amount)
         public
     {
         RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
         extension.refund(_requestId,_amount);
     } 
-    function launchAddAdditional(uint _requestId, uint _amount)
+    function launchAddAdditional(bytes32 _requestId, uint _amount)
         public
     {
         RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
         extension.addAdditional(_requestId,_amount);
     } 
 
-    function launchAddSubtract(uint _requestId, uint _amount)
+    function launchAddSubtract(bytes32 _requestId, uint _amount)
         public
     {
         RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
@@ -92,9 +92,9 @@ contract TestRequestSynchroneSubContractLauncher {
 
     function createRequest(address _payee, address _payer, uint _amountExpected, address _extension, bytes32[9] _extensionParams)
         public
-        returns(uint)
+        returns(bytes32 requestId)
     {
-        uint requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extension);
+        requestId= requestCore.createRequest(msg.sender, _payee, _payer, _amountExpected, _extension);
 
         if(_extension!=0) {
             RequestSynchroneInterface extension0 = RequestSynchroneInterface(_extension);
@@ -105,8 +105,8 @@ contract TestRequestSynchroneSubContractLauncher {
         return requestId;
     }
 
-    event LogTestAccept(uint requestId, uint id);
-    function accept(uint _requestId) 
+    event LogTestAccept(bytes32 requestId, uint id);
+    function accept(bytes32 _requestId) 
         public
         returns(bool)
     {
@@ -115,8 +115,8 @@ contract TestRequestSynchroneSubContractLauncher {
         return acceptReturn;
     } 
 
-    event LogTestDecline(uint requestId, uint id);
-    function decline(uint _requestId)
+    event LogTestDecline(bytes32 requestId, uint id);
+    function decline(bytes32 _requestId)
         public
         returns(bool)
     {
@@ -125,8 +125,8 @@ contract TestRequestSynchroneSubContractLauncher {
         return declineReturn;
     } 
 
-    event LogTestCancel(uint requestId, uint id);
-    function cancel(uint _requestId)
+    event LogTestCancel(bytes32 requestId, uint id);
+    function cancel(bytes32 _requestId)
         public
         returns(bool)
     {
@@ -135,8 +135,8 @@ contract TestRequestSynchroneSubContractLauncher {
         return cancelReturn;
     } 
  
-    event LogTestFundOrder(uint requestId, uint id, address _recipient, uint _amount);
-    function fundOrder(uint _requestId, address _recipient, uint _amount) 
+    event LogTestFundOrder(bytes32 requestId, uint id, address _recipient, uint _amount);
+    function fundOrder(bytes32 _requestId, address _recipient, uint _amount) 
         public
         returns(bool)
     {
@@ -144,8 +144,8 @@ contract TestRequestSynchroneSubContractLauncher {
         return fundOrderReturn;
     } 
 
-    event LogTestPayment(uint requestId, uint id, uint _amount);
-    function payment(uint _requestId, uint _amount) 
+    event LogTestPayment(bytes32 requestId, uint id, uint _amount);
+    function payment(bytes32 _requestId, uint _amount) 
         public
         returns(bool)
     {
@@ -154,8 +154,8 @@ contract TestRequestSynchroneSubContractLauncher {
         return paymentReturn;
     } 
 
-    event LogTestRefund(uint requestId, uint id, uint _amount);
-    function refund(uint _requestId, uint _amount) 
+    event LogTestRefund(bytes32 requestId, uint id, uint _amount);
+    function refund(bytes32 _requestId, uint _amount) 
         public
         returns(bool)
     {
@@ -164,8 +164,8 @@ contract TestRequestSynchroneSubContractLauncher {
         return refundReturn;
     } 
 
-    event LogTestAddAdditional(uint requestId, uint id, uint _amount);
-    function addAdditional(uint _requestId, uint _amount) 
+    event LogTestAddAdditional(bytes32 requestId, uint id, uint _amount);
+    function addAdditional(bytes32 _requestId, uint _amount) 
         public
         returns(bool)
     {
@@ -174,8 +174,8 @@ contract TestRequestSynchroneSubContractLauncher {
         return addAdditionalReturn;
     } 
 
-    event LogTestAddSubtract(uint requestId, uint id, uint _amount);
-    function addSubtract(uint _requestId, uint _amount) 
+    event LogTestAddSubtract(bytes32 requestId, uint id, uint _amount);
+    function addSubtract(bytes32 _requestId, uint _amount) 
         public
         returns(bool)
     {

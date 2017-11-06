@@ -1,4 +1,4 @@
-var config = require("../../config.js");
+var config = require("../../config.js"); var utils = require("../../utils.js");
 if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 	return;
 }
@@ -44,22 +44,6 @@ var getEventFromReceipt = function(log, abi) {
 	}
 	return null;
 }
-
-var expectThrow = async function(promise) {
-  try {
-    await promise;
-  } catch (error) {
-    const invalidOpcode = error.message.search('invalid opcode') >= 0;
-    const invalidJump = error.message.search('invalid JUMP') >= 0;
-    const outOfGas = error.message.search('out of gas') >= 0;
-    assert(
-      invalidOpcode || invalidJump || outOfGas,
-      "Expected throw, got '" + error + "' instead",
-    );
-    return;
-  }
-  assert.fail('Expected throw not received');
-};
 
 var hashRequest = function(contract, payee, payer, arbitraryAmount, extension, extParams) {
 	const requestParts = [
@@ -144,25 +128,25 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
 		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event AddAdditional wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddAdditional wrong args amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount+1,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
@@ -185,7 +169,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													1, 
@@ -201,7 +185,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													1, 
@@ -217,7 +201,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													0, 
@@ -233,7 +217,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													arbitraryAmount10percent, 
@@ -260,25 +244,25 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
 		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event AddAdditional wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddAdditional wrong args amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
@@ -301,7 +285,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, 0, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, 0, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -317,7 +301,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payer, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payer, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -333,7 +317,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(0, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(0, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -350,7 +334,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -366,7 +350,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -384,7 +368,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -411,20 +395,20 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
 		assert.equal(l.name,"Payment","Event Payment is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Payment wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
@@ -458,15 +442,15 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Created wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
 		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],1,"Event Accepted wrong args requestId");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
-		var newReq = await requestCore.requests.call(1);
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
@@ -489,7 +473,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayer, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -505,7 +489,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyOtherGuy, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -521,7 +505,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(otherguy, arbitraryAmount, 
+		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(otherguy, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, 
@@ -543,7 +527,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		await expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
+		await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													0, 

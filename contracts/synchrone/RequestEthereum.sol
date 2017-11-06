@@ -50,9 +50,9 @@ contract RequestEthereum is Pausable {
     function createRequestAsPayee(address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams)
         external
         whenNotPaused
-        returns(uint)
+        returns(bytes32 requestId)
     {
-        uint requestId= requestCore.createRequest(msg.sender, msg.sender, _payer, _amountInitial, _extension);
+        requestId= requestCore.createRequest(msg.sender, msg.sender, _payer, _amountInitial, _extension);
 
         if(_extension!=0) {
             RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -79,12 +79,12 @@ contract RequestEthereum is Pausable {
         external
         payable
         whenNotPaused
-        returns(uint)
+        returns(bytes32 requestId)
     {
         require(msg.value >= _tips); // tips declare must be lower than amount sent
         require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
 
-        uint requestId= requestCore.createRequest(msg.sender, _payee, msg.sender, _amountInitial, _extension);
+        requestId= requestCore.createRequest(msg.sender, _payee, msg.sender, _amountInitial, _extension);
 
         if(_extension!=0) {
             RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -128,7 +128,7 @@ contract RequestEthereum is Pausable {
         external
         payable
         whenNotPaused
-        returns(uint)
+        returns(bytes32 requestId)
     {
         require(msg.value >= _tips); // tips declare must be lower than amount sent
         require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
@@ -138,7 +138,7 @@ contract RequestEthereum is Pausable {
         // check the signature
         require(isValidSignature(_payee, hash, v, r, s));
 
-        uint requestId=requestCore.createRequest(_payee, _payee, msg.sender, _amountInitial, _extension);
+        requestId=requestCore.createRequest(_payee, _payee, msg.sender, _amountInitial, _extension);
 
         if(_extension!=0) {
             RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -169,7 +169,7 @@ contract RequestEthereum is Pausable {
      *
      * @return true if the request is accepted, false otherwise
      */
-    function accept(uint _requestId) 
+    function accept(bytes32 _requestId) 
         external
         whenNotPaused
         condition(isOnlyRequestExtension(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
@@ -187,7 +187,7 @@ contract RequestEthereum is Pausable {
      *
      * @return true if the request is declined, false otherwise
      */
-    function decline(uint _requestId)
+    function decline(bytes32 _requestId)
         external
         whenNotPaused
         condition(isOnlyRequestExtension(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
@@ -219,7 +219,7 @@ contract RequestEthereum is Pausable {
      *
      * @return true if the payment is declared, false otherwise
      */
-    function payment(uint _requestId, uint _amount)
+    function payment(bytes32 _requestId, uint _amount)
         external
         whenNotPaused
         onlyRequestExtensions(_requestId)
@@ -239,7 +239,7 @@ contract RequestEthereum is Pausable {
      *
      * @return true if the fund mouvement is done, false otherwise
      */
-    function fundOrder(uint _requestId, address _recipient, uint _amount)
+    function fundOrder(bytes32 _requestId, address _recipient, uint _amount)
         external
         whenNotPaused
         onlyRequestExtensions(_requestId)
@@ -258,7 +258,7 @@ contract RequestEthereum is Pausable {
      *
      * @return true if the request is canceled, false otherwise
      */
-    function cancel(uint _requestId)
+    function cancel(bytes32 _requestId)
         external
         whenNotPaused
         condition(isOnlyRequestExtension(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && (requestCore.getState(_requestId)==RequestCore.State.Created || requestCore.getState(_requestId)==RequestCore.State.Accepted)))
@@ -296,7 +296,7 @@ contract RequestEthereum is Pausable {
      * @param _requestId id of the request
      * @param _tips amount of tips in wei to declare 
      */
-    function pay(uint _requestId, uint _tips)
+    function pay(bytes32 _requestId, uint _tips)
         external
         whenNotPaused
         payable
@@ -319,7 +319,7 @@ contract RequestEthereum is Pausable {
      *
      * @param _requestId id of the request
      */
-    function payback(uint _requestId)
+    function payback(bytes32 _requestId)
         external
         whenNotPaused
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
@@ -353,7 +353,7 @@ contract RequestEthereum is Pausable {
      * @param _requestId id of the request
      * @param _tips amount of discount in wei to declare 
      */
-    function discount(uint _requestId, uint _amount)
+    function discount(bytes32 _requestId, uint _amount)
         external
         whenNotPaused
         condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
@@ -398,7 +398,7 @@ contract RequestEthereum is Pausable {
      *
      * @return true if the payment is done, false otherwise
      */
-    function paymentInternal(uint _requestId, uint _amount) 
+    function paymentInternal(bytes32 _requestId, uint _amount) 
         internal
         returns(bool)
     {
@@ -428,7 +428,7 @@ contract RequestEthereum is Pausable {
      *
      * @return true if the tips is declared, false otherwise
      */
-    function  addAdditionalInternal(uint _requestId, uint _amount) 
+    function  addAdditionalInternal(bytes32 _requestId, uint _amount) 
         internal
         returns(bool)
     {
@@ -457,7 +457,7 @@ contract RequestEthereum is Pausable {
      *
      * @return true if the fund mouvement is done, false otherwise
      */
-    function fundOrderInternal(uint _requestId, address _recipient, uint _amount) 
+    function fundOrderInternal(bytes32 _requestId, address _recipient, uint _amount) 
         internal
         returns(bool)
     {
@@ -485,7 +485,7 @@ contract RequestEthereum is Pausable {
      *
      * @return true if the request is accept, false otherwise
      */
-    function acceptInternal(uint _requestId) 
+    function acceptInternal(bytes32 _requestId) 
         internal
         returns(bool)
     {
@@ -558,7 +558,7 @@ contract RequestEthereum is Pausable {
      *
      * @return true if msg.sender is an extension of the request
      */
-    function isOnlyRequestExtension(uint _requestId) 
+    function isOnlyRequestExtension(bytes32 _requestId) 
         internal 
         view
         returns(bool)
@@ -578,7 +578,7 @@ contract RequestEthereum is Pausable {
      * @dev Revert if msg.sender is not payer
      * @param _requestId id of the request 
      */    
-    modifier onlyRequestPayer(uint _requestId) 
+    modifier onlyRequestPayer(bytes32 _requestId) 
     {
         require(requestCore.getPayer(_requestId)==msg.sender);
         _;
@@ -589,7 +589,7 @@ contract RequestEthereum is Pausable {
      * @dev Revert if msg.sender is not payee
      * @param _requestId id of the request 
      */    
-    modifier onlyRequestPayee(uint _requestId) 
+    modifier onlyRequestPayee(bytes32 _requestId) 
     {
         require(requestCore.getPayee(_requestId)==msg.sender);
         _;
@@ -600,7 +600,7 @@ contract RequestEthereum is Pausable {
      * @dev Revert if msg.sender is not payee or payer
      * @param _requestId id of the request 
      */
-    modifier onlyRequestPayeeOrPayer(uint _requestId) 
+    modifier onlyRequestPayeeOrPayer(bytes32 _requestId) 
     {
         require(requestCore.getPayee(_requestId)==msg.sender || requestCore.getPayer(_requestId)==msg.sender);
         _;
@@ -612,7 +612,7 @@ contract RequestEthereum is Pausable {
      * @param _requestId id of the request 
      * @param _state state to check
      */
-    modifier onlyRequestState(uint _requestId, RequestCore.State _state) 
+    modifier onlyRequestState(bytes32 _requestId, RequestCore.State _state) 
     {
         require(requestCore.getState(_requestId)==_state);
         _;
@@ -623,7 +623,7 @@ contract RequestEthereum is Pausable {
      * @dev Revert if msg.sender is not an extension of the request
      * @param _requestId id of the request
      */
-    modifier onlyRequestExtensions(uint _requestId) 
+    modifier onlyRequestExtensions(bytes32 _requestId) 
     {
         require(isOnlyRequestExtension(_requestId));
         _;

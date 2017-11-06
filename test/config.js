@@ -1,4 +1,5 @@
 var config = {
+	"VERSION_CORE": 1,
 	"all":true,
 	// "core.js": {
 		"requestAdministrable.js":false,    
@@ -18,7 +19,6 @@ var config = {
 				"requestEthereumCancel.js":false, 
 				"requestEthereumDiscount.js":false, 
 				"requestEthereumWithEscrow.js":false, 
-				"requestEthereumCreateQuickRequest.js":false, 
 				"requestEthereumPay.js":false, 
 	//		},
 	//		"extensions.js": {
