@@ -47,12 +47,12 @@ contract RequestEthereum is Pausable {
      *
      * @return Returns the id of the request 
      */
-    function createRequestAsPayee(address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams)
+    function createRequestAsPayee(address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams, string _details)
         external
         whenNotPaused
         returns(bytes32 requestId)
     {
-        requestId= requestCore.createRequest(msg.sender, msg.sender, _payer, _amountInitial, _extension);
+        requestId= requestCore.createRequest(msg.sender, msg.sender, _payer, _amountInitial, _extension, _details);
 
         if(_extension!=0) {
             RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -75,7 +75,7 @@ contract RequestEthereum is Pausable {
      *
      * @return Returns the id of the request 
      */
-    function createRequestAsPayer(address _payee, uint _amountInitial, address _extension, bytes32[9] _extensionParams, uint _tips)
+    function createRequestAsPayer(address _payee, uint _amountInitial, address _extension, bytes32[9] _extensionParams, uint _tips, string _details)
         external
         payable
         whenNotPaused
@@ -84,7 +84,7 @@ contract RequestEthereum is Pausable {
         require(msg.value >= _tips); // tips declare must be lower than amount sent
         require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
 
-        requestId= requestCore.createRequest(msg.sender, _payee, msg.sender, _amountInitial, _extension);
+        requestId= requestCore.createRequest(msg.sender, _payee, msg.sender, _amountInitial, _extension, _details);
 
         if(_extension!=0) {
             RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -124,7 +124,7 @@ contract RequestEthereum is Pausable {
      *
      * @return Returns the id of the request 
      */
-   function broadcastSignedRequestAsPayer(address _payee, uint _amountInitial, address _extension, bytes32[9] _extensionParams, uint _tips, uint8 v, bytes32 r, bytes32 s)
+   function broadcastSignedRequestAsPayer(address _payee, uint _amountInitial, address _extension, bytes32[9] _extensionParams, uint _tips, string _details, uint8 v, bytes32 r, bytes32 s)
         external
         payable
         whenNotPaused
@@ -132,13 +132,11 @@ contract RequestEthereum is Pausable {
     {
         require(msg.value >= _tips); // tips declare must be lower than amount sent
         require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
-    
-        bytes32 hash = getRequestHash(_payee,msg.sender,_amountInitial,_extension,_extensionParams);
 
         // check the signature
-        require(isValidSignature(_payee, hash, v, r, s));
+        require(checkRequestSignature(_payee,_payee,msg.sender,_amountInitial,_extension,_extensionParams,_details, v, r, s));
 
-        requestId=requestCore.createRequest(_payee, _payee, msg.sender, _amountInitial, _extension);
+        requestId=requestCore.createRequest(_payee, _payee, msg.sender, _amountInitial, _extension, _details);
 
         if(_extension!=0) {
             RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -516,12 +514,12 @@ contract RequestEthereum is Pausable {
      *
      * @return Keccak-256 hash of a request
      */
-    function getRequestHash(address _payee, address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams)
+    function getRequestHash(address _payee, address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams, string _details)
         internal
         view
         returns(bytes32)
     {
-        return keccak256(this,_payee,_payer,_amountInitial,_extension,_extensionParams);
+        return keccak256(this,_payee,_payer,_amountInitial,_extension,_extensionParams,_details);
     }
 
     /*
@@ -549,6 +547,25 @@ contract RequestEthereum is Pausable {
             r,
             s
         );
+    }
+
+    function checkRequestSignature(
+        address signer,
+        address payee,
+        address payer,
+        uint amountInitial,
+        address extension,
+        bytes32[9] extensionParams,
+        string details,
+        uint8 v,
+        bytes32 r,
+        bytes32 s)
+        public
+        view
+        returns (bool)
+    {
+        bytes32 hash = getRequestHash(payee,payer,amountInitial,extension,extensionParams,details);
+        return isValidSignature(signer, hash, v, r, s);
     }
 
     /*

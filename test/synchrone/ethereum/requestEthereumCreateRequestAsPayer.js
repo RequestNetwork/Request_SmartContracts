@@ -89,7 +89,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													arbitraryAmount10percent,
+													arbitraryAmount10percent,"", 
 													{from:payer, value:arbitraryAmount+1});
 
 		assert.equal(r.receipt.logs.length,4,"Wrong number of events");
@@ -136,7 +136,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													1,
+													1,"", 
 													{from:payer, value:arbitraryAmount+2}));
 	});
 
@@ -147,7 +147,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													1,
+													1,"", 
 													{from:payer, value:arbitraryAmount+2}));
 	});
 
@@ -158,7 +158,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													0, 
+													0, "", 
 													{from:payer, value:arbitraryAmount+1}));
 	});
 
@@ -169,7 +169,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													arbitraryAmount10percent, 
+													arbitraryAmount10percent, "", 
 													{from:payer, value:0}));
 	});
 
@@ -180,7 +180,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													arbitraryAmount10percent,
+													arbitraryAmount10percent,"", 
 													{from:payer, value:arbitraryAmount});
 
 		assert.equal(r.receipt.logs.length,4,"Wrong number of events");
@@ -227,7 +227,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, 0, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									{from:payer, value:0}));
 	});
 
@@ -238,7 +238,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payer, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									{from:payer, value:arbitraryAmount}));
 	});
 
@@ -249,7 +249,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(0, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									{from:payer, value:arbitraryAmount}));
 	});
 
@@ -260,7 +260,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									{from:payee, value:arbitraryAmount}));
 	});
 
@@ -273,7 +273,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									{from:payer, value:arbitraryAmount}));
 	});
 
@@ -284,7 +284,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													0, 
+													0, "", 
 													{from:payer, value:arbitraryAmount});
 
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
@@ -326,7 +326,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		var r = await requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													0, 
+													0, "", 
 													{from:payer, value:0});
 
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
@@ -368,7 +368,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													0, 
+													0, "", 
 													{from:payer, value:arbitraryAmount}));
 	});
 

@@ -92,7 +92,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncher2.address, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtentionLauncher3.address, {from:admin});
 
-		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
+		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
     });
 
 	// ##################################################################################################
@@ -196,7 +196,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 
 
 	it("cancel request created OK - with 1 extension, continue: true", async function () {
-		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionContinue1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionContinue1.address, [], "", {from:payee});
 
 		var r = await requestEthereum.cancel(utils.getHashRequest(2), {from:payee});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
@@ -222,7 +222,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	});
 
 	it("cancel request created OK - with 1 extension, continue: [false]", async function () {
-		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionInterception1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionInterception1.address, [], "", {from:payee});
 
 		var r = await requestEthereum.cancel(utils.getHashRequest(2), {from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -244,7 +244,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	});
 
 	it("cancel by extension request created OK", async function () {
-		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], "", {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchCancel(utils.getHashRequest(2));
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -265,7 +265,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	});
 
 	it("cancel by extension request accepted OK", async function () {
-		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
 
 		var r = await fakeExtentionLauncher1.launchCancel(utils.getHashRequest(2));
@@ -287,7 +287,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	});
 
 	it("cancel by extension request declined OK", async function () {
-		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], "", {from:payee});
 		await requestEthereum.decline(utils.getHashRequest(2), {from:payer});
 
 		var r = await fakeExtentionLauncher1.launchCancel(utils.getHashRequest(2));
@@ -309,7 +309,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	});
 
 	it("cancel by extension request canceled OK", async function () {
-		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], "", {from:payee});
 		await requestEthereum.cancel(utils.getHashRequest(2), {from:payee});
 
 		var r = await fakeExtentionLauncher1.launchCancel(utils.getHashRequest(2));
@@ -331,7 +331,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	});
 
 	it("cancel by an extension not from request impossible", async function () {
-		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], {from:payee});
+		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], "", {from:payee});
 		await utils.expectThrow(fakeExtentionLauncher2.launchCancel(utils.getHashRequest(2)));
 	});
 

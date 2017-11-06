@@ -33,6 +33,7 @@ contract RequestCore is Administrable {
         uint amountSubtract;
         State state;
         address extension;
+        string details;
     }
 
     // index of the Request in the mapping
@@ -71,7 +72,7 @@ contract RequestCore is Administrable {
      * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
      * @return Returns the id of the request 
      */   
-    function createRequest(address _creator, address _payee, address _payer, uint _amountInitial, address _extension) 
+    function createRequest(address _creator, address _payee, address _payer, uint _amountInitial, address _extension, string _details) 
         public
         whenNotPaused 
         isTrustedContract(msg.sender)
@@ -83,7 +84,7 @@ contract RequestCore is Administrable {
         numRequests = numRequests.add(1);
         requestId = keccak256(numRequests,VERSION);
 
-        requests[requestId] = Request(_creator, _payee, _payer, _amountInitial, msg.sender, 0, 0, 0, State.Created, _extension); 
+        requests[requestId] = Request(_creator, _payee, _payer, _amountInitial, msg.sender, 0, 0, 0, State.Created, _extension, _details); 
 
         Created(requestId, _payee, _payer);
         return requestId;

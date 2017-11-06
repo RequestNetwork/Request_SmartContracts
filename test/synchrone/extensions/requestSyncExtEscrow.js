@@ -74,11 +74,11 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		await requestCore.adminAddTrustedExtension(requestSynchroneExtensionEscrow.address, {from:admin});
 
 		// request 1 with fakeTrustedContract
-		await requestCore.createRequest(payee, payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, {from:fakeTrustedContract});
+		await requestCore.createRequest(payee, payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, "", {from:fakeTrustedContract});
 		await requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(1), [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:fakeTrustedContract})
 
 		// request 2 with testRequestSynchroneSubContractLauncher
-		await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:payee});
+		await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
     });
 
 	// ##################################################################################################
@@ -117,7 +117,6 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	// ##################################################################################################
 	// ##################################################################################################
 
-
 	// ##################################################################################################
 	// ## Payment
 	// ##################################################################################################
@@ -130,7 +129,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 	it("payment if Escrow State Refunded impossible", async function () {
-		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [addressToByte32str(escrow)], {from:payee});
+		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [addressToByte32str(escrow)], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(3),{from:payer});
 		await requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(3), {from:escrow});
 		await utils.expectThrow(requestEthereum.pay(utils.getHashRequest(3), 0,{from:payer, value:arbitraryAmount}));
@@ -288,7 +287,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 	it("release if escrow is Refunded Impossible", async function () {
-		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [addressToByte32str(escrow)], {from:payee});
+		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [addressToByte32str(escrow)], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(3),{from:payer});
 		await requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(3), {from:escrow});
 		await utils.expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(3), {from:escrow}));
@@ -296,7 +295,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 
 	it("release if amountPaid-amountRefunded == 0 OK nothing special", async function () {
-		var newRequest = await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [addressToByte32str(escrow)], {from:payee});
+		var newRequest = await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [addressToByte32str(escrow)], "", {from:payee});
 		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(3),{from:payer});
 
 		var r = await requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(3), {from:escrow});
@@ -316,7 +315,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 
 	it("release if amountPaid-amountRefunded > 0 OK launch payment to subContract", async function () {
-		var newRequest = await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [addressToByte32str(escrow)], {from:payee});
+		var newRequest = await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [addressToByte32str(escrow)], "", {from:payee});
 		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(3),{from:payer});
 		await testRequestSynchroneSubContractLauncher.launchPayment(utils.getHashRequest(3), arbitraryAmount);
 

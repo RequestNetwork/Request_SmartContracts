@@ -120,7 +120,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													arbitraryAmount10percent, 
+													arbitraryAmount10percent, "", 
 													sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 													{from:payer, value:arbitraryAmount+1});
 
@@ -172,7 +172,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													1, 
+													1, "", 
 													sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 													{from:payer, value:arbitraryAmount+2}));
 	});
@@ -188,7 +188,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													1, 
+													1, "", 
 													sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 													{from:payer, value:arbitraryAmount+2}));
 	});
@@ -204,7 +204,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													0, 
+													0, "", 
 													sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 													{from:payer, value:arbitraryAmount+1}));
 	});
@@ -220,7 +220,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													arbitraryAmount10percent, 
+													arbitraryAmount10percent, "", 
 													sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 													{from:payer, value:0}));
 	});
@@ -236,7 +236,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													arbitraryAmount10percent, 
+													arbitraryAmount10percent, "", 
 													sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 													{from:payer, value:arbitraryAmount});
 
@@ -288,7 +288,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, 0, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 									{from:payer, value:0}));
 	});
@@ -304,7 +304,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payer, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 									{from:payer, value:arbitraryAmount}));
 	});
@@ -320,7 +320,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(0, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 									{from:payer, value:arbitraryAmount}));
 	});
@@ -337,7 +337,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 									{from:payee, value:arbitraryAmount}));
 	});
@@ -353,7 +353,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 									{from:otherguy, value:arbitraryAmount}));
 	});
@@ -371,7 +371,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 									{from:payer, value:arbitraryAmount}));
 	});
@@ -387,7 +387,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													0, 
+													0, "", 
 													sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 													{from:payer, value:arbitraryAmount});
 
@@ -434,7 +434,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													0, 
+													0, "", 
 													sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 													{from:payer, value:0});
 
@@ -476,7 +476,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 									{from:payer, value:arbitraryAmount}));
 	});
@@ -492,7 +492,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 									{from:payer, value:arbitraryAmount}));
 	});
@@ -508,7 +508,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(otherguy, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
-									0, 
+									0, "", 
 									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 									{from:payer, value:arbitraryAmount}));
 	});
@@ -530,7 +530,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
-													0, 
+													0, "", 
 													sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
 													{from:payer, value:arbitraryAmount}));
 	});

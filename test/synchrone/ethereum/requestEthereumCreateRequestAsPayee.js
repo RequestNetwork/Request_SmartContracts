@@ -70,25 +70,25 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 
 	it("basic check on payee payer creator", async function () {
 		// new request payer==0 impossible
-		await utils.expectThrow(requestEthereum.createRequestAsPayee(0, arbitraryAmount, 0, [], {from:payee}));
+		await utils.expectThrow(requestEthereum.createRequestAsPayee(0, arbitraryAmount, 0, [], "", {from:payee}));
 		// new request payee==payer impossible
-		await utils.expectThrow(requestEthereum.createRequestAsPayee(payee, arbitraryAmount, 0, [], {from:payee}));
+		await utils.expectThrow(requestEthereum.createRequestAsPayee(payee, arbitraryAmount, 0, [], "", {from:payee}));
 	});
 
 	it("basic check on amountExpected", async function () {
 		// new request _amountExpected == 0 impossible
-		await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, 0, 0, [], {from:payee}));
+		await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, 0, 0, [], "", {from:payee}));
 		// new request _amountExpected >= 2^256 impossible
-		await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, new BigNumber(2).pow(256), 0, [], {from:payee}));
+		await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, new BigNumber(2).pow(256), 0, [], "", {from:payee}));
 	});
 
 	it("impossible to createRequest if Core Paused", async function () {
 		await requestCore.pause({from:admin});
-		await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee}));
+		await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee}));
 	});
 
 	it("new request msg.sender==payee without extensions OK", async function () {
-		var r = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], {from:payee});
+		var r = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createRequestAsPayee()");
@@ -112,7 +112,7 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 	});
 
 	it("new request with 1 trustable extension without parameters", async function () {
-		var r = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtention1.address, [], {from:payee});
+		var r = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtention1.address, [], "", {from:payee});
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createRequestAsPayee()");
@@ -145,7 +145,7 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 
 
 	it("new request with 1 trustable extension with parameters", async function () {
-		var r = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtention1.address, [otherguy,payee,123456789], {from:payee});
+		var r = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtention1.address, [otherguy,payee,123456789], "", {from:payee});
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createRequestAsPayee()");
@@ -177,7 +177,7 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 	});
 
 	it("new request with 1 non trustable extension impossible", async function () {
-		var r = await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtention4Untrusted, [otherguy,payee,123456789], {from:payee}));
+		var r = await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtention4Untrusted, [otherguy,payee,123456789], "", {from:payee}));
 	});
 });
 
