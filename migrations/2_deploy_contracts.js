@@ -9,16 +9,34 @@ Date.time = function() { return Date.now().getUnixTime(); }
 
 
 var requestCoreContract;
+var requestEthereum;
+var requestEscrow;
 
 module.exports = function(deployer) {
     return RequestCore.new().then(function(result){
     	requestCoreContract = result;
         console.log("requestCore: "+requestCoreContract.address);
         RequestEthereum.new(requestCoreContract.address).then(function(result){
+        	requestEthereum=result;
 	        console.log("requestEthereum: "+result.address);
-	        RequestSynchroneExtensionEscrow.new(requestCoreContract.address).then(function(result){
-		        console.log("RequestSynchroneExtensionEscrow: "+result.address);
-		    });
+		        requestCoreContract.adminAddTrustedSubContract(requestEthereum.address).then(function(r) {
+					RequestSynchroneExtensionEscrow.new(requestCoreContract.address).then(function(result){
+						requestEscrow=result;
+			        	console.log("RequestSynchroneExtensionEscrow: "+result.address);
+				        requestCoreContract.adminAddTrustedExtension(result.address).then(function(r) {
+				        	
+				        	requestCoreContract.getStatusContract(requestEthereum.address).then(function(d) {
+				        		console.log("getStatusContract: "+requestEthereum.address+" => "+d)
+				        	})
+				        	requestCoreContract.getStatusExtension(requestEscrow.address).then(function(d) {
+				        		console.log("getStatusExtension: "+requestEscrow.address+" => "+d)
+				        	})
+
+
+				        });
+
+			    });
+	        });
 	    });
     });
 };
