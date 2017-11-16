@@ -349,7 +349,7 @@ contract RequestEthereum is Pausable {
      * @dev the request must be accepted or created
      *
      * @param _requestId id of the request
-     * @param _tips amount of discount in wei to declare 
+     * @param _amount amount of discount in wei to declare 
      */
     function discount(bytes32 _requestId, uint _amount)
         external
