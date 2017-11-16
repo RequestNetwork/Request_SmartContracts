@@ -1,6 +1,6 @@
 var config = {
 	"VERSION_CORE": 1,
-	"all":false,
+	"all":true,
 	// "core.js": {
 		"requestAdministrable.js":false,    
 		"requestCoreCreateRequest.js":false,    
@@ -15,7 +15,7 @@ var config = {
 				"requestEthereumBroadcastSignedRequestAsPayer.js":false,
 				"requestEthereumAccept.js":false, 
 				"requestEthereumDecline.js":false, 
-"requestEthereumWithdraw.js":true, 
+				"requestEthereumWithdraw.js":false, 
 				"requestEthereumCancel.js":false, 
 				"requestEthereumDiscount.js":false, 
 				"requestEthereumWithEscrow.js":false, 
