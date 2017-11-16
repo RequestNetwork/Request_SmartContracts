@@ -112,6 +112,15 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		subContract.cancel(_requestId); 
 	}
 
+	function addSubtract(bytes32 _requestId, uint _amount) 
+		public 
+		whenNotPaused
+		isSubContractRight(_requestId)
+		returns(bool)
+	{
+		// nothing to do
+		return _amount.add(escrows[_requestId].amountPaid) <= requestCore.getAmountInitialAfterSubAdd(_requestId);
+	} 
 
 
 	// internal function 
@@ -169,5 +178,5 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	{
 		require(escrows[_requestId].subContract == msg.sender);
 		_;
-	}   
+	}	 
 }

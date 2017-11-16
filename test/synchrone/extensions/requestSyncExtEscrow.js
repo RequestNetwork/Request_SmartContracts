@@ -80,7 +80,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		// request 2 with testRequestSynchroneSubContractLauncher
 		await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
     });
-
+/*
 	// ##################################################################################################
 	// ## Create Request
 	// ##################################################################################################
@@ -512,7 +512,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	// ##################################################################################################
 	// ##################################################################################################
 	// ##################################################################################################
-
+*/
 	// ##################################################################################################
 	// ## Escrow Cancel
 	// ##################################################################################################
@@ -536,6 +536,34 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		await requestCore.accept(utils.getHashRequest(1),{from:fakeTrustedContract});
 		await requestSynchroneExtensionEscrow.payment(utils.getHashRequest(1), arbitraryAmount, {from:fakeTrustedContract})
 		assert.equal(await requestSynchroneExtensionEscrow.cancel.call(utils.getHashRequest(1), {from:fakeTrustedContract}),false,'return of cancel must be true');
+	});
+
+	// ##################################################################################################
+	// ## Escrow addSubtract
+	// ##################################################################################################
+	it("addSubtract by other guy impossible", async function () {
+		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
+		await utils.expectThrow(requestSynchroneExtensionEscrow.addSubtract(utils.getHashRequest(2), 10, {from:otherguy}));
+	});
+
+	it("addSubtract by other trusted contract impossible", async function () {
+		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
+		await utils.expectThrow(requestSynchroneExtensionEscrow.addSubtract(utils.getHashRequest(2), 10, {from:fakeTrustedContract}));
+	});
+
+	it("addSubtract by escrow impossible", async function () {
+		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
+		await utils.expectThrow(requestSynchroneExtensionEscrow.addSubtract(utils.getHashRequest(2), 10, {from:escrow}));
+	});
+
+	it("addSubtract if amountPaid+amountSubtract <= AmountInitialAfterSubAdd  OK (return true)", async function () {
+		await requestSynchroneExtensionEscrow.payment(utils.getHashRequest(1), 100, {from:fakeTrustedContract})
+		assert.equal(await requestSynchroneExtensionEscrow.addSubtract.call(utils.getHashRequest(1), 10, {from:fakeTrustedContract}),true,'return of addSubtract must be true');
+	});
+
+	it("addSubtract if amountPaid+amountSubtract > AmountInitialAfterSubAdd  Intercepted (return false)", async function () {
+		await requestSynchroneExtensionEscrow.payment(utils.getHashRequest(1), 10, {from:fakeTrustedContract})
+		assert.equal(await requestSynchroneExtensionEscrow.addSubtract.call(utils.getHashRequest(1), 999, {from:fakeTrustedContract}),false,'return of addSubtract must be false');
 	});
 	// ##################################################################################################
 	// ##################################################################################################
