@@ -45,22 +45,116 @@ contract('RequestCore Create Request', function(accounts) {
 	});
 
 	// new request _creator==0 impossible
-	// new request payee==0 impossible
-	// new request payer==0 impossible
-	// new request payee==payer impossible
+	// new request payee==0 OK
+	// new request payer==0 OK
+	// new request payee==payer OK
 	it("Actors not null and payee!=payer", async function () {
 		var requestCore = await RequestCore.new();
 
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
+		// new request _creator==0 impossible
 		await utils.expectThrow(requestCore.createRequest(0, payee, payer, arbitraryAmount, 0, "", {from:fakeContract}));
-		await utils.expectThrow(requestCore.createRequest(creator, 0, payer, arbitraryAmount, 0, "", {from:fakeContract}));
-		await utils.expectThrow(requestCore.createRequest(creator, payee, 0, arbitraryAmount, 0, "", {from:fakeContract}));
-		await utils.expectThrow(requestCore.createRequest(creator, payee, payee, arbitraryAmount, 0, "", {from:fakeContract}));
+
+		// new request payee==0 OK
+		var r = await requestCore.createRequest(creator, 0, payer, arbitraryAmount, 0, "", {from:fakeContract});
+		assert.equal(r.logs[0].event,"Created","Event Created is missing after createRequest()");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(1),"Event Created wrong args requestId");
+		assert.equal(r.logs[0].args.payee,0,"Event Created wrong args payee");
+		assert.equal(r.logs[0].args.payer,payer,"Event Created wrong args payer");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],0,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],0,"new request wrong data : state");
+		assert.equal(newReq[9],0,"new request wrong data : extension");
+		assert.equal(newReq[10],0,"new request wrong data : details");
+
+		var r = await requestCore.setPayee(utils.getHashRequest(1), payee, {from:fakeContract});
+		assert.equal(r.logs[0].event,"NewPayee","Event is missing after setPayee()");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(1),"wrong args requestId");
+		assert.equal(r.logs[0].args.payee,payee,"wrong args payee");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],0,"new request wrong data : state");
+		assert.equal(newReq[9],0,"new request wrong data : extension");
+		assert.equal(newReq[10],0,"new request wrong data : details");
+
+		// new request payer==0 OK
+		r = await requestCore.createRequest(creator, payee, 0, arbitraryAmount, 0, "", {from:fakeContract});
+		assert.equal(r.logs[0].event,"Created","Event Created is missing after createRequest()");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(2),"Event Created wrong args requestId");
+		assert.equal(r.logs[0].args.payee,payee,"Event Created wrong args payee");
+		assert.equal(r.logs[0].args.payer,0,"Event Created wrong args payer");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],0,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],0,"new request wrong data : state");
+		assert.equal(newReq[9],0,"new request wrong data : extension");
+		assert.equal(newReq[10],0,"new request wrong data : details");
+
+		var r = await requestCore.setPayer(utils.getHashRequest(2), payer, {from:fakeContract});
+		assert.equal(r.logs[0].event,"NewPayer","Event is missing after setPayer()");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(2),"wrong args requestId");
+		assert.equal(r.logs[0].args.payer,payer,"wrong args payer");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],0,"new request wrong data : state");
+		assert.equal(newReq[9],0,"new request wrong data : extension");
+		assert.equal(newReq[10],0,"new request wrong data : details");
+
+		// new request payee==payer OK
+		r = await requestCore.createRequest(creator, payee, payee, arbitraryAmount, 0, "", {from:fakeContract});
+		assert.equal(r.logs[0].event,"Created","Event Created is missing after createRequest()");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(3),"Event Created wrong args requestId");
+		assert.equal(r.logs[0].args.payee,payee,"Event Created wrong args payee");
+		assert.equal(r.logs[0].args.payer,payee,"Event Created wrong args payer");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(3));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payee,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],0,"new request wrong data : state");
+		assert.equal(newReq[9],0,"new request wrong data : extension");
+		assert.equal(newReq[10],0,"new request wrong data : details");
 	});
 
 
-	// new request _amountExpected == 0 impossible
+	// new request _amountExpected == 0 OK
 	// new request _amountExpected < 0 impossible /!\
 	// new request _amountExpected > 2^256 impossible
 	it("amountExpected more than zero and not more than 2^256", async function () {
@@ -68,7 +162,43 @@ contract('RequestCore Create Request', function(accounts) {
 
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
 
-		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, 0, 0, "", {from:fakeContract}));
+		var r = await requestCore.createRequest(creator, payee, payer, 0, 0, "", {from:fakeContract});
+		assert.equal(r.logs[0].event,"Created","Event Created is missing after createRequest()");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(1),"Event Created wrong args requestId");
+		assert.equal(r.logs[0].args.payee,payee,"Event Created wrong args payee");
+		assert.equal(r.logs[0].args.payer,payer,"Event Created wrong args payer");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],0,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],0,"new request wrong data : state");
+		assert.equal(newReq[9],0,"new request wrong data : extension");
+		assert.equal(newReq[10],0,"new request wrong data : details");
+
+		var r = await requestCore.setAmountInitial(utils.getHashRequest(1), arbitraryAmount, {from:fakeContract});
+		assert.equal(r.logs[0].event,"NewAmountInitial","Event is missing after setAmountInitial()");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(1),"wrong args requestId");
+		assert.equal(r.logs[0].args.amountInitial,arbitraryAmount,"wrong args arbitraryAmount");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],0,"new request wrong data : state");
+		assert.equal(newReq[9],0,"new request wrong data : extension");
+		assert.equal(newReq[10],0,"new request wrong data : details");
+
 		// problem here : how to test it ? /!\
 		// await utils.expectThrow(requestCore.createRequest(payee, payee, payer, -1, [], {from:fakeContract}));
 		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, new BigNumber(2).pow(256), 0, "", {from:fakeContract}));
@@ -79,6 +209,7 @@ contract('RequestCore Create Request', function(accounts) {
 	it("new request without extensions", async function () {
 		var requestCore = await RequestCore.new();
 		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
+		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
 
 		var r = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, "", {from:fakeContract});
 		assert.equal(r.logs[0].event,"Created","Event Created is missing after createRequest()");
@@ -101,6 +232,44 @@ contract('RequestCore Create Request', function(accounts) {
 
 		var newReqExtension = await requestCore.getExtension.call(utils.getHashRequest(1));
 		assert.equal(newReqExtension,0,"new request wrong data : Extension[0]");
+
+
+		var r = await requestCore.setExtension(utils.getHashRequest(1), fakeExtention1, {from:fakeContract});
+		assert.equal(r.logs[0].event,"NewExtension","Event is missing after setExtension()");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(1),"wrong args requestId");
+		assert.equal(r.logs[0].args.extension,fakeExtention1,"wrong args extension");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],0,"new request wrong data : state");
+		assert.equal(newReq[9],fakeExtention1,"new request wrong data : extension");
+		assert.equal(newReq[10],0,"new request wrong data : details");
+
+
+		var r = await requestCore.setDetails(utils.getHashRequest(1), "hello world!", {from:fakeContract});
+		assert.equal(r.logs[0].event,"NewDetails","Event is missing after setDetails()");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(1),"wrong args requestId");
+		assert.equal(r.logs[0].args.details,"hello world!","wrong args details");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],0,"new request wrong data : state");
+		assert.equal(newReq[9],fakeExtention1,"new request wrong data : extension");
+		assert.equal(newReq[10],"hello world!","new request wrong data : details");
 	});
 
 	// new request with details

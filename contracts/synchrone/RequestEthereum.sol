@@ -52,6 +52,7 @@ contract RequestEthereum is Pausable {
         whenNotPaused
         returns(bytes32 requestId)
     {
+        require(msg.sender != _payer && _payer != 0);
         requestId= requestCore.createRequest(msg.sender, msg.sender, _payer, _amountInitial, _extension, _details);
 
         if(_extension!=0) {
@@ -81,6 +82,7 @@ contract RequestEthereum is Pausable {
         whenNotPaused
         returns(bytes32 requestId)
     {
+        require(msg.sender != _payee && _payee != 0);
         require(msg.value >= _tips); // tips declare must be lower than amount sent
         require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
 
@@ -130,6 +132,7 @@ contract RequestEthereum is Pausable {
         whenNotPaused
         returns(bytes32 requestId)
     {
+        require(msg.sender != _payee && _payee != 0);
         require(msg.value >= _tips); // tips declare must be lower than amount sent
         require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
 

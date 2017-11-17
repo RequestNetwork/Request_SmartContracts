@@ -69,15 +69,13 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 
 
 	it("basic check on payee payer creator", async function () {
-		// new request payer==0 impossible
+		// new request payer==0 OK
 		await utils.expectThrow(requestEthereum.createRequestAsPayee(0, arbitraryAmount, 0, [], "", {from:payee}));
 		// new request payee==payer impossible
 		await utils.expectThrow(requestEthereum.createRequestAsPayee(payee, arbitraryAmount, 0, [], "", {from:payee}));
 	});
 
 	it("basic check on amountExpected", async function () {
-		// new request _amountExpected == 0 impossible
-		await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, 0, 0, [], "", {from:payee}));
 		// new request _amountExpected >= 2^256 impossible
 		await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, new BigNumber(2).pow(256), 0, [], "", {from:payee}));
 	});

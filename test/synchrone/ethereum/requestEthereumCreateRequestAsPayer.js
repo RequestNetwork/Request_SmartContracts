@@ -220,17 +220,6 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		assert.equal(r,arbitraryAmount,"new quick request wrong data : amount to withdraw payee");
 	});
 
-	it("new quick request _amountExpected == 0 impossible", async function () {
-		var extension = 0;
-		var listParamsExtensions = [];
-
-		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, 0, 
-									extension,
-									listParamsExtensions, 
-									0, "", 
-									{from:payer, value:0}));
-	});
-
 	it("new quick request payee==payer impossible", async function () {
 		var extension = 0;
 		var listParamsExtensions = [];

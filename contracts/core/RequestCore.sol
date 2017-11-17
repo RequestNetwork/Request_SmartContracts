@@ -54,6 +54,12 @@ contract RequestCore is Administrable {
     event AddAdditional(bytes32 requestId, uint amountAdded);
     event AddSubtract(bytes32 requestId, uint amountSubtracted);
 
+    event NewPayee(bytes32 requestId, address payee);
+    event NewPayer(bytes32 requestId, address payer);
+    event NewAmountInitial(bytes32 requestId, uint amountInitial);
+    event NewExtension(bytes32 requestId, address extension);
+    event NewDetails(bytes32 requestId, string details);
+
     /*
      *  Constructor 
      */
@@ -73,14 +79,13 @@ contract RequestCore is Administrable {
      * @return Returns the id of the request 
      */   
     function createRequest(address _creator, address _payee, address _payer, uint _amountInitial, address _extension, string _details) 
-        public
+        external
         whenNotPaused 
         isTrustedContract(msg.sender)
         isTrustedExtension(_extension)
+        creatorNotZero(_creator)
         returns (bytes32 requestId) 
     {
-        require(isParametersValidForFutureRequest(_creator, _payee, _payer, _amountInitial));
-
         numRequests = numRequests.add(1);
         requestId = keccak256(numRequests,VERSION);
 
@@ -95,7 +100,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      */ 
     function accept(bytes32 _requestId) 
-        public
+        external
     {
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
@@ -108,7 +113,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      */ 
     function decline(bytes32 _requestId)
-        public
+        external
     {
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
@@ -121,7 +126,7 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      */ 
     function cancel(bytes32 _requestId)
-        public
+        external
     {
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender);
@@ -136,7 +141,7 @@ contract RequestCore is Administrable {
      * @param _amount amount paid
      */ 
     function payment(bytes32 _requestId, uint _amount)
-        public
+        external
     {   
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
@@ -152,7 +157,7 @@ contract RequestCore is Administrable {
      * @param _amount amount refunded
      */ 
     function refund(bytes32 _requestId, uint _amount)
-        public
+        external
     {   
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
@@ -168,7 +173,7 @@ contract RequestCore is Administrable {
      * @param _amount additional amount
      */ 
     function addAdditional(bytes32 _requestId, uint _amount)
-        public
+        external
     {   
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
@@ -186,7 +191,7 @@ contract RequestCore is Administrable {
      * @param _amount subtract amount
      */ 
     function addSubtract(bytes32 _requestId, uint _amount)
-        public
+        external
     {   
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender);
@@ -198,8 +203,79 @@ contract RequestCore is Administrable {
         AddSubtract(_requestId, _amount);
     }
 
+    /* SETTER */
+    /*
+     * @dev Set payee of a request
+     * @param _requestId Request id
+     * @param _payee new payee
+     */ 
+    function setPayee(bytes32 _requestId, address _payee)
+        external
+    {
+        Request storage r = requests[_requestId];
+        require(r.subContract==msg.sender);
+        requests[_requestId].payee = _payee;
+        NewPayee(_requestId, _payee);
+    }
 
+    /*
+     * @dev Get payer of a request
+     * @param _requestId Request id
+     * @param _payee new payer
+     */ 
+    function setPayer(bytes32 _requestId, address _payer)
+        external
+    {
+        Request storage r = requests[_requestId];
+        require(r.subContract==msg.sender);
+        requests[_requestId].payer = _payer;
+        NewPayer(_requestId, _payer);
+    }
 
+    /*
+     * @dev Set amount initial of a request
+     * @param _requestId Request id
+     * @param new amount initial
+     */     
+    function setAmountInitial(bytes32 _requestId, uint _amountInitial)
+        external
+    {
+        Request storage r = requests[_requestId];
+        require(r.subContract==msg.sender);
+        requests[_requestId].amountInitial = _amountInitial;
+        NewAmountInitial(_requestId, _amountInitial);
+    }
+
+    /*
+     * @dev Set extension of a request
+     * @param _requestId Request id
+     * @param new extension
+     */     
+    function setExtension(bytes32 _requestId, address _extension)
+        external
+        isTrustedExtension(_extension)
+    {
+        Request storage r = requests[_requestId];
+        require(r.subContract==msg.sender);
+        requests[_requestId].extension = _extension;
+        NewExtension(_requestId, _extension);
+    }
+
+    /*
+     * @dev Set extension of a request
+     * @param _requestId Request id
+     * @param new extension
+     */     
+    function setDetails(bytes32 _requestId, string _details)
+        external
+    {
+        Request storage r = requests[_requestId];
+        require(r.subContract==msg.sender);
+        requests[_requestId].details = _details;
+        NewDetails(_requestId, _details);
+    }
+
+    /* GETTER */
     /*
      * @dev Get payee of a request
      * @param _requestId Request id
@@ -331,17 +407,11 @@ contract RequestCore is Administrable {
     } 
 
     /*
-     * @dev Check parameters before creating a request
+     * @dev Modifier Check that creator is not zero
      * @param _creator Request
-     * @param _payee future payee
-     * @param _payer future payer
-     * @param _amountInitial future amount initial
      */
-    function isParametersValidForFutureRequest(address _creator, address _payee, address _payer, uint _amountInitial) 
-        pure
-        internal
-        returns(bool)
-    {
-        return _creator!=0 && _payee!=0 && _payer!=0 && _payee!=_payer && _amountInitial!=0;
+    modifier creatorNotZero(address _creator) {
+       require(_creator!=0);
+       _;
     }
 }
