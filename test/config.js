@@ -4,7 +4,7 @@ var config = {
 	// "core.js": {
 		"requestAdministrable.js":false,    
 		"requestCoreCreateRequest.js":false,    
-		"requestCoreAcceptDeclineCancel.js":false,
+		"requestCoreAcceptCancel.js":false,
 		"requestCoreAdditionalSubtract.js":false,  
 		"requestCorePaymentRefund.js":false,  
 	// },
@@ -14,7 +14,7 @@ var config = {
 				"requestEthereumCreateRequestAsPayer.js":false,
 				"requestEthereumBroadcastSignedRequestAsPayer.js":false,
 				"requestEthereumAccept.js":false, 
-				"requestEthereumDecline.js":false, 
+				"requestEthereumCancelByPayer.js":false, 
 				"requestEthereumWithdraw.js":false, 
 				"requestEthereumCancel.js":false, 
 				"requestEthereumDiscount.js":false, 

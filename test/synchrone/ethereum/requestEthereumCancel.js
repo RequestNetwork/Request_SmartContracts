@@ -71,9 +71,9 @@ contract('RequestEthereum Cancel',  function(accounts) {
     	fakeExtentionInterception2 = await TestRequestSynchroneInterfaceInterception.new(12);
     	fakeExtentionInterception3 = await TestRequestSynchroneInterfaceInterception.new(13);
 
-    	fakeExtentionLauncher1 = await TestRequestSynchroneExtensionLauncher.new(21,true,true,true,true,true,true,true,true,true);
-    	fakeExtentionLauncher2 = await TestRequestSynchroneExtensionLauncher.new(22,true,true,true,true,true,true,true,true,true);
-    	fakeExtentionLauncher3 = await TestRequestSynchroneExtensionLauncher.new(23,true,true,true,true,true,true,true,true,true);
+    	fakeExtentionLauncher1 = await TestRequestSynchroneExtensionLauncher.new(21,true,true,true,true,true,true,true,true);
+    	fakeExtentionLauncher2 = await TestRequestSynchroneExtensionLauncher.new(22,true,true,true,true,true,true,true,true);
+    	fakeExtentionLauncher3 = await TestRequestSynchroneExtensionLauncher.new(23,true,true,true,true,true,true,true,true);
 
 
 
@@ -115,7 +115,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
 		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
+		assert.equal(newReq[8],2,"new request wrong data : state");
 	});	
 
 	it("cancel if untrusted subContract", async function () {
@@ -136,7 +136,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
 		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
+		assert.equal(newReq[8],2,"new request wrong data : state");
 	});
 
 	it("cancel request Ethereum pause impossible", async function () {
@@ -151,14 +151,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	it("cancel request from a random guy impossible", async function () {
 		await utils.expectThrow(requestEthereum.cancel(utils.getHashRequest(1), {from:otherguy}));
 	});
-	it("cancel request from payer impossible", async function () {
-		await utils.expectThrow(requestEthereum.cancel(utils.getHashRequest(1), {from:payer}));
-	});
 
-	it("cancel by payee request declined impossible", async function () {
-		await requestEthereum.cancel(utils.getHashRequest(1), {from:payee});
-		await utils.expectThrow(requestEthereum.cancel(utils.getHashRequest(1), {from:payee}));
-	});
 	it("cancel by payee request canceled impossible", async function () {
 		await requestEthereum.cancel(utils.getHashRequest(1), {from:payee});
 		await utils.expectThrow(requestEthereum.cancel(utils.getHashRequest(1), {from:payee}));
@@ -176,7 +169,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
 		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
+		assert.equal(newReq[8],2,"new request wrong data : state");
 	});
 
 	it("cancel request amountPaid != 0 Impossible", async function () {
@@ -212,7 +205,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
 		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
+		assert.equal(newReq[8],2,"new request wrong data : state");
 	});
 
 
@@ -239,7 +232,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
 		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
+		assert.equal(newReq[8],2,"new request wrong data : state");
 	});
 
 	it("cancel request created OK - with 1 extension, continue: [false]", async function () {
@@ -282,7 +275,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
 		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
+		assert.equal(newReq[8],2,"new request wrong data : state");
 	});
 
 	it("cancel by extension request accepted OK", async function () {
@@ -304,29 +297,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
 		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
-	});
-
-	it("cancel by extension request declined OK", async function () {
-		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], "", {from:payee});
-		await requestEthereum.decline(utils.getHashRequest(2), {from:payer});
-
-		var r = await fakeExtentionLauncher1.launchCancel(utils.getHashRequest(2));
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event Canceled wrong args requestId");
-
-		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
+		assert.equal(newReq[8],2,"new request wrong data : state");
 	});
 
 	it("cancel by extension request canceled OK", async function () {
@@ -348,7 +319,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
 		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],3,"new request wrong data : state");
+		assert.equal(newReq[8],2,"new request wrong data : state");
 	});
 
 	it("cancel by an extension not from request impossible", async function () {

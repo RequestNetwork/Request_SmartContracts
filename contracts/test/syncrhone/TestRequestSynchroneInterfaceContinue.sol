@@ -23,13 +23,6 @@ contract TestRequestSynchroneInterfaceContinue is RequestSynchroneInterface{
         return true;
     } 
 
-    event LogTestDecline(bytes32 requestId, uint id);
-    function decline(bytes32 _requestId) public returns(bool)
-    {
-        LogTestDecline(_requestId, constant_id);
-        return true;
-    } 
-
     event LogTestCancel(bytes32 requestId, uint id);
     function cancel(bytes32 _requestId) public returns(bool)
     {

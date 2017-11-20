@@ -154,15 +154,10 @@ contract('RequestEthereum Discount',  function(accounts) {
 		assert.equal(newReq[8],0,"new request wrong data : state");
 	});
 
-	it("decline request Ethereum pause impossible", async function () {
+	it("cancel request Ethereum pause impossible", async function () {
 		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
 		await requestEthereum.pause({from:admin});
 		await utils.expectThrow(requestEthereum.cancel(utils.getHashRequest(1), {from:payee}));
-	});
-
-	it("discount by payee request declined impossible", async function () {
-		await requestEthereum.decline(utils.getHashRequest(1), {from:payer});
-		await utils.expectThrow(requestEthereum.discount(utils.getHashRequest(1), arbitraryAmount10percent, {from:payee}));
 	});
 
 	it("discount by payee request canceled impossible", async function () {

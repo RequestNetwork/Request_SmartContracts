@@ -13,7 +13,6 @@ contract TestRequestSynchroneSubContractLauncher {
 
     bool createRequestReturn;
     bool acceptReturn;
-    bool declineReturn;
     bool cancelReturn;
     bool fundOrderReturn;
     bool paymentReturn;
@@ -22,14 +21,13 @@ contract TestRequestSynchroneSubContractLauncher {
     bool addSubtractReturn;
 
 
-    function TestRequestSynchroneSubContractLauncher (uint _id, uint _requestCoreAddress, bool _createRequest,bool _accept,bool _decline,bool _cancel,bool _fundOrder,bool _payment,bool _refund,bool _addAdditional,bool _addSubtract) 
+    function TestRequestSynchroneSubContractLauncher (uint _id, uint _requestCoreAddress, bool _createRequest,bool _accept,bool _cancel,bool _fundOrder,bool _payment,bool _refund,bool _addAdditional,bool _addSubtract) 
         public
     {
         constant_id = _id;
 
         createRequestReturn = _createRequest;
         acceptReturn = _accept;
-        declineReturn = _decline;
         cancelReturn = _cancel;
         fundOrderReturn = _fundOrder;
         paymentReturn = _payment;
@@ -53,13 +51,6 @@ contract TestRequestSynchroneSubContractLauncher {
     {
         RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
         extension.accept(_requestId);
-    } 
-
-    function launchDecline(bytes32 _requestId)
-        public
-    {
-        RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddress[_requestId]);
-        extension.decline(_requestId);
     } 
 
    function launchPayment(bytes32 _requestId, uint _amount)
@@ -113,16 +104,6 @@ contract TestRequestSynchroneSubContractLauncher {
         LogTestAccept(_requestId, constant_id);
         requestCore.accept(_requestId);
         return acceptReturn;
-    } 
-
-    event LogTestDecline(bytes32 requestId, uint id);
-    function decline(bytes32 _requestId)
-        public
-        returns(bool)
-    {
-        LogTestDecline(_requestId, constant_id);
-        requestCore.decline(_requestId);
-        return declineReturn;
     } 
 
     event LogTestCancel(bytes32 requestId, uint id);

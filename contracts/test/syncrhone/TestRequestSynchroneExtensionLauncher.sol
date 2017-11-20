@@ -9,7 +9,6 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
 
     bool createRequestReturn;
     bool acceptReturn;
-    bool declineReturn;
     bool cancelReturn;
     bool fundOrderReturn;
     bool paymentReturn;
@@ -18,14 +17,13 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
     bool addSubtractReturn;
 
 
-    function TestRequestSynchroneExtensionLauncher (uint _id, bool _createRequest,bool _accept,bool _decline,bool _cancel,bool _fundOrder,bool _payment,bool _refund,bool _addAdditional,bool _addSubtract) 
+    function TestRequestSynchroneExtensionLauncher (uint _id, bool _createRequest,bool _accept,bool _cancel,bool _fundOrder,bool _payment,bool _refund,bool _addAdditional,bool _addSubtract) 
         public
     {
         constant_id = _id;
 
         createRequestReturn = _createRequest;
         acceptReturn = _accept;
-        declineReturn = _decline;
         cancelReturn = _cancel;
         fundOrderReturn = _fundOrder;
         paymentReturn = _payment;
@@ -47,13 +45,6 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
     {
         RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
         subContract.accept(_requestId);
-    } 
-
-    function launchDecline(bytes32 _requestId)
-        public
-    {
-        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
-        subContract.decline(_requestId);
     } 
 
     function launchPayment(bytes32 _requestId, uint _amount)
@@ -97,13 +88,6 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
     {
         LogTestAccept(_requestId, constant_id);
         return acceptReturn;
-    } 
-
-    event LogTestDecline(bytes32 requestId, uint id);
-    function decline(bytes32 _requestId) public returns(bool)
-    {
-        LogTestDecline(_requestId, constant_id);
-        return declineReturn;
     } 
 
     event LogTestCancel(bytes32 requestId, uint id);

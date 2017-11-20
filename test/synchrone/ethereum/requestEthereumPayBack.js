@@ -80,17 +80,17 @@ contract('RequestEthereum PayBack',  function(accounts) {
     	fakeExtentionInterception2 = await TestRequestSynchroneInterfaceInterception.new(12);
     	fakeExtentionInterception3 = await TestRequestSynchroneInterfaceInterception.new(13);
 
-    	fakeExtentionLauncherRefundFalse1 = await TestRequestSynchroneExtensionLauncher.new(21,true,true,true,true,true,true,false,true,true);
-    	fakeExtentionLauncherFundOrderFalse1 = await TestRequestSynchroneExtensionLauncher.new(22,true,true,true,true,false,true,true,true,true);
-    	fakeExtentionLauncherFundOrderFalseAndRefundFalse1 = await TestRequestSynchroneExtensionLauncher.new(23,true,true,true,true,false,true,false,true,true);
+    	fakeExtentionLauncherRefundFalse1 = await TestRequestSynchroneExtensionLauncher.new(21,true,true,true,true,true,false,true,true);
+    	fakeExtentionLauncherFundOrderFalse1 = await TestRequestSynchroneExtensionLauncher.new(22,true,true,true,false,true,true,true,true);
+    	fakeExtentionLauncherFundOrderFalseAndRefundFalse1 = await TestRequestSynchroneExtensionLauncher.new(23,true,true,true,false,true,false,true,true);
 
-    	fakeExtentionLauncherRefundFalse2 = await TestRequestSynchroneExtensionLauncher.new(31,true,true,true,true,true,true,false,true,true);
-    	fakeExtentionLauncherFundOrderFalse2 = await TestRequestSynchroneExtensionLauncher.new(32,true,true,true,true,false,true,true,true,true);
-    	fakeExtentionLauncherFundOrderFalseAndRefundFalse2 = await TestRequestSynchroneExtensionLauncher.new(33,true,true,true,true,false,true,false,true,true);
+    	fakeExtentionLauncherRefundFalse2 = await TestRequestSynchroneExtensionLauncher.new(31,true,true,true,true,true,false,true,true);
+    	fakeExtentionLauncherFundOrderFalse2 = await TestRequestSynchroneExtensionLauncher.new(32,true,true,true,false,true,true,true,true);
+    	fakeExtentionLauncherFundOrderFalseAndRefundFalse2 = await TestRequestSynchroneExtensionLauncher.new(33,true,true,true,false,true,false,true,true);
 
-    	fakeExtentionLauncherRefundFalse3 = await TestRequestSynchroneExtensionLauncher.new(41,true,true,true,true,true,true,false,true,true);
-    	fakeExtentionLauncherFundOrderFalse3 = await TestRequestSynchroneExtensionLauncher.new(42,true,true,true,true,false,true,true,true,true);
-    	fakeExtentionLauncherFundOrderFalseAndRefundFalse3 = await TestRequestSynchroneExtensionLauncher.new(43,true,true,true,true,false,true,false,true,true);
+    	fakeExtentionLauncherRefundFalse3 = await TestRequestSynchroneExtensionLauncher.new(41,true,true,true,true,true,false,true,true);
+    	fakeExtentionLauncherFundOrderFalse3 = await TestRequestSynchroneExtensionLauncher.new(42,true,true,true,false,true,true,true,true);
+    	fakeExtentionLauncherFundOrderFalseAndRefundFalse3 = await TestRequestSynchroneExtensionLauncher.new(43,true,true,true,false,true,false,true,true);
 
 		requestCore = await RequestCore.new({from:admin});
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
@@ -165,11 +165,6 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		await utils.expectThrow(requestEthereum.payback(utils.getHashRequest(2), {value:arbitraryAmount, from:payee}));
 	});
 
-	it("payback request declined impossible", async function () {
-		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
-		await requestEthereum.decline(utils.getHashRequest(2), {from:payer});
-		await utils.expectThrow(requestEthereum.payback(utils.getHashRequest(2), {value:arbitraryAmount, from:payee}));
-	});
 	it("payback request canceled impossible", async function () {
 		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
 		await requestEthereum.cancel(utils.getHashRequest(2), {from:payee});

@@ -20,7 +20,7 @@ contract RequestCore is Administrable {
 
     using SafeMath for uint;
 
-    enum State { Created, Accepted, Declined, Canceled }
+    enum State { Created, Accepted, Canceled }
 
     struct Request {
         address creator;
@@ -47,7 +47,6 @@ contract RequestCore is Administrable {
      */
     event Created(bytes32 requestId, address payee, address payer);
     event Accepted(bytes32 requestId);
-    event Declined(bytes32 requestId);
     event Canceled(bytes32 requestId);
     event Payment(bytes32 requestId, uint amountPaid);
     event Refunded(bytes32 requestId, uint amountRefunded);
@@ -106,19 +105,6 @@ contract RequestCore is Administrable {
         require(r.subContract==msg.sender); 
         r.state = State.Accepted;
         Accepted(_requestId);
-    }
-
-    /*
-     * @dev Function used by Subcontracts to decline a request in the Core. A request declined is recognized by the payer as not legit and might be spam
-     * @param _requestId Request id
-     */ 
-    function decline(bytes32 _requestId)
-        external
-    {
-        Request storage r = requests[_requestId];
-        require(r.subContract==msg.sender); 
-        r.state = State.Declined;
-        Declined(_requestId);
     }
 
     /*

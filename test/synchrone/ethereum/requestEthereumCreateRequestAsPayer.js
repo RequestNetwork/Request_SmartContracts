@@ -69,7 +69,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
     	fakeExtention1 = await TestRequestSynchroneInterfaceContinue.new(1);
     	fakeExtention2 = await TestRequestSynchroneInterfaceContinue.new(2);
     	fakeExtention3 = await TestRequestSynchroneInterfaceContinue.new(3);
-    	fakeExtentionLauncherAcceptFalse = await TestRequestSynchroneExtensionLauncher.new(21,true,false,true,true,true,true,true,true,true);
+    	fakeExtentionLauncherAcceptFalse = await TestRequestSynchroneExtensionLauncher.new(21,true,false,true,true,true,true,true,true);
 
 		requestCore = await RequestCore.new();
 		requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});

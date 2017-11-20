@@ -76,9 +76,9 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 	var fakeContract = accounts[2];
 	var payer = accounts[3];
 	var payee = accounts[4];
-	var privateKeyOtherGuy = "7281f4b80e7da911beb044c78dc5ac3e7d68b9bc04755f689e697b1d4adeb5eb";
-	var privateKeyPayer = "a71448148377e8fdc7ab232126a6d25bce29b40a78c9947a967a97ccfbc44a73";
-	var privateKeyPayee = "342282dc9a9902f8adc3a488828c982d68faca6bc519dbeb1bf0dc57df877199";
+	var privateKeyOtherGuy = "258b7f85027d7b20f74ecfbfca556aad8eff933365fe5b7473355040c09db418";
+	var privateKeyPayer = "6ccfcaa51011057276ef4f574a3186c1411d256e4d7731bdf8743f34e608d1d1";
+	var privateKeyPayee = "60090a13d72f682c03db585bf6c3a296600b5d50598a9ceef3291534dede6bea";
 
 	// var creator = accounts[5];
 	var fakeExtention1;
@@ -97,7 +97,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
     	fakeExtention1 = await TestRequestSynchroneInterfaceContinue.new(1);
     	fakeExtention2 = await TestRequestSynchroneInterfaceContinue.new(2);
     	fakeExtention3 = await TestRequestSynchroneInterfaceContinue.new(3);
-    	fakeExtentionLauncherAcceptFalse = await TestRequestSynchroneExtensionLauncher.new(21,true,false,true,true,true,true,true,true,true);
+    	fakeExtentionLauncherAcceptFalse = await TestRequestSynchroneExtensionLauncher.new(21,true,false,true,true,true,true,true,true);
 
 		requestCore = await RequestCore.new();
 		requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});

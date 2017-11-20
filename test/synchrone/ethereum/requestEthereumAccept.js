@@ -70,9 +70,9 @@ contract('RequestEthereum Accept',  function(accounts) {
     	fakeExtentionInterception2 = await TestRequestSynchroneInterfaceInterception.new(12);
     	fakeExtentionInterception3 = await TestRequestSynchroneInterfaceInterception.new(13);
 
-    	fakeExtentionLauncher1 = await TestRequestSynchroneExtensionLauncher.new(21,true,true,true,true,true,true,true,true,true);
-    	fakeExtentionLauncher2 = await TestRequestSynchroneExtensionLauncher.new(22,true,true,true,true,true,true,true,true,true);
-    	fakeExtentionLauncher3 = await TestRequestSynchroneExtensionLauncher.new(23,true,true,true,true,true,true,true,true,true);
+    	fakeExtentionLauncher1 = await TestRequestSynchroneExtensionLauncher.new(21,true,true,true,true,true,true,true,true);
+    	fakeExtentionLauncher2 = await TestRequestSynchroneExtensionLauncher.new(22,true,true,true,true,true,true,true,true);
+    	fakeExtentionLauncher3 = await TestRequestSynchroneExtensionLauncher.new(23,true,true,true,true,true,true,true,true);
 
 		requestCore = await RequestCore.new({from:admin});
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
@@ -136,10 +136,6 @@ contract('RequestEthereum Accept',  function(accounts) {
 		await utils.expectThrow(requestEthereum.accept(utils.getHashRequest(1), {from:payer}));
 	});
 
-	it("accept by payer request declined impossible", async function () {
-		await requestEthereum.decline(utils.getHashRequest(1), {from:payer});
-		await utils.expectThrow(requestEthereum.accept(utils.getHashRequest(1), {from:payer}));
-	});
 	it("accept by payee request canceled impossible", async function () {
 		await requestEthereum.cancel(utils.getHashRequest(1), {from:payee});
 		await utils.expectThrow(requestEthereum.accept(utils.getHashRequest(1), {from:payer}));
@@ -261,29 +257,6 @@ contract('RequestEthereum Accept',  function(accounts) {
 	it("accept by extension request accepted OK", async function () {
 		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
-
-		var r = await fakeExtentionLauncher1.launchAccept(utils.getHashRequest(2));
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"Accepted","Event Accepted is missing after accept()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event Accepted wrong args requestId");
-
-		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
-	});
-
-	it("accept by extension request declined OK", async function () {
-		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncher1.address, [], "", {from:payee});
-		await requestEthereum.decline(utils.getHashRequest(2), {from:payer});
 
 		var r = await fakeExtentionLauncher1.launchAccept(utils.getHashRequest(2));
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");

@@ -13,13 +13,6 @@ contract RequestSynchroneInterface is Pausable {
         return true;
     } 
 
-    // decline request
-    function decline(bytes32 _requestId) public returns(bool)
-    {
-        // nothing to do
-        return true;
-    } 
-
     // cancel request
     function cancel(bytes32 _requestId) public returns(bool)
     {

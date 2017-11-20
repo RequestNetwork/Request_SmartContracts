@@ -80,7 +80,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		// request 2 with testRequestSynchroneSubContractLauncher
 		await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
     });
-/*
+
 	// ##################################################################################################
 	// ## Create Request
 	// ##################################################################################################
@@ -212,11 +212,6 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	// ## Release
 	// ##################################################################################################
 	it("release if request is Created Impossible", async function () {
-		await utils.expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(1), {from:escrow}));
-	});
-
-	it("release if request is Declined Impossible", async function () {
-		await requestCore.decline(utils.getHashRequest(1),{from:fakeTrustedContract});
 		await utils.expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(1), {from:escrow}));
 	});
 
@@ -354,11 +349,6 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	// ##################################################################################################
 
 	it("escrow refund if request is Created Impossible", async function () {
-		await utils.expectThrow(requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:escrow}));
-	});
-
-	it("escrow refund if request is Declined Impossible", async function () {
-		await testRequestSynchroneSubContractLauncher.decline(utils.getHashRequest(2),{from:payer});
 		await utils.expectThrow(requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:escrow}));
 	});
 
@@ -512,7 +502,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	// ##################################################################################################
 	// ##################################################################################################
 	// ##################################################################################################
-*/
+
 	// ##################################################################################################
 	// ## Escrow Cancel
 	// ##################################################################################################

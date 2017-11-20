@@ -180,37 +180,6 @@ contract RequestEthereum is Pausable {
 	}
 
 	/*
-	 * @dev Function to decline a request
-	 *
-	 * @dev msg.sender must be _payer or the extension used by the request
-	 *
-	 * @param _requestId id of the request 
-	 *
-	 * @return true if the request is declined, false otherwise
-	 */
-	function decline(bytes32 _requestId)
-		external
-		whenNotPaused
-		condition(isOnlyRequestExtension(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
-		returns(bool)
-	{
-		address extensionAddr = requestCore.getExtension(_requestId);
-
-		bool isOK = true;
-		if(extensionAddr!=0 && extensionAddr!=msg.sender)  
-		{
-			RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
-			isOK = extension.decline(_requestId);
-		}
-
-		if(isOK) 
-		{
-			requestCore.decline(_requestId);
-		}  
-		return isOK;
-	}
-
-	/*
 	 * @dev Function to declare a payment a request
 	 *
 	 * @dev msg.sender must be an extension used by the request
@@ -252,7 +221,7 @@ contract RequestEthereum is Pausable {
 	/*
 	 * @dev Function to cancel a request
 	 *
-	 * @dev msg.sender must be _payee or an extension used by the request
+	 * @dev msg.sender must be the extension used by the request or the _payer (if request is created) or the _payee (if request is not canceled)
 	 * @dev only request with amountPaid equals to zero can be cancel
 	 *
 	 * @param _requestId id of the request 
@@ -262,11 +231,15 @@ contract RequestEthereum is Pausable {
 	function cancel(bytes32 _requestId)
 		external
 		whenNotPaused
-		condition(isOnlyRequestExtension(_requestId) || (requestCore.getPayee(_requestId)==msg.sender && (requestCore.getState(_requestId)==RequestCore.State.Created || requestCore.getState(_requestId)==RequestCore.State.Accepted)))
 		returns(bool)
 	{
+		require(isOnlyRequestExtension(_requestId) 
+				|| (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created)
+				|| (requestCore.getPayee(_requestId)==msg.sender && requestCore.getState(_requestId)!=RequestCore.State.Canceled)
+		);
+
 		// impossible to cancel a Request with a balance != 0
-		require(requestCore.getAmountPaid(_requestId) == 0);
+		require(requestCore.getAmountPaid(_requestId) == 0); // TODO: maybe to delete
 
 		address extensionAddr = requestCore.getExtension(_requestId);
 
