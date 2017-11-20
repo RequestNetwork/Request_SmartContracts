@@ -524,5 +524,24 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 	// #####################################################################################
 	// #####################################################################################
 
+
+	it("new request when subContract not trusted Impossible", async function () {
+		var requestEthereum2 = await RequestEthereum.new(requestCore.address,{from:admin});
+
+		var extension = 0;
+		var listParamsExtensions = [];
+
+		var hash = hashRequest(requestEthereum2.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "");
+		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
+		var sig = signHashRequest(hash,ecprivkey);
+
+		await utils.expectThrow(requestEthereum2.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
+													extension,
+													listParamsExtensions, 
+													arbitraryAmount10percent, "", 
+													sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
+													{from:payer, value:arbitraryAmount+1}));
+	});
+
 });
 

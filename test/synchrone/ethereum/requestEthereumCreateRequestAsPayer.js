@@ -365,5 +365,9 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 	// #####################################################################################
 	// #####################################################################################
 
+	it("new request when subContract not trusted Impossible", async function () {
+		var requestEthereum2 = await RequestEthereum.new(requestCore.address,{from:admin});
+		await utils.expectThrow(requestEthereum2.createRequestAsPayer(payee, arbitraryAmount, 0, [], 0, "", {from:payer, value:arbitraryAmount}));
+	});
 });
 

@@ -208,6 +208,31 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(r,arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
 	});
 
+	it("payback request accepted OK - untrusted subContract", async function () {
+		await requestCore.adminRemoveTrustedSubContract(requestEthereum.address, {from:admin});
+		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
+
+		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
+		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		assert.equal(l.name,"Refunded","Event Refunded is missing after payBack()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event Refunded wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event Refunded wrong args amountRefunded");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],payee,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount-arbitraryAmount10percent,"new request wrong data : amountPaid");
+		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
+		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
+		assert.equal(newReq[8],1,"new request wrong data : state");
+
+		var r = await requestEthereum.ethToWithdraw.call(payer);
+		assert.equal(r,arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
+	});
+
 	it("payback request accepted OK - with 1 extension, continue: [{true,true}]", async function () {
 		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionContinue1.address, [], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});

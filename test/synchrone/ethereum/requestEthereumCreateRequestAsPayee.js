@@ -177,5 +177,11 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 	it("new request with 1 non trustable extension impossible", async function () {
 		var r = await utils.expectThrow(requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtention4Untrusted, [otherguy,payee,123456789], "", {from:payee}));
 	});
+
+
+	it("new request when subContract not trusted Impossible", async function () {
+		var requestEthereum2 = await RequestEthereum.new(requestCore.address,{from:admin});
+		await utils.expectThrow(requestEthereum2.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee}));
+	});
 });
 
