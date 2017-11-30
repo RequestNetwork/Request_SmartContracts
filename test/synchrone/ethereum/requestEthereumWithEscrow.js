@@ -150,6 +150,7 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 	// ##################################################################################################
 	// ##################################################################################################
 	it("pay request not released by escrow OK", async function () {
+		var balancePayeeBefore = await web3.eth.getBalance(payee);
 		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
 		var r = await requestEthereum.pay(utils.getHashRequest(1), 0, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -177,11 +178,11 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
 		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
 
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,0,"new request wrong data : amount to withdraw payee");
+		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),0,"new request wrong data : amount to withdraw payee");
 	});
 
 	it("pay request already released by escrow OK", async function () {
+		var balancePayeeBefore = await web3.eth.getBalance(payee);
 		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
 		await requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(1), {from:escrow});
 		var r = await requestEthereum.pay(utils.getHashRequest(1), 0, {value:arbitraryAmount, from:payer});
@@ -215,11 +216,11 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
 		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
 		
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount,"new request wrong data : amount to withdraw payee");
+		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
 	it("release request by escrow after payment OK", async function () {
+		var balancePayeeBefore = await web3.eth.getBalance(payee);
 		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
 		await requestEthereum.pay(utils.getHashRequest(1), 0+10, {value:arbitraryAmount+10, from:payer});
 		var r = await requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(1), {from:escrow});
@@ -253,14 +254,14 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[3],arbitraryAmount+10,"new request wrong data : amountPaid");
 		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
 
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount+10,"new request wrong data : amount to withdraw payee");
+		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount+10,"new request wrong data : amount to withdraw payee");
 	});
 	// ##################################################################################################
 	// ##################################################################################################
 
 
 	it("Emergency drain money if core is paused OK", async function () {
+		var balancePayeeBefore = await web3.eth.getBalance(payee);
 		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
 		await requestEthereum.pay(utils.getHashRequest(1), 0, {value:arbitraryAmount, from:payer});
 
@@ -297,11 +298,11 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
 		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
 
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount,"new request wrong data : amount to withdraw payee");
+		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
 	it("Emergency drain money if requestEthereum is not trusted anymore OK", async function () {
+		var balancePayeeBefore = await web3.eth.getBalance(payee);
 		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
 		await requestEthereum.pay(utils.getHashRequest(1), 0, {value:arbitraryAmount, from:payer});
 
@@ -338,11 +339,12 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
 		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
 
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount,"new request wrong data : amount to withdraw payee");
+		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
 	it("Emergency drain money if requestSynchroneExtensionEscrow is not trusted anymore OK", async function () {
+
+		var balancePayeeBefore = await web3.eth.getBalance(payee);
 		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
 		await requestEthereum.pay(utils.getHashRequest(1), 0, {value:arbitraryAmount, from:payer});
 
@@ -379,8 +381,7 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
 		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
 
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount,"new request wrong data : amount to withdraw payee");
+		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
 });

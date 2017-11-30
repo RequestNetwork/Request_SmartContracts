@@ -125,6 +125,8 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	// ### Accept test unit #############################################################################
 	// ##################################################################################################
 	it("payback if Core Paused OK", async function () {
+		var balancePayerBefore = await web3.eth.getBalance(payer);
+		
 		await requestCore.pause({from:admin});
 		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
 
@@ -145,8 +147,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payer);
-		assert.equal(r,arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
+		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
 	});
 
 	it("payback request Ethereum pause impossible", async function () {
@@ -180,6 +181,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	});
 
 	it("payback request accepted OK - without extension", async function () {
+		var balancePayerBefore = await web3.eth.getBalance(payer);
 		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -199,11 +201,11 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payer);
-		assert.equal(r,arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
+		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
 	});
 
 	it("payback request accepted OK - untrusted subContract", async function () {
+		var balancePayerBefore = await web3.eth.getBalance(payer);
 		await requestCore.adminRemoveTrustedSubContract(requestEthereum.address, {from:admin});
 		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
 
@@ -224,8 +226,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payer);
-		assert.equal(r,arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
+		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
 	});
 
 	it("payback request accepted OK - with 1 extension, continue: [{true,true}]", async function () {
@@ -233,6 +234,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
 		await requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 
+		var balancePayerBefore = await web3.eth.getBalance(payer);
 		var r = await requestEthereum.payback(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
@@ -266,8 +268,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payer);
-		assert.equal(r,arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
+		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
 	});
 
 	it("payback request accepted OK - with 1 extension, continue: [{false,true}]", async function () {
@@ -275,6 +276,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
 		await requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 
+		var balancePayerBefore = await web3.eth.getBalance(payer);
 		var r = await requestEthereum.payback(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
@@ -295,8 +297,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payer);
-		assert.equal(r,0,"new request wrong data : amount to withdraw payer");
+		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),0,"new request wrong data : amount to withdraw payer");
 	});
 
 	it("payback request accepted OK - with 1 extension, continue: [{true,false}]", async function () {
@@ -304,6 +305,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
 		await requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 
+		var balancePayerBefore = await web3.eth.getBalance(payer);
 		var r = await requestEthereum.payback(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
@@ -336,15 +338,15 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payer);
-		assert.equal(r,0,"new request wrong data : amount to withdraw payer");
+		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),0,"new request wrong data : amount to withdraw payer");
 	});
 
-		it("payback request accepted OK - with 1 extension, continue: [{false,false}]", async function () {
+	it("payback request accepted OK - with 1 extension, continue: [{false,false}]", async function () {
 		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address, [], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
 		await requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 
+		var balancePayerBefore = await web3.eth.getBalance(payer);
 		var r = await requestEthereum.payback(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
@@ -365,14 +367,14 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payer);
-		assert.equal(r,0,"new request wrong data : amount to withdraw payer");
+		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),0,"new request wrong data : amount to withdraw payer");
 	});
 	// ##################################################################################################
 	// ##################################################################################################
 	// ##################################################################################################
 
 	it("msg.value == 0 OK", async function () {
+		var balancePayerBefore = await web3.eth.getBalance(payer);
 		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:0, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -392,11 +394,11 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payer);
-		assert.equal(r,0,"new request wrong data : amount to withdraw payer");
+		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),0,"new request wrong data : amount to withdraw payer");
 	});
 
 	it("3 payback request", async function () {
+		var balancePayerBefore = await web3.eth.getBalance(payer);
 		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount30percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -416,8 +418,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payer);
-		assert.equal(r,arbitraryAmount30percent,"new request wrong data : amount to withdraw payer");
+		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),arbitraryAmount30percent,"new request wrong data : amount to withdraw payer");
 
 		// second
 		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount20percent, from:payee});
@@ -439,8 +440,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payer);
-		assert.equal(r,arbitraryAmount30percent+arbitraryAmount20percent,"new request wrong data : amount to withdraw payer");
+		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),arbitraryAmount20percent+arbitraryAmount30percent,"new request wrong data : amount to withdraw payer");
 
 		// third
 		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
@@ -462,8 +462,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payer);
-		assert.equal(r,arbitraryAmount30percent+arbitraryAmount20percent+arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
+		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),arbitraryAmount30percent+arbitraryAmount20percent+arbitraryAmount10percent,"new request wrong data : amount to withdraw payer");
 	});
 
 	// turn down the node

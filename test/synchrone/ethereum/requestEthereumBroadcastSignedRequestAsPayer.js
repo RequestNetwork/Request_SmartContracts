@@ -118,6 +118,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
+		var balancePayeeBefore = await web3.eth.getBalance(payee);
 		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
@@ -158,8 +159,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new quick request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount+1,"new quick request wrong data : amount to withdraw payee");
+		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount+1,"new request wrong data : amount to withdraw payee");
 	});
 
 	it("new quick request pay more than amountExpected (without tips) Impossible", async function () {
@@ -234,6 +234,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
+		var balancePayeeBefore = await web3.eth.getBalance(payee);
 		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
@@ -274,8 +275,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new quick request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount,"new quick request wrong data : amount to withdraw payee");
+		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
 	it("new quick request payee==payer impossible", async function () {
@@ -369,6 +369,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
+		var balancePayeeBefore = await web3.eth.getBalance(payee);
 		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
@@ -404,8 +405,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new quick request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,arbitraryAmount,"new quick request wrong data : amount to withdraw payee");
+		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
 	it("new quick request signed by payee and data match signature OK", async function () {
@@ -416,6 +416,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
+		var balancePayeeBefore = await web3.eth.getBalance(payee);
 		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
@@ -446,8 +447,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
 		assert.equal(newReq[8],1,"new quick request wrong data : state");
 
-		var r = await requestEthereum.ethToWithdraw.call(payee);
-		assert.equal(r,0,"new quick request wrong data : amount to withdraw payee");
+		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),0,"new request wrong data : amount to withdraw payee");
 	});
 
 	it("new quick request signed by payer Impossible", async function () {

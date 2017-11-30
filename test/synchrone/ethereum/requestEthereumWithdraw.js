@@ -34,16 +34,8 @@ contract('RequestEthereum Withdraw',  function(accounts) {
     });
 
 	// ##################################################################################################
-	// ### withdraw test unit #############################################################################
+	// ### withdraw test unit ###########################################################################
 	// ##################################################################################################
-	it("withdraw when amount[msg.sender] = X, msg.sender get X and amount[msg.sender] = 0", async function () {
-		var balancePayee = Math.floor(await web3.eth.getBalance(payee) / arbitraryAmount);
-		await requestEthereum.pay(utils.getHashRequest(1), 0, {from:payer,value:arbitraryAmount});
-		assert.equal(await requestEthereum.ethToWithdraw.call(payee),arbitraryAmount,"Balance of payee must be arbitraryAmount" );
-		await requestEthereum.withdraw({from:payee});
-		assert.equal(await requestEthereum.ethToWithdraw.call(payee),0,"Balance of payee must be 0" );
-	});
-
 	it("challenge reentrance 2 rounds", async function () {
 		await requestEthereum.pay(utils.getHashRequest(1), 0, {from:payer,value:arbitraryAmount});
 		

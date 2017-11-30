@@ -65,7 +65,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		requestCore = await RequestCore.new({from:admin});
 		requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 		requestSynchroneExtensionEscrow = await RequestSynchroneExtensionEscrow.new(requestCore.address,{from:admin});
-		testRequestSynchroneSubContractLauncher = await TestRequestSynchroneSubContractLauncher.new(1,requestCore.address,true,true,true,true,true,true,true,true,true,{from:admin});
+		testRequestSynchroneSubContractLauncher = await TestRequestSynchroneSubContractLauncher.new(1,requestCore.address,true,true,true,true,true,true,true,true,{from:admin});
 
 		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
 		await requestCore.adminAddTrustedSubContract(fakeTrustedContract, {from:admin});
@@ -78,18 +78,18 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		await requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(1), [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:fakeTrustedContract})
 
 		// request 2 with testRequestSynchroneSubContractLauncher
-		await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
+		await testRequestSynchroneSubContractLauncher.createRequest(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
     });
 
 	// ##################################################################################################
 	// ## Create Request
 	// ##################################################################################################
 	it("Create Escrow request by other guy impossible", async function () {
-		await utils.expectThrow(requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(3), [addressToByte32str(escrow)], {from:otherguy}));
+		await utils.expectThrow(requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(3), [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:otherguy}));
 	});
 
 	it("Create Escrow request by escrow impossible", async function () {
-		await utils.expectThrow(requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(3), [addressToByte32str(escrow)], {from:escrow}));
+		await utils.expectThrow(requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(3), [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:escrow}));
 	});
 
 	it("Create Escrow request with parameters empty Impossible", async function () {
@@ -97,7 +97,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 	it("Create Escrow request by a subContract trusted by core OK", async function () {
-		var r = await requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(3), [addressToByte32str(escrow)], {from:fakeTrustedContract})
+		var r = await requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(3), [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:fakeTrustedContract})
 
 		assert.equal(r.receipt.logs.length,0,"Wrong number of events");
 
@@ -111,7 +111,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 	it("Create Escrow request if escrow paused impossible", async function () {
 		await requestSynchroneExtensionEscrow.pause({from:admin})
-		await utils.expectThrow(requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(3), [addressToByte32str(escrow)], {from:fakeTrustedContract}));
+		await utils.expectThrow(requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(3), [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:fakeTrustedContract}));
 	});
 	// ##################################################################################################
 	// ##################################################################################################
@@ -129,7 +129,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 	it("payment if Escrow State Refunded impossible", async function () {
-		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [addressToByte32str(escrow)], "", {from:payee});
+		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(3),{from:payer});
 		await requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(3), {from:escrow});
 		await utils.expectThrow(requestEthereum.pay(utils.getHashRequest(3), 0,{from:payer, value:arbitraryAmount}));
@@ -282,15 +282,14 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 	it("release if escrow is Refunded Impossible", async function () {
-		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [addressToByte32str(escrow)], "", {from:payee});
+		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(3),{from:payer});
 		await requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(3), {from:escrow});
 		await utils.expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(3), {from:escrow}));
 	});
 
-
 	it("release if amountPaid-amountRefunded == 0 OK nothing special", async function () {
-		var newRequest = await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [addressToByte32str(escrow)], "", {from:payee});
+		var newRequest = await testRequestSynchroneSubContractLauncher.createRequest(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
 		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(3),{from:payer});
 
 		var r = await requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(3), {from:escrow});
@@ -310,7 +309,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 
 	it("release if amountPaid-amountRefunded > 0 OK launch payment to subContract", async function () {
-		var newRequest = await testRequestSynchroneSubContractLauncher.createRequest(payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [addressToByte32str(escrow)], "", {from:payee});
+		var newRequest = await testRequestSynchroneSubContractLauncher.createRequest(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
 		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(3),{from:payer});
 		await testRequestSynchroneSubContractLauncher.launchPayment(utils.getHashRequest(3), arbitraryAmount);
 
@@ -361,6 +360,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		await requestSynchroneExtensionEscrow.pause({from:admin});
 		await utils.expectThrow( requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:escrow}));
 	});
+
 
 	it("escrow refund if request is Accepted OK", async function () {
 		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
@@ -555,6 +555,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		await requestSynchroneExtensionEscrow.payment(utils.getHashRequest(1), 10, {from:fakeTrustedContract})
 		assert.equal(await requestSynchroneExtensionEscrow.addSubtract.call(utils.getHashRequest(1), 999, {from:fakeTrustedContract}),false,'return of addSubtract must be false');
 	});
+
 	// ##################################################################################################
 	// ##################################################################################################
 	// ##################################################################################################

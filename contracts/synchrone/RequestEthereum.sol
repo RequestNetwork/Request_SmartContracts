@@ -20,11 +20,12 @@ contract RequestEthereum is Pausable {
 	RequestCore public requestCore;
 
 	// Ethereum available to withdraw
-	struct EthToWithdraw {
-		uint amount;
-		address recipient;
-	}
 	mapping(address => uint) public ethToWithdraw;
+
+    /*
+     *  Events 
+     */
+	event EtherAvailableToWithdraw(bytes32 requestId, address recipient, uint amount);
 
 	/*
 	 * @dev Constructor
@@ -446,8 +447,14 @@ contract RequestEthereum is Pausable {
 
 		if(isOK) 
 		{
-			// sending fund means make it availbale to withdraw here
-			ethToWithdraw[_recipient] += _amount;
+			// try to send the fund 
+			if(!_recipient.send(_amount)) {
+				// if sendding fail, the funds are availbale to withdraw
+				ethToWithdraw[_recipient] += _amount;
+				// spread the word that the money is not sent but available to withdraw
+				EtherAvailableToWithdraw(_requestId, _recipient, _amount);
+			}
+
 		}   
 		return isOK;
 	}

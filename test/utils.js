@@ -23,3 +23,4 @@ exports.expectThrow = async function(promise) {
   }
   assert.fail('Expected throw not received');
 };
+
