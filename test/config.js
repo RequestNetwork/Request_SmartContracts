@@ -15,13 +15,13 @@ var config = {
 				"requestEthereumBroadcastSignedRequestAsPayer.js":false,
 				"requestEthereumAccept.js":false, 
 				"requestEthereumCancelByPayer.js":false, 
-				"requestEthereumWithdraw.js":false, 
 				"requestEthereumCancel.js":false, 
-				"requestEthereumDiscount.js":false, 
-				"requestEthereumWithEscrow.js":false, 
+				"requestEthereumWithdraw.js":false, 
+				"requestEthereumDiscount.js":false,  
 				"requestEthereumPay.js":false, 
 				"requestEthereumPayBack.js":false, 
 				"requestEthereumPaymentStuck.js":false,
+				"requestEthereumWithEscrow.js":false,
 	//		},
 	//		"extensions.js": {
 				"requestSyncExtEscrow.js":false

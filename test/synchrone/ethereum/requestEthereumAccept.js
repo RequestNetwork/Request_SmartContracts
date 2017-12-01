@@ -109,10 +109,10 @@ contract('RequestEthereum Accept',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		
+		
+		assert.equal(newReq[6],1,"new request wrong data : state");
 	});
 
 	it("accept request Ethereum pause impossible", async function () {
@@ -157,10 +157,10 @@ contract('RequestEthereum Accept',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		
+		
+		assert.equal(newReq[6],1,"new request wrong data : state");
 	});
 
 
@@ -177,10 +177,10 @@ contract('RequestEthereum Accept',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		
+		
+		assert.equal(newReq[6],1,"new request wrong data : state");
 	});
 
 
@@ -204,10 +204,10 @@ contract('RequestEthereum Accept',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		
+		
+		assert.equal(newReq[6],1,"new request wrong data : state");
 	});
 
 	it("accept request created OK - with 1 extension, continue: false", async function () {
@@ -226,10 +226,10 @@ contract('RequestEthereum Accept',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],0,"new request wrong data : state");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		
+		
+		assert.equal(newReq[6],0,"new request wrong data : state");
 	});
 
 	it("accept by extension request created OK", async function () {
@@ -248,10 +248,10 @@ contract('RequestEthereum Accept',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		
+		
+		assert.equal(newReq[6],1,"new request wrong data : state");
 	});
 
 	it("accept by extension request accepted OK", async function () {
@@ -271,10 +271,10 @@ contract('RequestEthereum Accept',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		
+		
+		assert.equal(newReq[6],1,"new request wrong data : state");
 	});
 
 	it("accept by extension request canceled OK", async function () {
@@ -294,10 +294,10 @@ contract('RequestEthereum Accept',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		
+		
+		assert.equal(newReq[6],1,"new request wrong data : state");
 	});
 
 	it("accept by an extension not from request impossible", async function () {

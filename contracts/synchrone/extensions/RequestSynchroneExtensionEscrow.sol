@@ -6,7 +6,8 @@ import '../../base/math/SafeMath.sol';
 
 // many pattern from http://solidity.readthedocs.io/en/develop/types.html#structs
 contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
-	using SafeMath for uint;
+	using SafeMath for uint256;
+	using SafeMathInt for int256;
 
 	enum EscrowState { Created, Refunded, Released }
 
@@ -15,12 +16,11 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		address subContract;
 		address escrow;
 		EscrowState state;
-		uint amountPaid;
-		uint amountRefunded;
+		uint256 balance;
 	}
 	mapping(bytes32 => RequestEscrow) public escrows;
 
-	event EscrowPayment(bytes32 requestId, uint amount);
+	event EscrowPayment(bytes32 requestId, uint256 amount);
 	event EscrowReleaseRequest(bytes32 requestId);
 	event EscrowRefundRequest(bytes32 requestId);
 
@@ -41,20 +41,18 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		condition(_params[0]!=0)
 		returns(bool)
 	{
-		escrows[_requestId] = RequestEscrow(msg.sender, address(_params[0]), EscrowState.Created, 0,0); // create RequestEscrow
+		escrows[_requestId] = RequestEscrow(msg.sender, address(_params[0]), EscrowState.Created, 0); // create RequestEscrow
 		return true;
 	}
 
-	function payment(bytes32 _requestId, uint _amount)
+	function payment(bytes32 _requestId, uint256 _amount)
 		public
 		whenNotPaused
 		isSubContractRight(_requestId)
 		inNOTEscrowState(_requestId, EscrowState.Refunded)
 		returns(bool)
 	{
-		require(_amount.add(escrows[_requestId].amountPaid).sub(escrows[_requestId].amountRefunded) <= requestCore.getAmountInitialAfterSubAdd(_requestId)); // value must be greater than 0 and all the payments should not overpass the amountExpected
-
-		escrows[_requestId].amountPaid = escrows[_requestId].amountPaid.add(_amount);
+		escrows[_requestId].balance = escrows[_requestId].balance.add(_amount);
 
 		EscrowPayment(_requestId, _amount);
 
@@ -62,13 +60,13 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	}
 
 	// refund request
-	function refund(bytes32 _requestId, uint _amount)
+	function refund(bytes32 _requestId, uint256 _amount)
 		public
 		whenNotPaused
 		isSubContractRight(_requestId)
 		returns(bool)
 	{
-		escrows[_requestId].amountPaid = escrows[_requestId].amountPaid.sub(_amount);
+		escrows[_requestId].balance = escrows[_requestId].balance.sub(_amount);
 		return true;
 	}
 
@@ -79,7 +77,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		isSubContractRight(_requestId)
 		returns(bool)
 	{
-		return escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded) == 0;
+		return escrows[_requestId].balance == 0;
 	}
 
 		// Escrow Function
@@ -95,11 +93,9 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		escrows[_requestId].state = EscrowState.Released;
 		EscrowReleaseRequest(_requestId);
 
-		uint amountToPaid = escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded);
-
-		if(amountToPaid > 0) {
+		if(escrows[_requestId].balance > 0) {
 			RequestSynchroneInterface subContract = RequestSynchroneInterface(escrows[_requestId].subContract);
-			subContract.payment(_requestId, amountToPaid);
+			subContract.payment(_requestId, escrows[_requestId].balance);
 		}
 	}
 
@@ -115,23 +111,13 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		escrows[_requestId].state = EscrowState.Refunded;
 		EscrowRefundRequest(_requestId);
 
-		uint amountToRefund = escrows[_requestId].amountPaid.sub(escrows[_requestId].amountRefunded);
-		escrows[_requestId].amountRefunded = escrows[_requestId].amountPaid;
+		uint256 amountToRefund = escrows[_requestId].balance;
+		escrows[_requestId].balance = 0;
 
 		RequestSynchroneInterface subContract = RequestSynchroneInterface(escrows[_requestId].subContract);
 		if(amountToRefund>0) subContract.fundOrder(_requestId, requestCore.getPayer(_requestId), amountToRefund); 
 		subContract.cancel(_requestId); 
 	}
-
-	function addSubtract(bytes32 _requestId, uint _amount) 
-		public 
-		whenNotPaused
-		isSubContractRight(_requestId)
-		returns(bool)
-	{
-		// nothing to do
-		return _amount.add(escrows[_requestId].amountPaid) <= requestCore.getAmountInitialAfterSubAdd(_requestId);
-	} 
 
 
 	// internal function 

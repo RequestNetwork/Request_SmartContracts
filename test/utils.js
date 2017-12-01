@@ -3,7 +3,7 @@ var ethUtil = require('ethereumjs-util');
 var config = require("./config.js");
 
 exports.getHashRequest = function(num) {
-	return ethUtil.bufferToHex(ethABI.soliditySHA3(["uint256","uint256"], [num,config.VERSION_CORE]));
+	return ethUtil.bufferToHex(ethABI.soliditySHA3(["uint256","uint32"], [num,config.VERSION_CORE]));
 }
 
 exports.expectThrow = async function(promise) {

@@ -28,4 +28,10 @@ library SafeMath {
     assert(c >= a);
     return c;
   }
+
+  function toInt256Safe(uint256 a) internal pure returns (int256) {
+    int b = int256(a);
+    assert(b >= 0);
+    return b;
+  }
 }

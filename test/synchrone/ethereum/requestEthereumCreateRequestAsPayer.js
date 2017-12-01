@@ -119,58 +119,72 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
+		assert.equal(newReq[3],arbitraryAmount+arbitraryAmount10percent,"new quick request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : subContract");
 		assert.equal(newReq[5],arbitraryAmount+1,"new quick request wrong data : amountPaid");
-		assert.equal(newReq[6],arbitraryAmount10percent,"new quick request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new quick request wrong data : state");
+		assert.equal(newReq[6],1,"new quick request wrong data : state");
 
 		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount+1,"new request wrong data : amount to withdraw payee");
-	});
-
-	it("new quick request pay more than amountExpected (without tips) Impossible", async function () {
-		var extension = 0;
-		var listParamsExtensions = [];
-
-		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
-													extension,
-													listParamsExtensions, 
-													1,"", 
-													{from:payer, value:arbitraryAmount+2}));
 	});
 
 	it("new quick request more than amountExpected (with tips but still too much) Impossible", async function () {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
+		var r = await (requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													1,"", 
 													{from:payer, value:arbitraryAmount+2}));
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
+		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
+		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount+1,"new quick request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount+2,"new quick request wrong data : amountPaid");
+		assert.equal(newReq[6],1,"new quick request wrong data : state");
 	});
 
 	it("new quick request pay more than amountExpected (without tips) Impossible", async function () {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
+		var r = await (requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													0, "", 
 													{from:payer, value:arbitraryAmount+1}));
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
+		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
+		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : subContract");
+		assert.equal(newReq[5],arbitraryAmount+1,"new quick request wrong data : amountPaid");
+		assert.equal(newReq[6],1,"new quick request wrong data : state");
 	});
 
 	it("new quick request with more tips than msg.value Impossible", async function () {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var r = await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
+		var r = await (requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
 													extension,
 													listParamsExtensions, 
 													arbitraryAmount10percent, "", 
 													{from:payer, value:0}));
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
+		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
+		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount+arbitraryAmount10percent,"new quick request wrong data : amountExpected");
+		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : subContract");
+		assert.equal(newReq[5],0,"new quick request wrong data : amountPaid");
+		assert.equal(newReq[6],1,"new quick request wrong data : state");
 	});
 
 	it("new quick request with tips OK", async function () {
@@ -210,12 +224,10 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		assert.equal(newReq[0],payer,"new quick request wrong data : creator");
 		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
 		assert.equal(newReq[2],payer,"new quick request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
+		assert.equal(newReq[3],arbitraryAmount+arbitraryAmount10percent,"new quick request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : subContract");
 		assert.equal(newReq[5],arbitraryAmount,"new quick request wrong data : amountPaid");
-		assert.equal(newReq[6],arbitraryAmount10percent,"new quick request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new quick request wrong data : state");
+		assert.equal(newReq[6],1,"new quick request wrong data : state");
 
 		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
@@ -301,9 +313,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : subContract");
 		assert.equal(newReq[5],arbitraryAmount,"new quick request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new quick request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new quick request wrong data : state");
+		assert.equal(newReq[6],1,"new quick request wrong data : state");
 
 		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
@@ -338,9 +348,7 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : subContract");
 		assert.equal(newReq[5],0,"new quick request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new quick request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new quick request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new quick request wrong data : state");
+		assert.equal(newReq[6],1,"new quick request wrong data : state");
 
 		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),0,"new request wrong data : amount to withdraw payee");
 	});

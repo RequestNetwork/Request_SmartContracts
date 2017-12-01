@@ -105,8 +105,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],0,"new request wrong data : state");
-		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+		assert.equal(newReq[3],0,"new request wrong data : balance");
+		
 	});
 
 	it("Create Escrow request if escrow paused impossible", async function () {
@@ -158,8 +158,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],0,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : balance");
+		
 
 	});
 
@@ -181,8 +181,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : balance");
+		
 	});
 
 	it("payment request _amount == 0 OK", async function () {
@@ -199,8 +199,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],0,"new request wrong data : state");
-		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+		assert.equal(newReq[3],0,"new request wrong data : balance");
+		
 	});
 
 	// ##################################################################################################
@@ -239,8 +239,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
-		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+		assert.equal(newReq[3],0,"new request wrong data : balance");
+		
 	});
 
 	it("release by payer OK", async function () {
@@ -256,8 +256,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
-		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+		assert.equal(newReq[3],0,"new request wrong data : balance");
+		
 	});
 
 	it("release by random guy Impossible", async function () {
@@ -303,8 +303,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
-		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");		
+		assert.equal(newReq[3],0,"new request wrong data : balance");
+				
 	});
 
 
@@ -335,8 +335,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");		
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : balance");
+				
 	});
 	// ##################################################################################################
 	// ##################################################################################################
@@ -386,8 +386,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],1,"new request wrong data : state");
-		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+		assert.equal(newReq[3],0,"new request wrong data : balance");
+		
 	});
 
 	it("refund by payee OK", async function () {
@@ -414,8 +414,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],1,"new request wrong data : state");
-		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+		assert.equal(newReq[3],0,"new request wrong data : balance");
+		
 	});
 
 	it("escrow refund by random guy Impossible", async function () {
@@ -462,8 +462,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],1,"new request wrong data : state");
-		assert.equal(newReq[3],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");		
+		assert.equal(newReq[3],0,"new request wrong data : balance");
+				
 	});
 
 	it("escrow refund if amountPaid-amountRefunded > 0 OK launch fundOrder to subContract", async function () {
@@ -496,8 +496,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],1,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],arbitraryAmount,"new request wrong data : amountRefunded");		
+		assert.equal(newReq[3],0,"new request wrong data : balance");	
 	});
 	// ##################################################################################################
 	// ##################################################################################################
@@ -528,36 +527,5 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(await requestSynchroneExtensionEscrow.cancel.call(utils.getHashRequest(1), {from:fakeTrustedContract}),false,'return of cancel must be true');
 	});
 
-	// ##################################################################################################
-	// ## Escrow addSubtract
-	// ##################################################################################################
-	it("addSubtract by other guy impossible", async function () {
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
-		await utils.expectThrow(requestSynchroneExtensionEscrow.addSubtract(utils.getHashRequest(2), 10, {from:otherguy}));
-	});
-
-	it("addSubtract by other trusted contract impossible", async function () {
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
-		await utils.expectThrow(requestSynchroneExtensionEscrow.addSubtract(utils.getHashRequest(2), 10, {from:fakeTrustedContract}));
-	});
-
-	it("addSubtract by escrow impossible", async function () {
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
-		await utils.expectThrow(requestSynchroneExtensionEscrow.addSubtract(utils.getHashRequest(2), 10, {from:escrow}));
-	});
-
-	it("addSubtract if amountPaid+amountSubtract <= AmountInitialAfterSubAdd  OK (return true)", async function () {
-		await requestSynchroneExtensionEscrow.payment(utils.getHashRequest(1), 100, {from:fakeTrustedContract})
-		assert.equal(await requestSynchroneExtensionEscrow.addSubtract.call(utils.getHashRequest(1), 10, {from:fakeTrustedContract}),true,'return of addSubtract must be true');
-	});
-
-	it("addSubtract if amountPaid+amountSubtract > AmountInitialAfterSubAdd  Intercepted (return false)", async function () {
-		await requestSynchroneExtensionEscrow.payment(utils.getHashRequest(1), 10, {from:fakeTrustedContract})
-		assert.equal(await requestSynchroneExtensionEscrow.addSubtract.call(utils.getHashRequest(1), 999, {from:fakeTrustedContract}),false,'return of addSubtract must be false');
-	});
-
-	// ##################################################################################################
-	// ##################################################################################################
-	// ##################################################################################################
 });
 

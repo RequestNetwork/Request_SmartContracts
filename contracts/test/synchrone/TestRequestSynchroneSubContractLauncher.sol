@@ -81,7 +81,7 @@ contract TestRequestSynchroneSubContractLauncher {
     } 
     // --------------------------------------------------------
 
-    function createRequest(address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams, string _details)
+    function createRequest(address _payer, int256 _amountInitial, address _extension, bytes32[9] _extensionParams, string _details)
         public
         returns(bytes32 requestId)
     {

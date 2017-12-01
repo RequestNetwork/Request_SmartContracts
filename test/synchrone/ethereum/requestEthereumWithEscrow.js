@@ -103,10 +103,8 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		assert.equal(newReq[6],1,"new request wrong data : state");
 	});
 		
 	it("accept request created OK - untrusted subContract", async function () {
@@ -123,10 +121,8 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		assert.equal(newReq[6],1,"new request wrong data : state");
 	});
 
 	it("cancel request created OK", async function () {
@@ -142,10 +138,8 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],2,"new request wrong data : state");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		assert.equal(newReq[6],2,"new request wrong data : state");
 	});
 	// ##################################################################################################
 	// ##################################################################################################
@@ -166,18 +160,14 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],0,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		assert.equal(newReq[6],1,"new request wrong data : state");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],requestEthereum.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],0,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
-
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : balance");
 		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),0,"new request wrong data : amount to withdraw payee");
 	});
 
@@ -204,18 +194,14 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : balance");
+		assert.equal(newReq[6],1,"new request wrong data : state");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],requestEthereum.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2   ,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
-		
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : balance");		
 		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
@@ -240,19 +226,16 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
+		assert.equal(newReq[3],arbitraryAmount+10,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],arbitraryAmount+10,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0+10,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],arbitraryAmount+10,"new request wrong data : balance");
+		assert.equal(newReq[6],1,"new request wrong data : state");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],requestEthereum.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount+10,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+		assert.equal(newReq[3],arbitraryAmount+10,"new request wrong data : balance");
 
 		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount+10,"new request wrong data : amount to withdraw payee");
 	});
@@ -286,17 +269,14 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : balance");
+		assert.equal(newReq[6],1,"new request wrong data : state");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],requestEthereum.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : balance");
 
 		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
@@ -327,17 +307,14 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : balance");
+		assert.equal(newReq[6],1,"new request wrong data : state");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],requestEthereum.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : balance");
 
 		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
@@ -369,17 +346,14 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountExpected");
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[6],0,"new request wrong data : amountAdditional");
-		assert.equal(newReq[7],0,"new request wrong data : amountSubtract");
-		assert.equal(newReq[8],1,"new request wrong data : state");
+		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : balance");
+		assert.equal(newReq[6],1,"new request wrong data : state");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],requestEthereum.address,"new request wrong data : subContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : amountPaid");
-		assert.equal(newReq[4],0,"new request wrong data : amountRefunded");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : balance");
 
 		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});

@@ -100,10 +100,10 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 		assert.equal(r[2],payer,"request wrong data : payer");
 		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
 		assert.equal(r[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(r[5],0,"new request wrong data : amountPaid");
-		assert.equal(r[6],0,"new request wrong data : amountAdditional");
-		assert.equal(r[7],0,"new request wrong data : amountSubtract");
-		assert.equal(r[8],0,"new request wrong data : state");
+		assert.equal(r[5],0,"new request wrong data : balance");
+		
+		
+		assert.equal(r[6],0,"new request wrong data : state");
 
 		var e = await requestCore.getExtension.call(utils.getHashRequest(1));
 		assert.equal(e,0,"new request wrong data : extension1");
@@ -132,10 +132,10 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 		assert.equal(r[2],payer,"request wrong data : payer");
 		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
 		assert.equal(r[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(r[5],0,"new request wrong data : amountPaid");
-		assert.equal(r[6],0,"new request wrong data : amountAdditional");
-		assert.equal(r[7],0,"new request wrong data : amountSubtract");
-		assert.equal(r[8],0,"new request wrong data : state");
+		assert.equal(r[5],0,"new request wrong data : balance");
+		
+		
+		assert.equal(r[6],0,"new request wrong data : state");
 
 		var e = await requestCore.getExtension.call(utils.getHashRequest(1));
 		assert.equal(e,fakeExtention1.address,"new request wrong data : extension1");
@@ -165,10 +165,10 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 		assert.equal(r[2],payer,"request wrong data : payer");
 		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
 		assert.equal(r[4],requestEthereum.address,"new request wrong data : subContract");
-		assert.equal(r[5],0,"new request wrong data : amountPaid");
-		assert.equal(r[6],0,"new request wrong data : amountAdditional");
-		assert.equal(r[7],0,"new request wrong data : amountSubtract");
-		assert.equal(r[8],0,"new request wrong data : state");
+		assert.equal(r[5],0,"new request wrong data : balance");
+		
+		
+		assert.equal(r[6],0,"new request wrong data : state");
 
 		var e = await requestCore.getExtension.call(utils.getHashRequest(1));
 		assert.equal(e,fakeExtention1.address,"new request wrong data : extension1");

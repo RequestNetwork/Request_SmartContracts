@@ -2,6 +2,7 @@ pragma solidity 0.4.18;
 
 import './Administrable.sol';
 import '../base/math/SafeMath.sol';
+import '../base/math/SafeMathInt.sol';
 
 /**
  * @title RequestCore
@@ -16,9 +17,10 @@ import '../base/math/SafeMath.sol';
  */
 contract RequestCore is Administrable {
     // current version of the core
-    uint public constant VERSION = 1;
+    uint32 public constant VERSION = 1;
 
-    using SafeMath for uint;
+    using SafeMath for uint256;
+    using SafeMathInt for int256;
 
     enum State { Created, Accepted, Canceled }
 
@@ -26,18 +28,16 @@ contract RequestCore is Administrable {
         address creator;
         address payee;
         address payer;
-        uint amountInitial;
+        int256 amountExpected;
         address subContract;
-        uint amountPaid;
-        uint amountAdditional;
-        uint amountSubtract;
+        int256 balance;
         State state;
         address extension;
         string details;
     }
 
     // index of the Request in the mapping
-    uint public numRequests; 
+    uint256 public numRequests; 
     
     // mapping of all the Requests
     mapping(bytes32 => Request) public requests;
@@ -48,14 +48,14 @@ contract RequestCore is Administrable {
     event Created(bytes32 requestId, address payee, address payer);
     event Accepted(bytes32 requestId);
     event Canceled(bytes32 requestId);
-    event Payment(bytes32 requestId, uint amountPaid);
-    event Refunded(bytes32 requestId, uint amountRefunded);
-    event AddAdditional(bytes32 requestId, uint amountAdded);
-    event AddSubtract(bytes32 requestId, uint amountSubtracted);
+    event Payment(bytes32 requestId, uint256 amountPaid);
+    event Refunded(bytes32 requestId, uint256 amountRefunded);
+    event AddAdditional(bytes32 requestId, uint256 amountAdded);
+    event AddSubtract(bytes32 requestId, uint256 amountSubtracted);
 
     event NewPayee(bytes32 requestId, address payee);
     event NewPayer(bytes32 requestId, address payer);
-    event NewAmountInitial(bytes32 requestId, uint amountInitial);
+    event NewAmountExpected(bytes32 requestId, int256 amountExpected);
     event NewExtension(bytes32 requestId, address extension);
     event NewDetails(bytes32 requestId, string details);
 
@@ -73,11 +73,11 @@ contract RequestCore is Administrable {
      * @param _creator Request creator
      * @param _payee Entity which will receive the payment
      * @param _payer Entity supposed to pay
-     * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
+     * @param _amountExpected Initial amount initial to be received. This amount can't be changed.
      * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
      * @return Returns the id of the request 
      */   
-    function createRequest(address _creator, address _payee, address _payer, uint _amountInitial, address _extension, string _details) 
+    function createRequest(address _creator, address _payee, address _payer, int256 _amountExpected, address _extension, string _details) 
         external
         whenNotPaused 
         isTrustedContract(msg.sender)
@@ -88,7 +88,7 @@ contract RequestCore is Administrable {
         numRequests = numRequests.add(1);
         requestId = keccak256(numRequests,VERSION);
 
-        requests[requestId] = Request(_creator, _payee, _payer, _amountInitial, msg.sender, 0, 0, 0, State.Created, _extension, _details); 
+        requests[requestId] = Request(_creator, _payee, _payer, _amountExpected, msg.sender, 0, State.Created, _extension, _details); 
 
         Created(requestId, _payee, _payer);
         return requestId;
@@ -126,13 +126,13 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @param _amount amount paid
      */ 
-    function payment(bytes32 _requestId, uint _amount)
+    function payment(bytes32 _requestId, uint256 _amount)
         external
     {   
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
 
-        r.amountPaid = r.amountPaid.add(_amount);
+        r.balance = r.balance.add(_amount.toInt256Safe());
 
         Payment(_requestId, _amount);
     }
@@ -142,13 +142,13 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @param _amount amount refunded
      */ 
-    function refund(bytes32 _requestId, uint _amount)
+    function refund(bytes32 _requestId, uint256 _amount)
         external
     {   
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
 
-        r.amountPaid = r.amountPaid.sub(_amount);
+        r.balance = r.balance.sub(_amount.toInt256Safe());
 
         Refunded(_requestId, _amount);
     }
@@ -158,15 +158,13 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @param _amount additional amount
      */ 
-    function addAdditional(bytes32 _requestId, uint _amount)
+    function addAdditional(bytes32 _requestId, uint256 _amount)
         external
     {   
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender); 
 
-        r.amountAdditional = r.amountAdditional.add(_amount);
-
-        require(r.amountAdditional+r.amountInitial >= r.amountInitial); // avoid overflow
+        r.amountExpected = r.amountExpected.add(_amount.toInt256Safe());
 
         AddAdditional(_requestId, _amount);
     }
@@ -176,15 +174,13 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @param _amount subtract amount
      */ 
-    function addSubtract(bytes32 _requestId, uint _amount)
+    function addSubtract(bytes32 _requestId, uint256 _amount)
         external
     {   
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender);
 
-        r.amountSubtract = r.amountSubtract.add(_amount);
-
-        require(r.amountInitial-r.amountSubtract <= r.amountInitial); // avoid underflow
+        r.amountExpected = r.amountExpected.sub(_amount.toInt256Safe());
 
         AddSubtract(_requestId, _amount);
     }
@@ -219,17 +215,17 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Set amount initial of a request
+     * @dev Set amount expected of a request
      * @param _requestId Request id
-     * @param new amount initial
+     * @param new amount expected
      */     
-    function setAmountInitial(bytes32 _requestId, uint _amountInitial)
+    function setAmountExpected(bytes32 _requestId, int256 _amountExpected)
         external
     {
         Request storage r = requests[_requestId];
         require(r.subContract==msg.sender);
-        requests[_requestId].amountInitial = _amountInitial;
-        NewAmountInitial(_requestId, _amountInitial);
+        requests[_requestId].amountExpected = _amountExpected;
+        NewAmountExpected(_requestId, _amountExpected);
     }
 
     /*
@@ -289,29 +285,16 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Get amount initial of a request
+     * @dev Get amount expected of a request
      * @param _requestId Request id
-     * @return amount initial
+     * @return amount expected
      */     
-    function getAmountInitial(bytes32 _requestId)
+    function getAmountExpected(bytes32 _requestId)
         public
         constant
-        returns(uint)
+        returns(int256)
     {
-        return requests[_requestId].amountInitial;
-    }
-
-    /*
-     * @dev Get amount initial of a request plus additional and minus subtract
-     * @param _requestId Request id
-     * @return amount initial plus additional and minus subtract
-     */ 
-    function getAmountInitialAfterSubAdd(bytes32 _requestId)
-        public
-        constant
-        returns(uint)
-    {
-        return requests[_requestId].amountInitial.add(requests[_requestId].amountAdditional).sub(requests[_requestId].amountSubtract);
+        return requests[_requestId].amountExpected;
     }
 
     /*
@@ -328,42 +311,16 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Get amount paid of a request
+     * @dev Get balance of a request
      * @param _requestId Request id
-     * @return amount paid
+     * @return balance
      */     
-    function getAmountPaid(bytes32 _requestId)
+    function getBalance(bytes32 _requestId)
         public
         constant
-        returns(uint)
+        returns(int256)
     {
-        return requests[_requestId].amountPaid;
-    }
-
-    /*
-     * @dev Get amount additional of a request
-     * @param _requestId Request id
-     * @return amount additional
-     */ 
-    function getAmountAdditional(bytes32 _requestId)
-        public
-        constant
-        returns(uint)
-    {
-        return requests[_requestId].amountAdditional;
-    }
-
-    /*
-     * @dev Get amount subtract of a request
-     * @param _requestId Request id
-     * @return amount subtract
-     */ 
-    function getAmountSubtract(bytes32 _requestId)
-        public
-        constant
-        returns(uint)
-    {
-        return requests[_requestId].amountSubtract;
+        return requests[_requestId].balance;
     }
 
     /*

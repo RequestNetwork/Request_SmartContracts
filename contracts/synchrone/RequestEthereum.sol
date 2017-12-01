@@ -14,18 +14,18 @@ import '../base/lifecycle/Pausable.sol';
  * @dev Requests can have 1 extension. it has to implement RequestSynchroneInterface and declared trusted on the Core
  */
 contract RequestEthereum is Pausable {
-	using SafeMath for uint;
+	using SafeMath for uint256;
 
 	// RequestCore object
 	RequestCore public requestCore;
 
 	// Ethereum available to withdraw
-	mapping(address => uint) public ethToWithdraw;
+	mapping(address => uint256) public ethToWithdraw;
 
     /*
      *  Events 
      */
-	event EtherAvailableToWithdraw(bytes32 requestId, address recipient, uint amount);
+	event EtherAvailableToWithdraw(bytes32 requestId, address recipient, uint256 amount);
 
 	/*
 	 * @dev Constructor
@@ -42,19 +42,20 @@ contract RequestEthereum is Pausable {
 	 * @dev msg.sender must be _payee
 	 *
 	 * @param _payer Entity supposed to pay
-	 * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
+	 * @param _amountExpected Initial amount initial to be received. This amount can't be changed.
 	 * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
 	 * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32.
 	 *
 	 * @return Returns the id of the request 
 	 */
-	function createRequestAsPayee(address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams, string _details)
+	function createRequestAsPayee(address _payer, int256 _amountExpected, address _extension, bytes32[9] _extensionParams, string _details)
 		external
 		whenNotPaused
 		returns(bytes32 requestId)
 	{
+		require(_amountExpected>=0);
 		require(msg.sender != _payer && _payer != 0);
-		requestId= requestCore.createRequest(msg.sender, msg.sender, _payer, _amountInitial, _extension, _details);
+		requestId= requestCore.createRequest(msg.sender, msg.sender, _payer, _amountExpected, _extension, _details);
 
 		if(_extension!=0) {
 			RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -71,23 +72,22 @@ contract RequestEthereum is Pausable {
 	 * @dev msg.sender must be _payee or _payer
 	 *
 	 * @param _payee Entity which will receive the payment
-	 * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
+	 * @param _amountExpected Initial amount initial to be received. This amount can't be changed.
 	 * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
 	 * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32.
 	 *
 	 * @return Returns the id of the request 
 	 */
-	function createRequestAsPayer(address _payee, uint _amountInitial, address _extension, bytes32[9] _extensionParams, uint _tips, string _details)
+	function createRequestAsPayer(address _payee, int256 _amountExpected, address _extension, bytes32[9] _extensionParams, uint256 _tips, string _details)
 		external
 		payable
 		whenNotPaused
 		returns(bytes32 requestId)
 	{
+		require(_amountExpected>=0);
 		require(msg.sender != _payee && _payee != 0);
-		require(msg.value >= _tips); // tips declare must be lower than amount sent
-		require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
 
-		requestId= requestCore.createRequest(msg.sender, _payee, msg.sender, _amountInitial, _extension, _details);
+		requestId= requestCore.createRequest(msg.sender, _payee, msg.sender, _amountExpected, _extension, _details);
 
 		if(_extension!=0) {
 			RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -117,7 +117,7 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @param _payee Entity which will receive the payment
 	 * @param _payer Entity supposed to pay
-	 * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
+	 * @param _amountExpected Initial amount initial to be received. This amount can't be changed.
 	 * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
 	 * @param _extensionParams Parameters for the extension. It is an array of 9 bytes32
 	 * @param _tips amount of tips the payer want to declare
@@ -127,20 +127,19 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @return Returns the id of the request 
 	 */
-   function broadcastSignedRequestAsPayer(address _payee, uint _amountInitial, address _extension, bytes32[9] _extensionParams, uint _tips, string _details, uint8 v, bytes32 r, bytes32 s)
+   function broadcastSignedRequestAsPayer(address _payee, int256 _amountExpected, address _extension, bytes32[9] _extensionParams, uint256 _tips, string _details, uint8 v, bytes32 r, bytes32 s)
 		external
 		payable
 		whenNotPaused
 		returns(bytes32 requestId)
 	{
+		require(_amountExpected>=0);
 		require(msg.sender != _payee && _payee != 0);
-		require(msg.value >= _tips); // tips declare must be lower than amount sent
-		require(_amountInitial.add(_tips) >= msg.value); // You cannot pay more than amount needed
 
 		// check the signature
-		require(checkRequestSignature(_payee,_payee,msg.sender,_amountInitial,_extension,_extensionParams,_details, v, r, s));
+		require(checkRequestSignature(_payee,_payee,msg.sender,_amountExpected,_extension,_extensionParams,_details, v, r, s));
 
-		requestId=requestCore.createRequest(_payee, _payee, msg.sender, _amountInitial, _extension, _details);
+		requestId=requestCore.createRequest(_payee, _payee, msg.sender, _amountExpected, _extension, _details);
 
 		if(_extension!=0) {
 			RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -190,7 +189,7 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @return true if the payment is declared, false otherwise
 	 */
-	function payment(bytes32 _requestId, uint _amount)
+	function payment(bytes32 _requestId, uint256 _amount)
 		external
 		whenNotPaused
 		onlyRequestExtensions(_requestId)
@@ -210,7 +209,7 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @return true if the fund mouvement is done, false otherwise
 	 */
-	function fundOrder(bytes32 _requestId, address _recipient, uint _amount)
+	function fundOrder(bytes32 _requestId, address _recipient, uint256 _amount)
 		external
 		whenNotPaused
 		onlyRequestExtensions(_requestId)
@@ -223,7 +222,7 @@ contract RequestEthereum is Pausable {
 	 * @dev Function to cancel a request
 	 *
 	 * @dev msg.sender must be the extension used by the request or the _payer (if request is created) or the _payee (if request is not canceled)
-	 * @dev only request with amountPaid equals to zero can be cancel
+	 * @dev only request with balance equals to zero can be cancel
 	 *
 	 * @param _requestId id of the request 
 	 *
@@ -240,7 +239,7 @@ contract RequestEthereum is Pausable {
 		);
 
 		// impossible to cancel a Request with a balance != 0
-		require(requestCore.getAmountPaid(_requestId) == 0); // TODO: maybe to delete
+		require(requestCore.getBalance(_requestId) == 0);
 
 		address extensionAddr = requestCore.getExtension(_requestId);
 
@@ -271,13 +270,11 @@ contract RequestEthereum is Pausable {
 	 * @param _requestId id of the request
 	 * @param _tips amount of tips in wei to declare 
 	 */
-	function pay(bytes32 _requestId, uint _tips)
+	function pay(bytes32 _requestId, uint256 _tips)
 		external
 		whenNotPaused
 		payable
 		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
-		condition(msg.value >= _tips) // tips declare must be lower than amount sent
-		condition(requestCore.getAmountInitialAfterSubAdd(_requestId).add(_tips) >= msg.value) // You can pay more than amount needed
 	{
 		if(_tips > 0) {
 			addAdditionalInternal(_requestId, _tips);
@@ -299,7 +296,6 @@ contract RequestEthereum is Pausable {
 		whenNotPaused
 		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
 		onlyRequestPayee(_requestId)
-		condition(msg.value <= requestCore.getAmountPaid(_requestId))
 		payable
 	{   
 		address extensionAddr = requestCore.getExtension(_requestId);
@@ -328,12 +324,11 @@ contract RequestEthereum is Pausable {
 	 * @param _requestId id of the request
 	 * @param _amount amount of discount in wei to declare 
 	 */
-	function discount(bytes32 _requestId, uint _amount)
+	function discount(bytes32 _requestId, uint256 _amount)
 		external
 		whenNotPaused
 		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
 		onlyRequestPayee(_requestId)
-		condition(_amount.add(requestCore.getAmountPaid(_requestId)) <= requestCore.getAmountInitialAfterSubAdd(_requestId))
 	{
 		address extensionAddr = requestCore.getExtension(_requestId);
 
@@ -357,7 +352,7 @@ contract RequestEthereum is Pausable {
 	function withdraw()
 		public
 	{
-		uint amount = ethToWithdraw[msg.sender];
+		uint256 amount = ethToWithdraw[msg.sender];
 		ethToWithdraw[msg.sender] = 0;
 		msg.sender.transfer(amount);
 	}
@@ -373,7 +368,7 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @return true if the payment is done, false otherwise
 	 */
-	function paymentInternal(bytes32 _requestId, uint _amount) 
+	function paymentInternal(bytes32 _requestId, uint256 _amount) 
 		internal
 		returns(bool)
 	{
@@ -403,7 +398,7 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @return true if the tips is declared, false otherwise
 	 */
-	function  addAdditionalInternal(bytes32 _requestId, uint _amount) 
+	function  addAdditionalInternal(bytes32 _requestId, uint256 _amount) 
 		internal
 		returns(bool)
 	{
@@ -432,7 +427,7 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @return true if the fund mouvement is done, false otherwise
 	 */
-	function fundOrderInternal(bytes32 _requestId, address _recipient, uint _amount) 
+	function fundOrderInternal(bytes32 _requestId, address _recipient, uint256 _amount) 
 		internal
 		returns(bool)
 	{
@@ -450,7 +445,7 @@ contract RequestEthereum is Pausable {
 			// try to send the fund 
 			if(!_recipient.send(_amount)) {
 				// if sendding fail, the funds are availbale to withdraw
-				ethToWithdraw[_recipient] += _amount;
+				ethToWithdraw[_recipient] = ethToWithdraw[_recipient].add(_amount);
 				// spread the word that the money is not sent but available to withdraw
 				EtherAvailableToWithdraw(_requestId, _recipient, _amount);
 			}
@@ -491,18 +486,18 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @param _payee Entity which will receive the payment
 	 * @param _payer Entity supposed to pay
-	 * @param _amountInitial Initial amount initial to be received. This amount can't be changed.
+	 * @param _amountExpected Initial amount initial to be received. This amount can't be changed.
 	 * @param _extensions Up to 3 extensions can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
 	 * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32, the 3 first element are for the first extension, the 3 next for the second extension and the last 3 for the third extension.
 	 *
 	 * @return Keccak-256 hash of a request
 	 */
-	function getRequestHash(address _payee, address _payer, uint _amountInitial, address _extension, bytes32[9] _extensionParams, string _details)
+	function getRequestHash(address _payee, address _payer, int256 _amountExpected, address _extension, bytes32[9] _extensionParams, string _details)
 		internal
 		view
 		returns(bytes32)
 	{
-		return keccak256(this,_payee,_payer,_amountInitial,_extension,_extensionParams,_details);
+		return keccak256(this,_payee,_payer,_amountExpected,_extension,_extensionParams,_details);
 	}
 
 	/*
@@ -536,7 +531,7 @@ contract RequestEthereum is Pausable {
 		address signer,
 		address payee,
 		address payer,
-		uint amountInitial,
+		int256 amountExpected,
 		address extension,
 		bytes32[9] extensionParams,
 		string details,
@@ -547,7 +542,7 @@ contract RequestEthereum is Pausable {
 		view
 		returns (bool)
 	{
-		bytes32 hash = getRequestHash(payee,payer,amountInitial,extension,extensionParams,details);
+		bytes32 hash = getRequestHash(payee,payer,amountExpected,extension,extensionParams,details);
 		return isValidSignature(signer, hash, v, r, s);
 	}
 
