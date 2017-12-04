@@ -66,31 +66,31 @@ contract('RequestCore Administrative part', function(accounts) {
 		assert.equal(await requestCore.paused.call(),true,"Core must remain Paused");
 	});
 
-	// adminAddTrustedSubContract adminRemoveTrustedSubContract
-	it("adminAddTrustedSubContract add a new contract as trusted", async function() {
+	// adminAddTrustedCurrencyContract adminRemoveTrustedCurrencyContract
+	it("adminAddTrustedCurrencyContract add a new contract as trusted", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
 
-		var r = await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
+		var r = await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});
 		var ev = getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
-		assert.equal(ev.name,"NewTrustedContract","Event NewTrustedContract is missing after adminAddTrustedSubContract()");
+		assert.equal(ev.name,"NewTrustedContract","Event NewTrustedContract is missing after adminAddTrustedCurrencyContract()");
 		assert.equal(ev.data[0].toLowerCase(),requestEthereum.address,"Event NewTrustedContract wrong args");
 		assert.equal(await requestCore.getStatusContract.call(requestEthereum.address),"1","New contract should be added");
 	});
-	it("adminRemoveTrustedSubContract remove trusted contract", async function() {
+	it("adminRemoveTrustedCurrencyContract remove trusted contract", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
 
-		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
+		await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});
 
-		var r = await requestCore.adminRemoveTrustedSubContract(requestEthereum.address, {from:admin});
+		var r = await requestCore.adminRemoveTrustedCurrencyContract(requestEthereum.address, {from:admin});
 		var ev = getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
-		assert.equal(ev.name,"RemoveTrustedContract","Event RemoveTrustedContract is missing after adminAddTrustedSubContract()");
+		assert.equal(ev.name,"RemoveTrustedContract","Event RemoveTrustedContract is missing after adminAddTrustedCurrencyContract()");
 		assert.equal(ev.data[0].toLowerCase(),requestEthereum.address,"Event RemoveTrustedContract wrong args");
 		assert.equal(await requestCore.getStatusContract.call(requestEthereum.address),"0","New contract should be added");
 	});
 
-	// adminAddTrustedExtension adminRemoveTrustedSubContract
+	// adminAddTrustedExtension adminRemoveTrustedCurrencyContract
 	it("adminAddTrustedExtension add a new extension as trusted", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
@@ -101,7 +101,7 @@ contract('RequestCore Administrative part', function(accounts) {
 		assert.equal(ev.data[0].toLowerCase(),requestEthereum.address,"Event NewTrustedExtension wrong args");
 		assert.equal(await requestCore.getStatusExtension.call(requestEthereum.address),"1","New extension should be added");
 	});
-	it("adminRemoveTrustedSubContract remove trusted contract", async function() {
+	it("adminRemoveTrustedCurrencyContract remove trusted contract", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
 
@@ -116,12 +116,12 @@ contract('RequestCore Administrative part', function(accounts) {
 
 
 
-	// right on adminAddTrustedSubContract adminRemoveTrustedSubContract adminAddTrustedExtension adminRemoveExtension
-	it("adminAddTrustedSubContract can be done only by admin", async function() {
+	// right on adminAddTrustedCurrencyContract adminRemoveTrustedCurrencyContract adminAddTrustedExtension adminRemoveExtension
+	it("adminAddTrustedCurrencyContract can be done only by admin", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
 
-		await utils.expectThrow(requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:otherguy}));
+		await utils.expectThrow(requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:otherguy}));
 	});
 	it("adminAddTrustedExtension can be done only by admin", async function() {
 		var requestCore = await RequestCore.new();
@@ -129,12 +129,12 @@ contract('RequestCore Administrative part', function(accounts) {
 
 		await utils.expectThrow(requestCore.adminAddTrustedExtension(requestEthereum.address, {from:otherguy}));
 	});
-	it("adminRemoveTrustedSubContract can be done only by admin", async function() {
+	it("adminRemoveTrustedCurrencyContract can be done only by admin", async function() {
 		var requestCore = await RequestCore.new();
 		var requestEthereum = await RequestEthereum.new();
 
-		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
-		await utils.expectThrow(requestCore.adminRemoveTrustedSubContract(requestEthereum.address, {from:otherguy}));
+		await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});
+		await utils.expectThrow(requestCore.adminRemoveTrustedCurrencyContract(requestEthereum.address, {from:otherguy}));
 	});
 	it("adminRemoveExtension can be done only by admin", async function() {
 		var requestCore = await RequestCore.new();

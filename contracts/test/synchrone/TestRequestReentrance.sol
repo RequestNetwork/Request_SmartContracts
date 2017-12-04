@@ -2,7 +2,7 @@ pragma solidity 0.4.18;
 
 contract RequestEthereumWeak {
 
-    function createRequestAsPayee(address _payer, int256 _amountExpected, address _extension, bytes32[9] _extensionParams, string _details) public returns(bytes32);
+    function createRequestAsPayee(address _payer, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, string _details) public returns(bytes32);
 
     function withdraw() public;
 

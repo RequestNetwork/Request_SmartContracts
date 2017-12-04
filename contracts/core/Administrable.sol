@@ -9,7 +9,7 @@ import '../base/lifecycle/Pausable.sol';
 contract Administrable is Pausable {
 
 	// mapping of address of trusted contract
-	mapping(address => uint8) public trustedSubContracts;
+	mapping(address => uint8) public trustedCurrencyContracts;
 
 	// mapping of address of trusted extensions
 	mapping(address => uint8) public trustedExtensions;
@@ -21,29 +21,29 @@ contract Administrable is Pausable {
 	event RemoveTrustedExtension(address oldExtension);
 
 	/**
-	 * @dev add a trusted subContract 
+	 * @dev add a trusted currencyContract 
 	 *
-	 * @param _newContractAddress The address of the subContract
+	 * @param _newContractAddress The address of the currencyContract
 	 */
-	function adminAddTrustedSubContract(address _newContractAddress)
+	function adminAddTrustedCurrencyContract(address _newContractAddress)
 		external
 		onlyOwner
 	{
-		trustedSubContracts[_newContractAddress] = 1;
+		trustedCurrencyContracts[_newContractAddress] = 1;
 		NewTrustedContract(_newContractAddress);
 	}
 
 	/**
-	 * @dev remove a trusted subContract 
+	 * @dev remove a trusted currencyContract 
 	 *
-	 * @param _oldTrustedContractAddress The address of the subContract
+	 * @param _oldTrustedContractAddress The address of the currencyContract
 	 */
-	function adminRemoveTrustedSubContract(address _oldTrustedContractAddress)
+	function adminRemoveTrustedCurrencyContract(address _oldTrustedContractAddress)
 		external
 		onlyOwner
 	{
-		require(trustedSubContracts[_oldTrustedContractAddress] != 0);
-		trustedSubContracts[_oldTrustedContractAddress] = 0;
+		require(trustedCurrencyContracts[_oldTrustedContractAddress] != 0);
+		trustedCurrencyContracts[_oldTrustedContractAddress] = 0;
 		RemoveTrustedContract(_oldTrustedContractAddress);
 	}
 
@@ -75,17 +75,17 @@ contract Administrable is Pausable {
 	}
 
 	/**
-	 * @dev get the status of a trusted subContract 
+	 * @dev get the status of a trusted currencyContract 
 	 *
-	 * @param _contractAddress The address of the subContract
-	 * @return The status of the subContract. If trusted 1, otherwise 0
+	 * @param _contractAddress The address of the currencyContract
+	 * @return The status of the currencyContract. If trusted 1, otherwise 0
 	 */
 	function getStatusContract(address _contractAddress)
 		view
 		external
 		returns(uint8) 
 	{
-		return trustedSubContracts[_contractAddress];
+		return trustedCurrencyContracts[_contractAddress];
 	}
 
 	/**
@@ -103,13 +103,13 @@ contract Administrable is Pausable {
 	}
 
 	/**
-	 * @dev Modifier: check if a subContract is trusted
-	 * @dev Revert if subContract status is not 1
+	 * @dev Modifier: check if a currencyContract is trusted
+	 * @dev Revert if currencyContract status is not 1
 	 *
-	 * @param _contractAddress The address of the subContract
+	 * @param _contractAddress The address of the currencyContract
 	 */
 	modifier isTrustedContract(address _contractAddress) {
-		require(trustedSubContracts[_contractAddress] == 1);
+		require(trustedCurrencyContracts[_contractAddress] == 1);
 		_;
 	}
 

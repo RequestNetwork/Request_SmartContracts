@@ -19,7 +19,7 @@ module.exports = function(deployer) {
         RequestEthereum.new(requestCoreContract.address).then(function(result){
         	requestEthereum=result;
 	        console.log("requestEthereum: "+result.address);
-		        requestCoreContract.adminAddTrustedSubContract(requestEthereum.address).then(function(r) {
+		        requestCoreContract.adminAddTrustedCurrencyContract(requestEthereum.address).then(function(r) {
 					RequestSynchroneExtensionEscrow.new(requestCoreContract.address).then(function(result){
 						requestEscrow=result;
 			        	console.log("RequestSynchroneExtensionEscrow: "+result.address);

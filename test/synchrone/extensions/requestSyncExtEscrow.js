@@ -12,7 +12,7 @@ var RequestSynchroneExtensionEscrow = artifacts.require("./synchrone/extensions/
 var TestRequestSynchroneInterfaceContinue = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceContinue.sol");
 var TestRequestSynchroneInterfaceInterception = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceInterception.sol");
 var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneExtensionLauncher.sol");
-var TestRequestSynchroneSubContractLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneSubContractLauncher.sol");
+var TestRequestSynchroneCurrencyContractLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneCurrencyContractLauncher.sol");
 
 var ethABI = require("../../../lib/ethereumjs-abi-perso.js");
 var ethUtil = require("ethereumjs-util");
@@ -57,7 +57,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	var requestEthereum;
 	var newRequest;
 	var requestSynchroneExtensionEscrow;
-	var testRequestSynchroneSubContractLauncher;
+	var testRequestSynchroneCurrencyContractLauncher;
 
 	var arbitraryAmount = 1000;
 
@@ -65,11 +65,11 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		requestCore = await RequestCore.new({from:admin});
 		requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 		requestSynchroneExtensionEscrow = await RequestSynchroneExtensionEscrow.new(requestCore.address,{from:admin});
-		testRequestSynchroneSubContractLauncher = await TestRequestSynchroneSubContractLauncher.new(1,requestCore.address,true,true,true,true,true,true,true,true,{from:admin});
+		testRequestSynchroneCurrencyContractLauncher = await TestRequestSynchroneCurrencyContractLauncher.new(1,requestCore.address,true,true,true,true,true,true,true,true,{from:admin});
 
-		await requestCore.adminAddTrustedSubContract(requestEthereum.address, {from:admin});
-		await requestCore.adminAddTrustedSubContract(fakeTrustedContract, {from:admin});
-		await requestCore.adminAddTrustedSubContract(testRequestSynchroneSubContractLauncher.address, {from:admin});
+		await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});
+		await requestCore.adminAddTrustedCurrencyContract(fakeTrustedContract, {from:admin});
+		await requestCore.adminAddTrustedCurrencyContract(testRequestSynchroneCurrencyContractLauncher.address, {from:admin});
 
 		await requestCore.adminAddTrustedExtension(requestSynchroneExtensionEscrow.address, {from:admin});
 
@@ -77,8 +77,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		await requestCore.createRequest(payee, payee, payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, "", {from:fakeTrustedContract});
 		await requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(1), [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:fakeTrustedContract})
 
-		// request 2 with testRequestSynchroneSubContractLauncher
-		await testRequestSynchroneSubContractLauncher.createRequest(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
+		// request 2 with testRequestSynchroneCurrencyContractLauncher
+		await testRequestSynchroneCurrencyContractLauncher.createRequest(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
     });
 
 	// ##################################################################################################
@@ -96,13 +96,13 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		await utils.expectThrow(requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(3), 0, {from:fakeTrustedContract}));
 	});
 
-	it("Create Escrow request by a subContract trusted by core OK", async function () {
+	it("Create Escrow request by a currencyContract trusted by core OK", async function () {
 		var r = await requestSynchroneExtensionEscrow.createRequest(utils.getHashRequest(3), [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], {from:fakeTrustedContract})
 
 		assert.equal(r.receipt.logs.length,0,"Wrong number of events");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(3));
-		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
+		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : currencyContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],0,"new request wrong data : state");
 		assert.equal(newReq[3],0,"new request wrong data : balance");
@@ -155,7 +155,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.data[1],arbitraryAmount,"Event EscrowPayment wrong args amount");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(1));
-		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
+		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : currencyContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],0,"new request wrong data : state");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : balance");
@@ -178,7 +178,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.data[1],arbitraryAmount,"Event EscrowPayment wrong args amount");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(1));
-		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
+		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : currencyContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : balance");
@@ -196,7 +196,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.data[1],0,"Event EscrowPayment wrong args amount");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(1));
-		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
+		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : currencyContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],0,"new request wrong data : state");
 		assert.equal(newReq[3],0,"new request wrong data : balance");
@@ -236,7 +236,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event EscrowReleaseRequest wrong args requestId");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(1));
-		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
+		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : currencyContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
 		assert.equal(newReq[3],0,"new request wrong data : balance");
@@ -253,7 +253,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event EscrowReleaseRequest wrong args requestId");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(1));
-		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : subContract");
+		assert.equal(newReq[0],fakeTrustedContract,"new request wrong data : currencyContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
 		assert.equal(newReq[3],0,"new request wrong data : balance");
@@ -265,7 +265,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		await utils.expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(1), {from:otherguy}));
 	});
 
-	it("release by subContract Impossible", async function () {
+	it("release by currencyContract Impossible", async function () {
 		await requestCore.accept(utils.getHashRequest(1),{from:fakeTrustedContract});
 		await utils.expectThrow(requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(1), {from:fakeTrustedContract}));
 	});
@@ -289,8 +289,8 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 	it("release if amountPaid-amountRefunded == 0 OK nothing special", async function () {
-		var newRequest = await testRequestSynchroneSubContractLauncher.createRequest(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(3),{from:payer});
+		var newRequest = await testRequestSynchroneCurrencyContractLauncher.createRequest(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
+		await testRequestSynchroneCurrencyContractLauncher.accept(utils.getHashRequest(3),{from:payer});
 
 		var r = await requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(3), {from:escrow});
 
@@ -300,7 +300,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.data[0],utils.getHashRequest(3),"Event EscrowReleaseRequest wrong args requestId");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(3));
-		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
+		assert.equal(newReq[0],testRequestSynchroneCurrencyContractLauncher.address,"new request wrong data : currencyContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
 		assert.equal(newReq[3],0,"new request wrong data : balance");
@@ -308,10 +308,10 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 
-	it("release if amountPaid-amountRefunded > 0 OK launch payment to subContract", async function () {
-		var newRequest = await testRequestSynchroneSubContractLauncher.createRequest(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(3),{from:payer});
-		await testRequestSynchroneSubContractLauncher.launchPayment(utils.getHashRequest(3), arbitraryAmount);
+	it("release if amountPaid-amountRefunded > 0 OK launch payment to currencyContract", async function () {
+		var newRequest = await testRequestSynchroneCurrencyContractLauncher.createRequest(payer, arbitraryAmount, requestSynchroneExtensionEscrow.address, [ethUtil.bufferToHex(ethABI.toSolidityBytes32("address",escrow))], "", {from:payee});
+		await testRequestSynchroneCurrencyContractLauncher.accept(utils.getHashRequest(3),{from:payer});
+		await testRequestSynchroneCurrencyContractLauncher.launchPayment(utils.getHashRequest(3), arbitraryAmount);
 
 		var r = await requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(3), {from:escrow});
 
@@ -320,7 +320,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.name,"EscrowReleaseRequest","Event EscrowReleaseRequest is missing after releaseToPayee()");
 		assert.equal(l.data[0],utils.getHashRequest(3),"Event EscrowReleaseRequest wrong args requestId");
 
-		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneSubContractLauncher.abi);
+		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneCurrencyContractLauncher.abi);
 		assert.equal(l.name,"LogTestPayment","Event LogTestPayment is missing after releaseToPayee()");
 		assert.equal(l.data[0],utils.getHashRequest(3),"Event LogTestPayment wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestPayment wrong args constant_id");
@@ -332,7 +332,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args _amount");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(3));
-		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
+		assert.equal(newReq[0],testRequestSynchroneCurrencyContractLauncher.address,"new request wrong data : currencyContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],2,"new request wrong data : state");
 		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : balance");
@@ -352,7 +352,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 	it("escrow refund if request is Canceled Impossible", async function () {
-		await testRequestSynchroneSubContractLauncher.cancel(utils.getHashRequest(2),{from:payer});
+		await testRequestSynchroneCurrencyContractLauncher.cancel(utils.getHashRequest(2),{from:payer});
 		await utils.expectThrow(requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:escrow}));
 	});
 
@@ -363,7 +363,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 
 	it("escrow refund if request is Accepted OK", async function () {
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
+		await testRequestSynchroneCurrencyContractLauncher.accept(utils.getHashRequest(2),{from:payer});
 
 		var r = await requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:escrow});
 
@@ -372,7 +372,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.name,"EscrowRefundRequest","Event EscrowRefundRequest is missing after refundToPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event EscrowRefundRequest wrong args requestId");
 
-		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneSubContractLauncher.abi);
+		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneCurrencyContractLauncher.abi);
 		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after refundToPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestCancel wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestCancel wrong args constant_id");
@@ -383,7 +383,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(2));
-		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
+		assert.equal(newReq[0],testRequestSynchroneCurrencyContractLauncher.address,"new request wrong data : currencyContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],1,"new request wrong data : state");
 		assert.equal(newReq[3],0,"new request wrong data : balance");
@@ -391,7 +391,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 	it("refund by payee OK", async function () {
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
+		await testRequestSynchroneCurrencyContractLauncher.accept(utils.getHashRequest(2),{from:payer});
 
 		var r = await requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:payee});
 
@@ -400,7 +400,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.name,"EscrowRefundRequest","Event EscrowRefundRequest is missing after refundToPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event EscrowRefundRequest wrong args requestId");
 
-		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneSubContractLauncher.abi);
+		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneCurrencyContractLauncher.abi);
 		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after refundToPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestCancel wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestCancel wrong args constant_id");
@@ -411,7 +411,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(2));
-		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
+		assert.equal(newReq[0],testRequestSynchroneCurrencyContractLauncher.address,"new request wrong data : currencyContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],1,"new request wrong data : state");
 		assert.equal(newReq[3],0,"new request wrong data : balance");
@@ -419,29 +419,29 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 	});
 
 	it("escrow refund by random guy Impossible", async function () {
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
+		await testRequestSynchroneCurrencyContractLauncher.accept(utils.getHashRequest(2),{from:payer});
 		await utils.expectThrow(requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:otherguy}));
 	});
 
-	it("escrow refund by subContract Impossible", async function () {
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
+	it("escrow refund by currencyContract Impossible", async function () {
+		await testRequestSynchroneCurrencyContractLauncher.accept(utils.getHashRequest(2),{from:payer});
 		await utils.expectThrow(requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:fakeTrustedContract}));
 	});
 
 	it("escrow refund if escrow is Released Impossible", async function () {
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
+		await testRequestSynchroneCurrencyContractLauncher.accept(utils.getHashRequest(2),{from:payer});
 		await requestSynchroneExtensionEscrow.releaseToPayee(utils.getHashRequest(2), {from:escrow});
 		await utils.expectThrow(requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:escrow}));
 	});
 
 	it("escrow refund if escrow is Refunded Impossible", async function () {
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
+		await testRequestSynchroneCurrencyContractLauncher.accept(utils.getHashRequest(2),{from:payer});
 		await requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:escrow});
 		await utils.expectThrow(requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:escrow}));
 	});
 
 	it("escrow refund if amountPaid-amountRefunded == 0 OK nothing special", async function () {
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
+		await testRequestSynchroneCurrencyContractLauncher.accept(utils.getHashRequest(2),{from:payer});
 		var r = await requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:escrow});
 
 		assert.equal(r.receipt.logs.length,3, "Wrong number of events");
@@ -449,7 +449,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.name,"EscrowRefundRequest","Event EscrowRefundRequest is missing after refundToPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event EscrowRefundRequest wrong args requestId");
 
-		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneSubContractLauncher.abi);
+		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneCurrencyContractLauncher.abi);
 		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after refundToPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestCancel wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestCancel wrong args constant_id");
@@ -459,16 +459,16 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event Canceled wrong args requestId");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(2));
-		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
+		assert.equal(newReq[0],testRequestSynchroneCurrencyContractLauncher.address,"new request wrong data : currencyContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],1,"new request wrong data : state");
 		assert.equal(newReq[3],0,"new request wrong data : balance");
 				
 	});
 
-	it("escrow refund if amountPaid-amountRefunded > 0 OK launch fundOrder to subContract", async function () {
-		await testRequestSynchroneSubContractLauncher.accept(utils.getHashRequest(2),{from:payer});
-		await testRequestSynchroneSubContractLauncher.launchPayment(utils.getHashRequest(2), arbitraryAmount);
+	it("escrow refund if amountPaid-amountRefunded > 0 OK launch fundOrder to currencyContract", async function () {
+		await testRequestSynchroneCurrencyContractLauncher.accept(utils.getHashRequest(2),{from:payer});
+		await testRequestSynchroneCurrencyContractLauncher.launchPayment(utils.getHashRequest(2), arbitraryAmount);
 		var r = await requestSynchroneExtensionEscrow.refundToPayer(utils.getHashRequest(2), {from:escrow});
 
 		assert.equal(r.receipt.logs.length,4, "Wrong number of events");
@@ -476,14 +476,14 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.name,"EscrowRefundRequest","Event EscrowRefundRequest is missing after refundToPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event EscrowRefundRequest wrong args requestId");
 
-		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneSubContractLauncher.abi);
+		var l = getEventFromReceipt(r.receipt.logs[1], testRequestSynchroneCurrencyContractLauncher.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after refundToPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args constant_id");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event LogTestFundOrder wrong args _recipient");
 		assert.equal(l.data[3],arbitraryAmount,"Event LogTestFundOrder wrong args _amount");
 
-		var l = getEventFromReceipt(r.receipt.logs[2], testRequestSynchroneSubContractLauncher.abi);
+		var l = getEventFromReceipt(r.receipt.logs[2], testRequestSynchroneCurrencyContractLauncher.abi);
 		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after refundToPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestCancel wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestCancel wrong args constant_id");
@@ -493,7 +493,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event Canceled wrong args requestId");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(2));
-		assert.equal(newReq[0],testRequestSynchroneSubContractLauncher.address,"new request wrong data : subContract");
+		assert.equal(newReq[0],testRequestSynchroneCurrencyContractLauncher.address,"new request wrong data : currencyContract");
 		assert.equal(newReq[1],escrow,"new request wrong data : escrow");
 		assert.equal(newReq[2],1,"new request wrong data : state");
 		assert.equal(newReq[3],0,"new request wrong data : balance");	

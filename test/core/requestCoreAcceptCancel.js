@@ -26,8 +26,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
     beforeEach(async () => {
 		requestCore = await RequestCore.new();
 
-		await requestCore.adminAddTrustedSubContract(fakeContract, {from:admin});
-		await requestCore.adminAddTrustedSubContract(fakeContract2, {from:admin});
+		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
+		await requestCore.adminAddTrustedCurrencyContract(fakeContract2, {from:admin});
 
 		var newRequest = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, "", {from:fakeContract});
     })
@@ -48,8 +48,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -68,8 +68,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -88,8 +88,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -107,8 +107,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -122,8 +122,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],0,"request wrong data : creator");
 		assert.equal(r[1],0,"request wrong data : payee");
 		assert.equal(r[2],0,"request wrong data : payer");
-		assert.equal(r[3],0,"request wrong data : amountExpected");
-		assert.equal(r[4],0,"new request wrong data : subContract");
+		assert.equal(r[3],0,"request wrong data : expectedAmount");
+		assert.equal(r[4],0,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -137,8 +137,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -152,8 +152,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -179,8 +179,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -199,8 +199,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -219,8 +219,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -238,8 +238,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -253,8 +253,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],0,"request wrong data : creator");
 		assert.equal(r[1],0,"request wrong data : payee");
 		assert.equal(r[2],0,"request wrong data : payer");
-		assert.equal(r[3],0,"request wrong data : amountExpected");
-		assert.equal(r[4],0,"new request wrong data : subContract");
+		assert.equal(r[3],0,"request wrong data : expectedAmount");
+		assert.equal(r[4],0,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -268,8 +268,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -283,8 +283,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],0,"new request wrong data : balance");
 
 
@@ -303,8 +303,8 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : amountExpected");
-		assert.equal(r[4],fakeContract,"new request wrong data : subContract");
+		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
+		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],1,"new request wrong data : balance");
 
 

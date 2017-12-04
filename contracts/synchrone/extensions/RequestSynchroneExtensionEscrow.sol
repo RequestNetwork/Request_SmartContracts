@@ -13,7 +13,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 	// mapping of requestId => escrow
 	struct RequestEscrow {
-		address subContract;
+		address currencyContract;
 		address escrow;
 		EscrowState state;
 		uint256 balance;
@@ -37,7 +37,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	function createRequest(bytes32 _requestId, bytes32[9] _params)
 		public
 		whenNotPaused
-		isSubContractTrusted(msg.sender)
+		isCurrencyContractTrusted(msg.sender)
 		condition(_params[0]!=0)
 		returns(bool)
 	{
@@ -48,7 +48,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	function payment(bytes32 _requestId, uint256 _amount)
 		public
 		whenNotPaused
-		isSubContractRight(_requestId)
+		isCurrencyContractRight(_requestId)
 		inNOTEscrowState(_requestId, EscrowState.Refunded)
 		returns(bool)
 	{
@@ -63,7 +63,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	function refund(bytes32 _requestId, uint256 _amount)
 		public
 		whenNotPaused
-		isSubContractRight(_requestId)
+		isCurrencyContractRight(_requestId)
 		returns(bool)
 	{
 		escrows[_requestId].balance = escrows[_requestId].balance.sub(_amount);
@@ -74,7 +74,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	function cancel(bytes32 _requestId) 
 		public
 		whenNotPaused
-		isSubContractRight(_requestId)
+		isCurrencyContractRight(_requestId)
 		returns(bool)
 	{
 		return escrows[_requestId].balance == 0;
@@ -94,8 +94,8 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		EscrowReleaseRequest(_requestId);
 
 		if(escrows[_requestId].balance > 0) {
-			RequestSynchroneInterface subContract = RequestSynchroneInterface(escrows[_requestId].subContract);
-			subContract.payment(_requestId, escrows[_requestId].balance);
+			RequestSynchroneInterface currencyContract = RequestSynchroneInterface(escrows[_requestId].currencyContract);
+			currencyContract.payment(_requestId, escrows[_requestId].balance);
 		}
 	}
 
@@ -114,9 +114,9 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		uint256 amountToRefund = escrows[_requestId].balance;
 		escrows[_requestId].balance = 0;
 
-		RequestSynchroneInterface subContract = RequestSynchroneInterface(escrows[_requestId].subContract);
-		if(amountToRefund>0) subContract.fundOrder(_requestId, requestCore.getPayer(_requestId), amountToRefund); 
-		subContract.cancel(_requestId); 
+		RequestSynchroneInterface currencyContract = RequestSynchroneInterface(escrows[_requestId].currencyContract);
+		if(amountToRefund>0) currencyContract.fundOrder(_requestId, requestCore.getPayer(_requestId), amountToRefund); 
+		currencyContract.cancel(_requestId); 
 	}
 
 
@@ -166,14 +166,14 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 		_;
 	}
 
-	modifier isSubContractTrusted(address subContract) {
-		require(requestCore.getStatusContract(subContract)==1);
+	modifier isCurrencyContractTrusted(address currencyContract) {
+		require(requestCore.getStatusContract(currencyContract)==1);
 		_;
 	}
 
-	modifier isSubContractRight(bytes32 _requestId)
+	modifier isCurrencyContractRight(bytes32 _requestId)
 	{
-		require(escrows[_requestId].subContract == msg.sender);
+		require(escrows[_requestId].currencyContract == msg.sender);
 		_;
 	}	 
 }

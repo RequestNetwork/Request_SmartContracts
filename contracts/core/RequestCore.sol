@@ -28,8 +28,8 @@ contract RequestCore is Administrable {
         address creator;
         address payee;
         address payer;
-        int256 amountExpected;
-        address subContract;
+        int256 expectedAmount;
+        address currencyContract;
         int256 balance;
         State state;
         address extension;
@@ -55,7 +55,7 @@ contract RequestCore is Administrable {
 
     event NewPayee(bytes32 requestId, address payee);
     event NewPayer(bytes32 requestId, address payer);
-    event NewAmountExpected(bytes32 requestId, int256 amountExpected);
+    event NewExpectedAmount(bytes32 requestId, int256 expectedAmount);
     event NewExtension(bytes32 requestId, address extension);
     event NewDetails(bytes32 requestId, string details);
 
@@ -73,11 +73,11 @@ contract RequestCore is Administrable {
      * @param _creator Request creator
      * @param _payee Entity which will receive the payment
      * @param _payer Entity supposed to pay
-     * @param _amountExpected Initial amount initial to be received. This amount can't be changed.
+     * @param _expectedAmount Expected amount to be received. This amount can't be changed.
      * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
      * @return Returns the id of the request 
      */   
-    function createRequest(address _creator, address _payee, address _payer, int256 _amountExpected, address _extension, string _details) 
+    function createRequest(address _creator, address _payee, address _payer, int256 _expectedAmount, address _extension, string _details) 
         external
         whenNotPaused 
         isTrustedContract(msg.sender)
@@ -88,7 +88,7 @@ contract RequestCore is Administrable {
         numRequests = numRequests.add(1);
         requestId = keccak256(numRequests,VERSION);
 
-        requests[requestId] = Request(_creator, _payee, _payer, _amountExpected, msg.sender, 0, State.Created, _extension, _details); 
+        requests[requestId] = Request(_creator, _payee, _payer, _expectedAmount, msg.sender, 0, State.Created, _extension, _details); 
 
         Created(requestId, _payee, _payer);
         return requestId;
@@ -102,7 +102,7 @@ contract RequestCore is Administrable {
         external
     {
         Request storage r = requests[_requestId];
-        require(r.subContract==msg.sender); 
+        require(r.currencyContract==msg.sender); 
         r.state = State.Accepted;
         Accepted(_requestId);
     }
@@ -115,7 +115,7 @@ contract RequestCore is Administrable {
         external
     {
         Request storage r = requests[_requestId];
-        require(r.subContract==msg.sender);
+        require(r.currencyContract==msg.sender);
 
         r.state = State.Canceled;
         Canceled(_requestId);
@@ -130,7 +130,7 @@ contract RequestCore is Administrable {
         external
     {   
         Request storage r = requests[_requestId];
-        require(r.subContract==msg.sender); 
+        require(r.currencyContract==msg.sender); 
 
         r.balance = r.balance.add(_amount.toInt256Safe());
 
@@ -146,7 +146,7 @@ contract RequestCore is Administrable {
         external
     {   
         Request storage r = requests[_requestId];
-        require(r.subContract==msg.sender); 
+        require(r.currencyContract==msg.sender); 
 
         r.balance = r.balance.sub(_amount.toInt256Safe());
 
@@ -154,7 +154,7 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Function used by Subcontracts to add an additional amount to pay to the request. The amount initial can not be changed but a tips, a  penalty or several reason can lead to a request being paid an additional
+     * @dev Function update the expectedAmount adding additional
      * @param _requestId Request id
      * @param _amount additional amount
      */ 
@@ -162,9 +162,9 @@ contract RequestCore is Administrable {
         external
     {   
         Request storage r = requests[_requestId];
-        require(r.subContract==msg.sender); 
+        require(r.currencyContract==msg.sender); 
 
-        r.amountExpected = r.amountExpected.add(_amount.toInt256Safe());
+        r.expectedAmount = r.expectedAmount.add(_amount.toInt256Safe());
 
         AddAdditional(_requestId, _amount);
     }
@@ -178,9 +178,9 @@ contract RequestCore is Administrable {
         external
     {   
         Request storage r = requests[_requestId];
-        require(r.subContract==msg.sender);
+        require(r.currencyContract==msg.sender);
 
-        r.amountExpected = r.amountExpected.sub(_amount.toInt256Safe());
+        r.expectedAmount = r.expectedAmount.sub(_amount.toInt256Safe());
 
         AddSubtract(_requestId, _amount);
     }
@@ -195,7 +195,7 @@ contract RequestCore is Administrable {
         external
     {
         Request storage r = requests[_requestId];
-        require(r.subContract==msg.sender);
+        require(r.currencyContract==msg.sender);
         requests[_requestId].payee = _payee;
         NewPayee(_requestId, _payee);
     }
@@ -209,7 +209,7 @@ contract RequestCore is Administrable {
         external
     {
         Request storage r = requests[_requestId];
-        require(r.subContract==msg.sender);
+        require(r.currencyContract==msg.sender);
         requests[_requestId].payer = _payer;
         NewPayer(_requestId, _payer);
     }
@@ -219,13 +219,13 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @param new amount expected
      */     
-    function setAmountExpected(bytes32 _requestId, int256 _amountExpected)
+    function setExpectedAmount(bytes32 _requestId, int256 _expectedAmount)
         external
     {
         Request storage r = requests[_requestId];
-        require(r.subContract==msg.sender);
-        requests[_requestId].amountExpected = _amountExpected;
-        NewAmountExpected(_requestId, _amountExpected);
+        require(r.currencyContract==msg.sender);
+        requests[_requestId].expectedAmount = _expectedAmount;
+        NewExpectedAmount(_requestId, _expectedAmount);
     }
 
     /*
@@ -238,7 +238,7 @@ contract RequestCore is Administrable {
         isTrustedExtension(_extension)
     {
         Request storage r = requests[_requestId];
-        require(r.subContract==msg.sender);
+        require(r.currencyContract==msg.sender);
         requests[_requestId].extension = _extension;
         NewExtension(_requestId, _extension);
     }
@@ -252,7 +252,7 @@ contract RequestCore is Administrable {
         external
     {
         Request storage r = requests[_requestId];
-        require(r.subContract==msg.sender);
+        require(r.currencyContract==msg.sender);
         requests[_requestId].details = _details;
         NewDetails(_requestId, _details);
     }
@@ -289,25 +289,25 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @return amount expected
      */     
-    function getAmountExpected(bytes32 _requestId)
+    function getExpectedAmount(bytes32 _requestId)
         public
         constant
         returns(int256)
     {
-        return requests[_requestId].amountExpected;
+        return requests[_requestId].expectedAmount;
     }
 
     /*
-     * @dev Get subContract of a request
+     * @dev Get currencyContract of a request
      * @param _requestId Request id
-     * @return subContract address
+     * @return currencyContract address
      */
-    function getSubContract(bytes32 _requestId)
+    function getCurrencyContract(bytes32 _requestId)
         public
         constant
         returns(address)
     {
-        return requests[_requestId].subContract;
+        return requests[_requestId].currencyContract;
     }
 
     /*

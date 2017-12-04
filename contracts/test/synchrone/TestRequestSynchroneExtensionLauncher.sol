@@ -36,42 +36,42 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
     function launchCancel(bytes32 _requestId)
         public
     {
-        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
-        subContract.cancel(_requestId);
+        RequestSynchroneInterface currencyContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        currencyContract.cancel(_requestId);
     } 
 
     function launchAccept(bytes32 _requestId)
         public
     {
-        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
-        subContract.accept(_requestId);
+        RequestSynchroneInterface currencyContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        currencyContract.accept(_requestId);
     } 
 
     function launchPayment(bytes32 _requestId, uint _amount)
         public
     {
-        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
-        subContract.payment(_requestId,_amount);
+        RequestSynchroneInterface currencyContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        currencyContract.payment(_requestId,_amount);
     } 
 
     function launchRefund(bytes32 _requestId, uint _amount)
         public
     {
-        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
-        subContract.refund(_requestId,_amount);
+        RequestSynchroneInterface currencyContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        currencyContract.refund(_requestId,_amount);
     } 
     function launchAddAdditional(bytes32 _requestId, uint _amount)
         public
     {
-        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
-        subContract.addAdditional(_requestId,_amount);
+        RequestSynchroneInterface currencyContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        currencyContract.addAdditional(_requestId,_amount);
     } 
 
     function launchAddSubtract(bytes32 _requestId, uint _amount)
         public
     {
-        RequestSynchroneInterface subContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
-        subContract.addSubtract(_requestId,_amount);
+        RequestSynchroneInterface currencyContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
+        currencyContract.addSubtract(_requestId,_amount);
     } 
     // --------------------------------------------------------
 

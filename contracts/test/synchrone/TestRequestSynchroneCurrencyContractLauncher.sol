@@ -3,7 +3,7 @@ pragma solidity 0.4.18;
 import '../../core/RequestCore.sol';
 import '../../synchrone/extensions/RequestSynchroneInterface.sol';
 
-contract TestRequestSynchroneSubContractLauncher {
+contract TestRequestSynchroneCurrencyContractLauncher {
     
     uint constant_id;
     mapping(bytes32 => address) extensionAddress;
@@ -21,7 +21,7 @@ contract TestRequestSynchroneSubContractLauncher {
     bool addSubtractReturn;
 
 
-    function TestRequestSynchroneSubContractLauncher (uint _id, uint _requestCoreAddress, bool _createRequest,bool _accept,bool _cancel,bool _fundOrder,bool _payment,bool _refund,bool _addAdditional,bool _addSubtract) 
+    function TestRequestSynchroneCurrencyContractLauncher (uint _id, uint _requestCoreAddress, bool _createRequest,bool _accept,bool _cancel,bool _fundOrder,bool _payment,bool _refund,bool _addAdditional,bool _addSubtract) 
         public
     {
         constant_id = _id;
@@ -81,11 +81,11 @@ contract TestRequestSynchroneSubContractLauncher {
     } 
     // --------------------------------------------------------
 
-    function createRequest(address _payer, int256 _amountInitial, address _extension, bytes32[9] _extensionParams, string _details)
+    function createRequest(address _payer, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, string _details)
         public
         returns(bytes32 requestId)
     {
-        requestId= requestCore.createRequest(msg.sender, msg.sender, _payer, _amountInitial, _extension, _details);
+        requestId= requestCore.createRequest(msg.sender, msg.sender, _payer, _expectedAmount, _extension, _details);
 
         if(_extension!=0) {
             RequestSynchroneInterface extension0 = RequestSynchroneInterface(_extension);
