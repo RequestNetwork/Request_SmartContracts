@@ -6,7 +6,7 @@ var config = {
 		"requestCoreCreateRequest.js":false,    
 		"requestCoreAcceptCancel.js":false,
 		"requestCoreAdditionalSubtract.js":false,  
-		"requestCorePaymentRefund.js":false,  
+		"requestCoreUpdateBalance.js":false,  
 	// },
 	// "synchrone.js": {
 	//	 	"ethereum.js": {

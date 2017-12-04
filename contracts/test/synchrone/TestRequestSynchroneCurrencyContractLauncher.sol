@@ -2,9 +2,11 @@ pragma solidity 0.4.18;
 
 import '../../core/RequestCore.sol';
 import '../../synchrone/extensions/RequestSynchroneInterface.sol';
+import '../../base/math/SafeMath.sol';
 
 contract TestRequestSynchroneCurrencyContractLauncher {
-    
+    using SafeMath for uint256;
+
     uint constant_id;
     mapping(bytes32 => address) extensionAddress;
 
@@ -131,7 +133,7 @@ contract TestRequestSynchroneCurrencyContractLauncher {
         returns(bool)
     {
         LogTestPayment(_requestId, constant_id, _amount);
-        requestCore.payment(_requestId,_amount);
+        requestCore.updateBalance(_requestId,_amount.toInt256Safe());
         return paymentReturn;
     } 
 
@@ -141,7 +143,7 @@ contract TestRequestSynchroneCurrencyContractLauncher {
         returns(bool)
     {
         LogTestRefund(_requestId, constant_id, _amount);
-        requestCore.refund(_requestId,_amount);
+        requestCore.updateBalance(_requestId,-_amount.toInt256Safe());
         return refundReturn;
     } 
 

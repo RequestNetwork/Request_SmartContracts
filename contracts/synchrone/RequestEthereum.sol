@@ -298,21 +298,7 @@ contract RequestEthereum is Pausable {
 		onlyRequestPayee(_requestId)
 		payable
 	{   
-		address extensionAddr = requestCore.getExtension(_requestId);
-
-		bool isOK = true;
-		if(extensionAddr!=0 && extensionAddr!=msg.sender)  
-		{
-			RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
-			isOK = extension.refund(_requestId, msg.value);
-		}
-
-		if(isOK) 
-		{
-			requestCore.refund(_requestId, msg.value);
-			// refund done, the money is ready to withdraw by the payer
-			fundOrderInternal(_requestId, requestCore.getPayer(_requestId), msg.value);
-		}
+		refundInternal(_requestId, msg.value);
 	}
 
 	/*
@@ -383,9 +369,39 @@ contract RequestEthereum is Pausable {
 
 		if(isOK) 
 		{
-			requestCore.payment(_requestId, _amount);
+			requestCore.updateBalance(_requestId, _amount.toInt256Safe());
 			// payment done, the money is ready to withdraw by the payee
 			fundOrderInternal(_requestId, requestCore.getPayee(_requestId), _amount);
+		}
+		return isOK;
+	}
+
+	/*
+	 * @dev Function internal to manage refund declaration
+	 *
+	 * @param _requestId id of the request
+	 * @param _amount amount of the refund in wei to declare 
+	 *
+	 * @return true if the refund is done, false otherwise
+	 */
+	function refundInternal(bytes32 _requestId, uint256 _amount) 
+		internal
+		returns(bool)
+	{
+		address extensionAddr = requestCore.getExtension(_requestId);
+
+		bool isOK = true;
+		if(extensionAddr!=0 && extensionAddr!=msg.sender) 
+		{
+			RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
+			isOK = extension.refund(_requestId, _amount);
+		}
+
+		if(isOK) 
+		{
+			requestCore.updateBalance(_requestId, -_amount.toInt256Safe());
+			// payment done, the money is ready to withdraw by the payee
+			fundOrderInternal(_requestId, requestCore.getPayer(_requestId), _amount);
 		}
 		return isOK;
 	}

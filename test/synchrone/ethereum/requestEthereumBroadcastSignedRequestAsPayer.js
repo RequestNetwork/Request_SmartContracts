@@ -144,9 +144,9 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddAdditional wrong args amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount+1,"Event Payment wrong args amountPaid");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after broadcastSignedRequestAsPayer()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount+1,"Event UpdateBalance wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new quick request wrong data : creator");
@@ -271,9 +271,9 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddAdditional wrong args amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after broadcastSignedRequestAsPayer()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new quick request wrong data : creator");
@@ -399,9 +399,9 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event Payment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args amountPaid");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after broadcastSignedRequestAsPayer()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new quick request wrong data : creator");

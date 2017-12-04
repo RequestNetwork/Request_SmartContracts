@@ -293,7 +293,7 @@ contract('RequestCore Accept & Cancel Request', function(accounts) {
 
 	it("cancel request balance != 0 OK", async function () {
 		await requestCore.accept(utils.getHashRequest(1), {from:fakeContract});
-		await requestCore.payment(utils.getHashRequest(1), 1, {from:fakeContract});
+		await requestCore.updateBalance(utils.getHashRequest(1), 1, {from:fakeContract});
 		r = await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
 
 		assert.equal(r.logs[0].event,"Canceled","Event Canceled is missing after cancel()");

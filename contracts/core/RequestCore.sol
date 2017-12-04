@@ -48,8 +48,8 @@ contract RequestCore is Administrable {
     event Created(bytes32 requestId, address payee, address payer);
     event Accepted(bytes32 requestId);
     event Canceled(bytes32 requestId);
-    event Payment(bytes32 requestId, uint256 amountPaid);
-    event Refunded(bytes32 requestId, uint256 amountRefunded);
+    event UpdateBalance(bytes32 requestId, int256 deltaAmount);
+
     event AddAdditional(bytes32 requestId, uint256 amountAdded);
     event AddSubtract(bytes32 requestId, uint256 amountSubtracted);
 
@@ -122,35 +122,19 @@ contract RequestCore is Administrable {
     }   
 
     /*
-     * @dev Function used by Subcontracts to declare a payment in the Core. The subcontract guarantee that the request was paid for a specific amount
+     * @dev Function used to update the balance
      * @param _requestId Request id
-     * @param _amount amount paid
+     * @param _deltaAmount amount modifier
      */ 
-    function payment(bytes32 _requestId, uint256 _amount)
+    function updateBalance(bytes32 _requestId, int256 _deltaAmount)
         external
     {   
         Request storage r = requests[_requestId];
         require(r.currencyContract==msg.sender); 
 
-        r.balance = r.balance.add(_amount.toInt256Safe());
+        r.balance = r.balance.add(_deltaAmount);
 
-        Payment(_requestId, _amount);
-    }
-
-    /*
-     * @dev Function used by Subcontracts to declare a refund in the Core. A refund is initiated by the payee to the payer and decrease the amount paid in the request
-     * @param _requestId Request id
-     * @param _amount amount refunded
-     */ 
-    function refund(bytes32 _requestId, uint256 _amount)
-        external
-    {   
-        Request storage r = requests[_requestId];
-        require(r.currencyContract==msg.sender); 
-
-        r.balance = r.balance.sub(_amount.toInt256Safe());
-
-        Refunded(_requestId, _amount);
+        UpdateBalance(_requestId, _deltaAmount);
     }
 
     /*

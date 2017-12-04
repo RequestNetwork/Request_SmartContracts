@@ -40,18 +40,13 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 	it("challenge reentrance 2 rounds", async function () {
 		await requestEthereum.pay(utils.getHashRequest(1), 0, {from:payer,value:arbitraryAmount});
 		testRequestReentrance = await TestRequestReentrance.new(requestEthereum.address, 2,{from:hacker});
-
+		
 		var r = await testRequestReentrance.init(hacker,{from:hacker2});
-		console.log(r.logs)
-		console.log(r.logs[0])
-		console.log(r.logs[0].args)
 		assert.equal(r.logs[0].event,"Log","Event Log is missing");
 		assert.equal(r.logs[0].args.id,utils.getHashRequest(2),"Event Payment wrong args id");
 
 		await requestEthereum.accept(r.logs[0].args.id, {from:hacker});
-console.log('3')
 		await requestEthereum.pay(r.logs[0].args.id, 0, {from:hacker,value:arbitraryAmount10percent});
-console.log('4')
 		var r = await utils.expectThrow(testRequestReentrance.start({from:hacker}));
 		assert.equal(await web3.eth.getBalance(testRequestReentrance.address), 0, 'Contract hacking balance must remain 0');
 	});

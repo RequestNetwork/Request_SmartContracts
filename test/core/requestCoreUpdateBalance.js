@@ -10,7 +10,7 @@ var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 var BigNumber = require('bignumber.js');
 var BN = require('bn.js');
 
-contract('RequestCore Payment & Refund Request', function(accounts) {
+contract('RequestCore UpdateBalance', function(accounts) {
 	var admin = accounts[0];
 	var otherguy = accounts[1];
 	var fakeContract = accounts[2];
@@ -38,16 +38,16 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
     })
 
 	// ##################################################################################################
-	// ### Payment test unit #############################################################################
+	// ### updateBalance with positive amount test unit #############################################################################
 	// ##################################################################################################
-	// payment request already accepted OK
-	it("payment request accepted OK - check event log and request status", async function () {
+	// updateBalance with positive amount request already accepted OK
+	it("updateBalance with positive amount request accepted OK - check event log and request status", async function () {
 		await requestCore.accept(utils.getHashRequest(1), {from:fakeContract});
-		var r = await requestCore.payment(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+		var r = await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Payment wrong args requestId");
-		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount10percent,"Event Payment wrong args balance");
+		assert.equal(r.logs[0].event,"UpdateBalance","Event UpdateBalance is missing after updateBalance()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,arbitraryAmount10percent,"Event UpdateBalance wrong args balance");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -56,19 +56,17 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
 		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],arbitraryAmount10percent,"new request wrong data : balance");
-		
-		
 		assert.equal(r[6],1,"new request wrong data : state");
 	});
 
-	// payment request already canceled OK
-	it("payment request canceled OK - check event log and request status", async function () {
+	// updateBalance with positive amount request already canceled OK
+	it("updateBalance with positive amount request canceled OK - check event log and request status", async function () {
 		await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
-		var r = await requestCore.payment(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+		var r = await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after payment()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Payment wrong args requestId");
-		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount10percent,"Event Payment wrong args balance");
+		assert.equal(r.logs[0].event,"UpdateBalance","Event UpdateBalance is missing after updateBalance()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,arbitraryAmount10percent,"Event UpdateBalance wrong args balance");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -82,13 +80,13 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[6],2,"new request wrong data : state");
 	});
 
-	it("payment if Core Paused OK", async function () {
+	it("updateBalance with positive amount if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		var r = await requestCore.payment(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+		var r = await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after payment()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Payment wrong args requestId");
-		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount10percent,"Event Payment wrong args balance");
+		assert.equal(r.logs[0].event,"UpdateBalance","Event UpdateBalance is missing after updateBalance()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,arbitraryAmount10percent,"Event UpdateBalance wrong args balance");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -102,8 +100,8 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("payment request not exist impossible", async function () {
-		await utils.expectThrow(requestCore.payment(2, arbitraryAmount10percent, {from:fakeContract}));
+	it("updateBalance with positive amount request not exist impossible", async function () {
+		await utils.expectThrow(requestCore.updateBalance(2, arbitraryAmount10percent, {from:fakeContract}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(2), {from:fakeContract});
 		assert.equal(r[0],0,"request wrong data : creator");
@@ -117,8 +115,8 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("payment request from a random guy impossible", async function () {
-		await utils.expectThrow(requestCore.payment(utils.getHashRequest(1), arbitraryAmount10percent, {from:otherguy}));
+	it("updateBalance with positive amount request from a random guy impossible", async function () {
+		await utils.expectThrow(requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount10percent, {from:otherguy}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -132,8 +130,8 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("payment request from other subcontract impossible", async function () {
-		await utils.expectThrow(requestCore.payment(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract2}));
+	it("updateBalance with positive amount request from other subcontract impossible", async function () {
+		await utils.expectThrow(requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract2}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -148,11 +146,11 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 	});
 
 
-	it("new payment _amount==0 OK", async function () {
-		var r = await requestCore.payment(utils.getHashRequest(1), 0, {from:fakeContract});
-		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Payment wrong args requestId");
-		assert.equal(r.logs[0].args.amountPaid,0,"Event Payment wrong args balance");
+	it("new updateBalance with positive amount _amount==0 OK", async function () {
+		var r = await requestCore.updateBalance(utils.getHashRequest(1), 0, {from:fakeContract});
+		assert.equal(r.logs[0].event,"UpdateBalance","Event UpdateBalance is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,0,"Event UpdateBalance wrong args balance");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -166,8 +164,8 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("new payment _amount >= 2^256 impossible", async function () {
-		await utils.expectThrow(requestCore.payment(utils.getHashRequest(1), new BigNumber(2).pow(256), {from:fakeContract}));
+	it("new updateBalance with positive amount _amount >= 2^256 impossible", async function () {
+		await utils.expectThrow(requestCore.updateBalance(utils.getHashRequest(1), new BigNumber(2).pow(256), {from:fakeContract}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -182,11 +180,11 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 	});
 
 	// seems buggy -> issue on truffle
-	// it("new payment _amount+request.amounPaid > 2^255 (overflow) impossible", async function () {
+	// it("new updateBalance with positive amount _amount+request.amounPaid > 2^255 (overflow) impossible", async function () {
 		
-	// 	var n = await requestCore.payment2(utils.getHashRequest(1), new BigNumber(2).pow(254), {from:fakeContract});
+	// 	var n = await requestCore.updateBalance(utils.getHashRequest(1), new BigNumber(2).pow(254), {from:fakeContract});
 
-	// 	await utils.expectThrow(requestCore.payment(utils.getHashRequest(1), new BigNumber(2).pow(254), {from:fakeContract}));
+	// 	await utils.expectThrow(requestCore.updateBalance(utils.getHashRequest(1), new BigNumber(2).pow(254), {from:fakeContract}));
 
 	// 	var r = await requestCore.requests.call(utils.getHashRequest(1));
 
@@ -200,12 +198,12 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 	// });
 
 
-	it("new payment _amount+request.amounPaid == expectedAmount-request.amountSubtract+request.amountAdditional", async function () {
-		var r = await requestCore.payment(utils.getHashRequest(1), arbitraryAmount, {from:fakeContract});
+	it("new updateBalance with positive amount _amount+request.amounPaid == expectedAmount-request.amountSubtract+request.amountAdditional", async function () {
+		var r = await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after payment()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Payment wrong args requestId");
-		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount,"Event Payment wrong args balance");
+		assert.equal(r.logs[0].event,"UpdateBalance","Event UpdateBalance is missing after updateBalance()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,arbitraryAmount,"Event UpdateBalance wrong args balance");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -219,12 +217,12 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("new payment _amount+request.amounPaid > expectedAmount-request.amountSubtract+request.amountAdditional", async function () {
-		var r = await requestCore.payment(utils.getHashRequest(1), arbitraryAmount*2, {from:fakeContract});
+	it("new updateBalance with positive amount _amount+request.amounPaid > expectedAmount-request.amountSubtract+request.amountAdditional", async function () {
+		var r = await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount*2, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"Payment","Event Payment is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Payment wrong args requestId");
-		assert.equal(r.logs[0].args.amountPaid,arbitraryAmount*2,"Event Payment wrong args balance");
+		assert.equal(r.logs[0].event,"UpdateBalance","Event UpdateBalance is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,arbitraryAmount*2,"Event UpdateBalance wrong args balance");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -244,15 +242,15 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 
 
 	// ##################################################################################################
-	// ### Refund test unit #############################################################################
+	// ### updateBalance with negative amount test unit #############################################################################
 	// ##################################################################################################
-	it("refund request created OK - check event log and request status", async function () {
-		await requestCore.payment(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
-		var r = await requestCore.refund(utils.getHashRequest(1), arbitraryAmount20percent, {from:fakeContract});
+	it("updateBalance with negative amount request created OK - check event log and request status", async function () {
+		await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
+		var r = await requestCore.updateBalance(utils.getHashRequest(1), -arbitraryAmount20percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Refunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event Refunded wrong args amountRefunded");
+		assert.equal(r.logs[0].event,"UpdateBalance","Event UpdateBalance is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,-arbitraryAmount20percent,"Event UpdateBalance wrong args amountUpdateBalance");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -265,16 +263,16 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
-	// refund request already accepted OK
-	it("refund request accepted OK - check event log and request status", async function () {
+	// updateBalance with negative amount request already accepted OK
+	it("updateBalance with negative amount request accepted OK - check event log and request status", async function () {
 		await requestCore.accept(utils.getHashRequest(1), {from:fakeContract});
-		await requestCore.payment(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
+		await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
 
-		var r = await requestCore.refund(utils.getHashRequest(1), arbitraryAmount20percent, {from:fakeContract});
+		var r = await requestCore.updateBalance(utils.getHashRequest(1), -arbitraryAmount20percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Refunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event Refunded wrong args amountRefunded");
+		assert.equal(r.logs[0].event,"UpdateBalance","Event UpdateBalance is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,-arbitraryAmount20percent,"Event UpdateBalance wrong args amountUpdateBalance");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -288,16 +286,16 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[6],1,"new request wrong data : state");
 	});
 
-	// refund request already canceled OK
-	it("refund request canceled OK - check event log and request status", async function () {
+	// updateBalance with negative amount request already canceled OK
+	it("updateBalance with negative amount request canceled OK - check event log and request status", async function () {
 		await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
-		await requestCore.payment(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
+		await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
 
-		var r = await requestCore.refund(utils.getHashRequest(1), arbitraryAmount20percent, {from:fakeContract});
+		var r = await requestCore.updateBalance(utils.getHashRequest(1), -arbitraryAmount20percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Refunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event Refunded wrong args amountRefunded");
+		assert.equal(r.logs[0].event,"UpdateBalance","Event UpdateBalance is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,-arbitraryAmount20percent,"Event UpdateBalance wrong args amountUpdateBalance");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -311,15 +309,15 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[6],2,"new request wrong data : state");
 	});
 
-	it("refund if Core Paused OK", async function () {
-		await requestCore.payment(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
+	it("updateBalance with negative amount if Core Paused OK", async function () {
+		await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
 		await requestCore.pause({from:admin});
 
-		var r = await requestCore.refund(utils.getHashRequest(1), arbitraryAmount20percent, {from:fakeContract});
+		var r = await requestCore.updateBalance(utils.getHashRequest(1), -arbitraryAmount20percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Refunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event Refunded wrong args amountRefunded");
+		assert.equal(r.logs[0].event,"UpdateBalance","Event UpdateBalance is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,-arbitraryAmount20percent,"Event UpdateBalance wrong args amountUpdateBalance");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -333,8 +331,8 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("refund request not exist impossible", async function () {
-		await utils.expectThrow(requestCore.refund(utils.getHashRequest(2), arbitraryAmount10percent, {from:fakeContract}));
+	it("updateBalance with negative amount request not exist impossible", async function () {
+		await utils.expectThrow(requestCore.updateBalance(utils.getHashRequest(2), -arbitraryAmount10percent, {from:fakeContract}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(2), {from:fakeContract});
 		assert.equal(r[0],0,"request wrong data : creator");
@@ -348,9 +346,9 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("refund request from a random guy impossible", async function () {
-		await requestCore.payment(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
-		await utils.expectThrow(requestCore.refund(utils.getHashRequest(1), arbitraryAmount10percent, {from:otherguy}));
+	it("updateBalance with negative amount request from a random guy impossible", async function () {
+		await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
+		await utils.expectThrow(requestCore.updateBalance(utils.getHashRequest(1), -arbitraryAmount10percent, {from:otherguy}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -359,14 +357,12 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
 		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],arbitraryAmount30percent,"new request wrong data : balance");
-		
-		
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("refund request from other subcontract impossible", async function () {
-		await requestCore.payment(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
-		await utils.expectThrow(requestCore.refund(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract2}));
+	it("updateBalance with negative amount request from other subcontract impossible", async function () {
+		await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
+		await utils.expectThrow(requestCore.updateBalance(utils.getHashRequest(1), -arbitraryAmount10percent, {from:fakeContract2}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -375,49 +371,28 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
 		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
 		assert.equal(r[5],arbitraryAmount30percent,"new request wrong data : balance");
-		
-		
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("new refund _amount==0 OK", async function () {
-		await requestCore.payment(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
-		var r = await requestCore.refund(utils.getHashRequest(1), 0, {from:fakeContract});
-		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Refunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,0,"Event Refunded wrong args amountRefunded");
 
+	// new updateBalance with negative amount _amount <= -2^256 impossible
+	it("new updateBalance with negative amount _amount <= -2^256 impossible", async function () {
+		await utils.expectThrow(requestCore.updateBalance(utils.getHashRequest(1), new BigNumber(-2).pow(256), {from:fakeContract}));
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
+
 		assert.equal(r[0],creator,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
 		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
 		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
-		assert.equal(r[5],arbitraryAmount30percent,"new request wrong data : balance");
+		assert.equal(r[5],0,"new request wrong data : balance");
 		
 		
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	// new refund _amount >= 2^256 impossible
-	it("new refund _amount >= 2^256 impossible", async function () {
-		await requestCore.payment(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
-		await utils.expectThrow(requestCore.refund(utils.getHashRequest(1), new BigNumber(2).pow(256), {from:fakeContract}));
-
-		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
-		assert.equal(r[0],creator,"request wrong data : creator");
-		assert.equal(r[1],payee,"request wrong data : payee");
-		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
-		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
-		assert.equal(r[5],arbitraryAmount30percent,"new request wrong data : balance");
-		
-		
-		assert.equal(r[6],0,"new request wrong data : state");
-	});
-
-	it("new refund r.amounPaid - _amount < 0 OK", async function () {
-		await requestCore.refund(utils.getHashRequest(1), 1, {from:fakeContract});
+	it("new updateBalance with negative amount r.amounPaid - _amount < 0 OK", async function () {
+		await requestCore.updateBalance(utils.getHashRequest(1), -1, {from:fakeContract});
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -431,12 +406,12 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("new refund r.amounPaid - _amount == 0 OK", async function () {
-		await requestCore.payment(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
-		var r = await requestCore.refund(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
-		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Refunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount30percent,"Event Refunded wrong args amountRefunded");
+	it("new updateBalance with negative amount r.amounPaid - _amount == 0 OK", async function () {
+		await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount30percent, {from:fakeContract});
+		var r = await requestCore.updateBalance(utils.getHashRequest(1), -arbitraryAmount30percent, {from:fakeContract});
+		assert.equal(r.logs[0].event,"UpdateBalance","Event UpdateBalance is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,-arbitraryAmount30percent,"Event UpdateBalance wrong args amountUpdateBalance");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -450,13 +425,13 @@ contract('RequestCore Payment & Refund Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("new refund after a other refund", async function () {
-		await requestCore.payment(utils.getHashRequest(1), arbitraryAmount40percent, {from:fakeContract});
-		await requestCore.refund(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
-		var r = await requestCore.refund(utils.getHashRequest(1), arbitraryAmount20percent, {from:fakeContract});
-		assert.equal(r.logs[0].event,"Refunded","Event Refunded is missing after accept()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event Refunded wrong args requestId");
-		assert.equal(r.logs[0].args.amountRefunded,arbitraryAmount20percent,"Event Refunded wrong args amountRefunded");
+	it("new updateBalance with negative amount after a other updateBalance with negative amount", async function () {
+		await requestCore.updateBalance(utils.getHashRequest(1), arbitraryAmount40percent, {from:fakeContract});
+		await requestCore.updateBalance(utils.getHashRequest(1), -arbitraryAmount10percent, {from:fakeContract});
+		var r = await requestCore.updateBalance(utils.getHashRequest(1), -arbitraryAmount20percent, {from:fakeContract});
+		assert.equal(r.logs[0].event,"UpdateBalance","Event UpdateBalance is missing after accept()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,-arbitraryAmount20percent,"Event UpdateBalance wrong args amountUpdateBalance");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");

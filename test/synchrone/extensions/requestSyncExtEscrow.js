@@ -327,9 +327,9 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		assert.equal(l.data[2],arbitraryAmount,"Event LogTestPayment wrong args _amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"Payment","Event Payment is missing after releaseToPayee()");
-		assert.equal(l.data[0],utils.getHashRequest(3),"Event Payment wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event Payment wrong args _amount");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after releaseToPayee()");
+		assert.equal(l.data[0],utils.getHashRequest(3),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount,"Event UpdateBalance wrong args _amount");
 
 		var newReq = await requestSynchroneExtensionEscrow.escrows.call(utils.getHashRequest(3));
 		assert.equal(newReq[0],testRequestSynchroneCurrencyContractLauncher.address,"new request wrong data : currencyContract");
