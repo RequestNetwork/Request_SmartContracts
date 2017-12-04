@@ -45,7 +45,7 @@ var getEventFromReceipt = function(log, abi) {
 	return null;
 }
 
-var hashRequest = function(contract, payee, payer, arbitraryAmount, extension, extParams, details) {
+var hashRequest = function(contract, payee, payer, arbitraryAmount, extension, extParams, data) {
 	const requestParts = [
         {value: contract, type: "address"},
         {value: payee, type: "address"},
@@ -53,7 +53,7 @@ var hashRequest = function(contract, payee, payer, arbitraryAmount, extension, e
         {value: arbitraryAmount, type: "int256"},
         {value: extension, type: "address"},
         {value: extParams, type: "bytes32[9]"},
-        {value: details, type: "string"},
+        {value: data, type: "string"},
     ];
     var types = [];
     var values = [];

@@ -72,7 +72,7 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : balance");
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],0,"new request wrong data : extension");
-		assert.equal(newReq[8],0,"new request wrong data : details");
+		assert.equal(newReq[8],0,"new request wrong data : data");
 
 		var r = await requestCore.setPayee(utils.getHashRequest(1), payee, {from:fakeContract});
 		assert.equal(r.logs[0].event,"NewPayee","Event is missing after setPayee()");
@@ -88,7 +88,7 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : balance");
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],0,"new request wrong data : extension");
-		assert.equal(newReq[8],0,"new request wrong data : details");
+		assert.equal(newReq[8],0,"new request wrong data : data");
 
 		// new request payer==0 OK
 		r = await requestCore.createRequest(creator, payee, 0, arbitraryAmount, 0, "", {from:fakeContract});
@@ -108,7 +108,7 @@ contract('RequestCore Create Request', function(accounts) {
 
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],0,"new request wrong data : extension");
-		assert.equal(newReq[8],0,"new request wrong data : details");
+		assert.equal(newReq[8],0,"new request wrong data : data");
 
 		var r = await requestCore.setPayer(utils.getHashRequest(2), payer, {from:fakeContract});
 		assert.equal(r.logs[0].event,"NewPayer","Event is missing after setPayer()");
@@ -124,7 +124,7 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : balance");
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],0,"new request wrong data : extension");
-		assert.equal(newReq[8],0,"new request wrong data : details");
+		assert.equal(newReq[8],0,"new request wrong data : data");
 
 		// new request payee==payer OK
 		r = await requestCore.createRequest(creator, payee, payee, arbitraryAmount, 0, "", {from:fakeContract});
@@ -142,7 +142,7 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : balance");
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],0,"new request wrong data : extension");
-		assert.equal(newReq[8],0,"new request wrong data : details");
+		assert.equal(newReq[8],0,"new request wrong data : data");
 	});
 
 
@@ -168,7 +168,7 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : balance");
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],0,"new request wrong data : extension");
-		assert.equal(newReq[8],0,"new request wrong data : details");
+		assert.equal(newReq[8],0,"new request wrong data : data");
 
 		var r = await requestCore.setExpectedAmount(utils.getHashRequest(1), arbitraryAmount, {from:fakeContract});
 		assert.equal(r.logs[0].event,"NewExpectedAmount","Event is missing after setExpectedAmount()");
@@ -184,7 +184,7 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : balance");
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],0,"new request wrong data : extension");
-		assert.equal(newReq[8],0,"new request wrong data : details");
+		assert.equal(newReq[8],0,"new request wrong data : data");
 
 		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, new BigNumber(2).pow(256), 0, "", {from:fakeContract}));
 	});
@@ -210,7 +210,7 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : balance");
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],0,"new request wrong data : extension");
-		assert.equal(newReq[8],0,"new request wrong data : details");
+		assert.equal(newReq[8],0,"new request wrong data : data");
 
 		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, new BigNumber(-2).pow(256), 0, "", {from:fakeContract}));
 	});
@@ -239,7 +239,7 @@ contract('RequestCore Create Request', function(accounts) {
 
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],0,"new request wrong data : extension");
-		assert.equal(newReq[8],0,"new request wrong data : details");
+		assert.equal(newReq[8],0,"new request wrong data : data");
 
 		var newReqExtension = await requestCore.getExtension.call(utils.getHashRequest(1));
 		assert.equal(newReqExtension,0,"new request wrong data : Extension[0]");
@@ -259,13 +259,13 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : balance");
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],fakeExtention1,"new request wrong data : extension");
-		assert.equal(newReq[8],0,"new request wrong data : details");
+		assert.equal(newReq[8],0,"new request wrong data : data");
 
 
-		var r = await requestCore.setDetails(utils.getHashRequest(1), "hello world!", {from:fakeContract});
-		assert.equal(r.logs[0].event,"NewDetails","Event is missing after setDetails()");
+		var r = await requestCore.setData(utils.getHashRequest(1), "hello world!", {from:fakeContract});
+		assert.equal(r.logs[0].event,"NewData","Event is missing after setData()");
 		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(1),"wrong args requestId");
-		assert.equal(r.logs[0].args.details,"hello world!","wrong args details");
+		assert.equal(r.logs[0].args.data,"hello world!","wrong args data");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],creator,"new request wrong data : creator");
@@ -276,10 +276,10 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : balance");
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],fakeExtention1,"new request wrong data : extension");
-		assert.equal(newReq[8],"hello world!","new request wrong data : details");
+		assert.equal(newReq[8],"hello world!","new request wrong data : data");
 	});
 
-	// new request with details
+	// new request with data
 	it("new request without extensions", async function () {
 		var requestCore = await RequestCore.new();
 		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
@@ -299,7 +299,7 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : balance");
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],0,"new request wrong data : extension");
-		assert.equal(newReq[8],"QmSbfaY3FRQQNaFx8Uxm6rRKnqwu8s9oWGpRmqgfTEgxWz","new request wrong data : details");
+		assert.equal(newReq[8],"QmSbfaY3FRQQNaFx8Uxm6rRKnqwu8s9oWGpRmqgfTEgxWz","new request wrong data : data");
 
 		var newReqExtension = await requestCore.getExtension.call(utils.getHashRequest(1));
 		assert.equal(newReqExtension,0,"new request wrong data : Extension[0]");
@@ -327,7 +327,7 @@ contract('RequestCore Create Request', function(accounts) {
 		assert.equal(newReq[5],0,"new request wrong data : balance");
 		assert.equal(newReq[6],0,"new request wrong data : state");
 		assert.equal(newReq[7],fakeExtention1,"new request wrong data : extension");
-		assert.equal(newReq[8],0,"new request wrong data : details");
+		assert.equal(newReq[8],0,"new request wrong data : data");
 
 
 		var newReqExtension = await requestCore.getExtension.call(utils.getHashRequest(1));

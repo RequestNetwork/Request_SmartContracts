@@ -33,7 +33,7 @@ contract RequestCore is Administrable {
         int256 balance;
         State state;
         address extension;
-        string details;
+        string data;
     }
 
     // index of the Request in the mapping
@@ -57,7 +57,7 @@ contract RequestCore is Administrable {
     event NewPayer(bytes32 requestId, address payer);
     event NewExpectedAmount(bytes32 requestId, int256 expectedAmount);
     event NewExtension(bytes32 requestId, address extension);
-    event NewDetails(bytes32 requestId, string details);
+    event NewData(bytes32 requestId, string data);
 
     /*
      *  Constructor 
@@ -77,7 +77,7 @@ contract RequestCore is Administrable {
      * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
      * @return Returns the id of the request 
      */   
-    function createRequest(address _creator, address _payee, address _payer, int256 _expectedAmount, address _extension, string _details) 
+    function createRequest(address _creator, address _payee, address _payer, int256 _expectedAmount, address _extension, string _data) 
         external
         whenNotPaused 
         isTrustedContract(msg.sender)
@@ -88,7 +88,7 @@ contract RequestCore is Administrable {
         numRequests = numRequests.add(1);
         requestId = keccak256(numRequests,VERSION);
 
-        requests[requestId] = Request(_creator, _payee, _payer, _expectedAmount, msg.sender, 0, State.Created, _extension, _details); 
+        requests[requestId] = Request(_creator, _payee, _payer, _expectedAmount, msg.sender, 0, State.Created, _extension, _data); 
 
         Created(requestId, _payee, _payer);
         return requestId;
@@ -248,13 +248,13 @@ contract RequestCore is Administrable {
      * @param _requestId Request id
      * @param new extension
      */     
-    function setDetails(bytes32 _requestId, string _details)
+    function setData(bytes32 _requestId, string _data)
         external
     {
         Request storage r = requests[_requestId];
         require(r.currencyContract==msg.sender);
-        requests[_requestId].details = _details;
-        NewDetails(_requestId, _details);
+        requests[_requestId].data = _data;
+        NewData(_requestId, _data);
     }
 
     /* GETTER */
