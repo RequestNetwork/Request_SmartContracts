@@ -78,7 +78,7 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @return Returns the id of the request 
 	 */
-	function createRequestAsPayer(address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _tips, string _data)
+	function createRequestAsPayer(address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _additionals, string _data)
 		external
 		payable
 		whenNotPaused
@@ -97,8 +97,8 @@ contract RequestEthereum is Pausable {
 		// accept must succeed
 		require(acceptInternal(requestId));
 
-		if(_tips > 0) {
-			addAdditionalInternal(requestId, _tips);
+		if(_additionals > 0) {
+			updateExpectedAmountInternal(requestId, _additionals.toInt256Safe());
 		}
 		if(msg.value > 0) {
 			paymentInternal(requestId, msg.value);
@@ -110,24 +110,24 @@ contract RequestEthereum is Pausable {
 
 
 	/*
-	 * @dev Function to broadcast and accept an offchain signed request (can be paid and tips also)
+	 * @dev Function to broadcast and accept an offchain signed request (can be paid and additionals also)
 	 *
 	 * @dev msg.sender must be _payer
-	 * @dev the _payer can tips 
+	 * @dev the _payer can additionals 
 	 *
 	 * @param _payee Entity which will receive the payment
 	 * @param _payer Entity supposed to pay
 	 * @param _expectedAmount Expected amount to be received. This amount can't be changed.
 	 * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
 	 * @param _extensionParams Parameters for the extension. It is an array of 9 bytes32
-	 * @param _tips amount of tips the payer want to declare
+	 * @param _additionals amount of additionals the payer want to declare
 	 * @param v ECDSA signature parameter v.
 	 * @param r ECDSA signature parameters r.
 	 * @param s ECDSA signature parameters s.
 	 *
 	 * @return Returns the id of the request 
 	 */
-   function broadcastSignedRequestAsPayer(address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _tips, string _data, uint8 v, bytes32 r, bytes32 s)
+   function broadcastSignedRequestAsPayer(address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _additionals, string _data, uint8 v, bytes32 r, bytes32 s)
 		external
 		payable
 		whenNotPaused
@@ -149,8 +149,8 @@ contract RequestEthereum is Pausable {
 		// accept must succeed
 		require(acceptInternal(requestId));
 
-		if(_tips > 0) {
-			addAdditionalInternal(requestId, _tips);
+		if(_additionals > 0) {
+			updateExpectedAmountInternal(requestId, _additionals.toInt256Safe());
 		}
 		if(msg.value > 0) {
 			paymentInternal(requestId, msg.value);
@@ -265,19 +265,18 @@ contract RequestEthereum is Pausable {
 	 * @dev Function PAYABLE to pay in ether a request
 	 *
 	 * @dev the request must be accepted
-	 * @dev tips must be lower than the actual amount of wei sent
 	 *
 	 * @param _requestId id of the request
-	 * @param _tips amount of tips in wei to declare 
+	 * @param _additionals amount of additionals in wei to declare 
 	 */
-	function pay(bytes32 _requestId, uint256 _tips)
+	function pay(bytes32 _requestId, uint256 _additionals)
 		external
 		whenNotPaused
 		payable
 		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
 	{
-		if(_tips > 0) {
-			addAdditionalInternal(_requestId, _tips);
+		if(_additionals > 0) {
+			updateExpectedAmountInternal(_requestId, _additionals.toInt256Safe());
 		}
 		paymentInternal(_requestId, msg.value);
 	}
@@ -316,19 +315,7 @@ contract RequestEthereum is Pausable {
 		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
 		onlyRequestPayee(_requestId)
 	{
-		address extensionAddr = requestCore.getExtension(_requestId);
-
-		bool isOK = true;
-		if(extensionAddr!=0 && extensionAddr!=msg.sender)  
-		{
-			RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
-			isOK = extension.addSubtract(_requestId, _amount);
-		}
-
-		if(isOK) 
-		{
-			requestCore.addSubtract(_requestId, _amount);
-		}
+		updateExpectedAmountInternal(_requestId, -_amount.toInt256Safe());
 	}
 
 
@@ -407,14 +394,14 @@ contract RequestEthereum is Pausable {
 	}
 
 	/*
-	 * @dev Function internal to manage tips declaration
+	 * @dev Function internal to manage additionals & subtracts declaration
 	 *
 	 * @param _requestId id of the request
-	 * @param _amount amount of tips in wei to declare 
+	 * @param _amount amount of additionals or subtracts in wei to declare 
 	 *
-	 * @return true if the tips is declared, false otherwise
+	 * @return true if the additionals or subtracts is declared, false otherwise
 	 */
-	function  addAdditionalInternal(bytes32 _requestId, uint256 _amount) 
+	function  updateExpectedAmountInternal(bytes32 _requestId, int256 _amount) 
 		internal
 		returns(bool)
 	{
@@ -424,12 +411,12 @@ contract RequestEthereum is Pausable {
 		if(extensionAddr!=0 && extensionAddr!=msg.sender)  
 		{
 			RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
-			isOK = extension.addAdditional(_requestId, _amount);
+			isOK = extension.updateExpectedAmount(_requestId, _amount);
 		}
 
 		if(isOK) 
 		{
-			requestCore.addAdditional(_requestId, _amount);
+			requestCore.updateExpectedAmount(_requestId, _amount);
 		}
 		return isOK;
 	}

@@ -9,7 +9,7 @@ var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 
 var BigNumber = require('bignumber.js');
 
-contract('RequestCore Additional & Subtract Request', function(accounts) {
+contract('RequestCore updateExpectedAmount', function(accounts) {
 	var admin = accounts[0];
 	var otherguy = accounts[1];
 	var fakeContract = accounts[2];
@@ -38,14 +38,14 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
     })
 
 	// ##################################################################################################
-	// ### Additional test unit #############################################################################
+	// ### updateExpectedAmount with positive delta test unit #############################################################################
 	// ##################################################################################################
-	it("additional on request created OK", async function () {
-		var r = await requestCore.addAdditional(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+	it("updateExpectedAmount with positive delta on request created OK", async function () {
+		var r = await requestCore.updateExpectedAmount(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"AddAdditional","Event AddAdditional is missing after addAdditional()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
-		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event AddAdditional wrong args amountAdded");
+		assert.equal(r.logs[0].event,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after updateExpectedAmount()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amountAdded");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -56,14 +56,14 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[5],0,"new request wrong data : balance");
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
-	// additional on request already accepted OK
-	it("additional on request accepted OK", async function () {
+	// updateExpectedAmount with positive delta on request already accepted OK
+	it("updateExpectedAmount with positive delta on request accepted OK", async function () {
 		await requestCore.accept(utils.getHashRequest(1), {from:fakeContract});
-		var r = await requestCore.addAdditional(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+		var r = await requestCore.updateExpectedAmount(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"AddAdditional","Event AddAdditional is missing after addAdditional()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
-		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event AddAdditional wrong args amountAdded");
+		assert.equal(r.logs[0].event,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after updateExpectedAmount()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amountAdded");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -75,14 +75,14 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[6],1,"new request wrong data : state");
 	});
 
-	// addAdditional request already canceled OK
-	it("addAdditional request canceled OK", async function () {
+	// updateExpectedAmount request already canceled OK
+	it("updateExpectedAmount request canceled OK", async function () {
 		await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
-		var r = await requestCore.addAdditional(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+		var r = await requestCore.updateExpectedAmount(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"AddAdditional","Event AddAdditional is missing after addAdditional()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
-		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event AddAdditional wrong args amountAdded");
+		assert.equal(r.logs[0].event,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after updateExpectedAmount()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amountAdded");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -94,13 +94,13 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[6],2,"new request wrong data : state");
 	});
 
-	it("addAdditional if Core Paused OK", async function () {
+	it("updateExpectedAmount if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		var r = await requestCore.addAdditional(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+		var r = await requestCore.updateExpectedAmount(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"AddAdditional","Event AddAdditional is missing after addAdditional()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
-		assert.equal(r.logs[0].args.amountAdded,arbitraryAmount10percent,"Event AddAdditional wrong args amountAdded");
+		assert.equal(r.logs[0].event,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after updateExpectedAmount()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amountAdded");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -112,8 +112,8 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("addAdditional request not exist impossible", async function () {
-		await utils.expectThrow(requestCore.addAdditional(utils.getHashRequest(2), arbitraryAmount10percent, {from:fakeContract}));
+	it("updateExpectedAmount request not exist impossible", async function () {
+		await utils.expectThrow(requestCore.updateExpectedAmount(utils.getHashRequest(2), arbitraryAmount10percent, {from:fakeContract}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(2), {from:fakeContract});
 		assert.equal(r[0],0,"request wrong data : creator");
@@ -125,8 +125,8 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("addAdditional request from a random guy impossible", async function () {
-		await utils.expectThrow(requestCore.addAdditional(utils.getHashRequest(1), arbitraryAmount10percent, {from:otherguy}));
+	it("updateExpectedAmount request from a random guy impossible", async function () {
+		await utils.expectThrow(requestCore.updateExpectedAmount(utils.getHashRequest(1), arbitraryAmount10percent, {from:otherguy}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -138,8 +138,8 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("addAdditional request from other subcontract impossible", async function () {
-		await utils.expectThrow(requestCore.addAdditional(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract2}));
+	it("updateExpectedAmount request from other subcontract impossible", async function () {
+		await utils.expectThrow(requestCore.updateExpectedAmount(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract2}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -151,9 +151,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("new subtract after a other additional", async function () {
-		await requestCore.addAdditional(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
-		await requestCore.addAdditional(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+	it("new updateExpectedAmount with negative amount after a other updateExpectedAmount with positive delta", async function () {
+		await requestCore.updateExpectedAmount(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+		await requestCore.updateExpectedAmount(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -165,11 +165,11 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("new addAdditional _amount==0 OK", async function () {
-		var r = await requestCore.addAdditional(utils.getHashRequest(1), 0, {from:fakeContract});
-		assert.equal(r.logs[0].event,"AddAdditional","Event AddAdditional is missing after addAdditional()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
-		assert.equal(r.logs[0].args.amountAdded,0,"Event AddAdditional wrong args amountAdded");
+	it("new updateExpectedAmount _amount==0 OK", async function () {
+		var r = await requestCore.updateExpectedAmount(utils.getHashRequest(1), 0, {from:fakeContract});
+		assert.equal(r.logs[0].event,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after updateExpectedAmount()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,0,"Event UpdateExpectedAmount wrong args amountAdded");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -181,8 +181,8 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("new addAdditional _amount >= 2^256 impossible", async function () {
-		await utils.expectThrow(requestCore.addAdditional(utils.getHashRequest(1), new BigNumber(2).pow(256), {from:fakeContract}));
+	it("new updateExpectedAmount _amount >= 2^256 impossible", async function () {
+		await utils.expectThrow(requestCore.updateExpectedAmount(utils.getHashRequest(1), new BigNumber(2).pow(256), {from:fakeContract}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -196,8 +196,8 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 
 
 
-	it("new additional balance + amountAdditional >= 2^255 (overflow) impossible", async function () {
-		await utils.expectThrow(requestCore.addAdditional(utils.getHashRequest(1), new BigNumber(2).pow(255), {from:fakeContract}));
+	it("new updateExpectedAmount with positive delta balance + amountAdditional >= 2^256 (overflow) impossible", async function () {
+		await utils.expectThrow(requestCore.updateExpectedAmount(utils.getHashRequest(1), new BigNumber(2).pow(256), {from:fakeContract}));
 	});
 	// ##################################################################################################
 	// ##################################################################################################
@@ -206,16 +206,15 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 
 
 
-
 	// ##################################################################################################
-	// ### Subtract test unit #############################################################################
+	// ### updateExpectedAmount with negative amount test unit #############################################################################
 	// ##################################################################################################
-	it("subtract on request created OK", async function () {
-		var r = await requestCore.addSubtract(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+	it("updateExpectedAmount with negative amount on request created OK", async function () {
+		var r = await requestCore.updateExpectedAmount(utils.getHashRequest(1), -arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"AddSubtract","Event AddSubtract is missing after addSubtract()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event AddSubtract wrong args requestId");
-		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event AddSubtract wrong args amountSubtracted");
+		assert.equal(r.logs[0].event,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after updateExpectedAmount()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,-arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amountSubtracted");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -226,14 +225,14 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[5],0,"new request wrong data : balance");
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
-	// subtract on request already accepted OK
-	it("subtract on request accepted OK", async function () {
+	// updateExpectedAmount with negative amount on request already accepted OK
+	it("updateExpectedAmount with negative amount on request accepted OK", async function () {
 		await requestCore.accept(utils.getHashRequest(1), {from:fakeContract});
-		var r = await requestCore.addSubtract(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+		var r = await requestCore.updateExpectedAmount(utils.getHashRequest(1), -arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"AddSubtract","Event AddSubtract is missing after addSubtract()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event AddSubtract wrong args requestId");
-		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event AddSubtract wrong args amountSubtracted");
+		assert.equal(r.logs[0].event,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after updateExpectedAmount()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,-arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amountSubtracted");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -245,14 +244,14 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[6],1,"new request wrong data : state");
 	});
 
-	// addSubtract request already canceled OK
-	it("addSubtract request canceled OK", async function () {
+	// updateExpectedAmount request already canceled OK
+	it("updateExpectedAmount request canceled OK", async function () {
 		await requestCore.cancel(utils.getHashRequest(1), {from:fakeContract});
-		var r = await requestCore.addSubtract(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+		var r = await requestCore.updateExpectedAmount(utils.getHashRequest(1), -arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"AddSubtract","Event AddSubtract is missing after addSubtract()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event AddSubtract wrong args requestId");
-		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event AddSubtract wrong args amountSubtracted");
+		assert.equal(r.logs[0].event,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after updateExpectedAmount()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,-arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amountSubtracted");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -266,11 +265,11 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 
 	it("addSubtract if Core Paused OK", async function () {
 		await requestCore.pause({from:admin});
-		var r = await requestCore.addSubtract(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+		var r = await requestCore.updateExpectedAmount(utils.getHashRequest(1), -arbitraryAmount10percent, {from:fakeContract});
 
-		assert.equal(r.logs[0].event,"AddSubtract","Event AddSubtract is missing after addSubtract()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event AddSubtract wrong args requestId");
-		assert.equal(r.logs[0].args.amountSubtracted,arbitraryAmount10percent,"Event AddSubtract wrong args amountSubtracted");
+		assert.equal(r.logs[0].event,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after updateExpectedAmount()");
+		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(r.logs[0].args.deltaAmount,-arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amountSubtracted");
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -282,7 +281,7 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 	});
 
 	it("addSubtract request not exist impossible", async function () {
-		await utils.expectThrow(requestCore.addSubtract(utils.getHashRequest(2), arbitraryAmount10percent, {from:fakeContract}));
+		await utils.expectThrow(requestCore.updateExpectedAmount(utils.getHashRequest(2), -arbitraryAmount10percent, {from:fakeContract}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(2), {from:fakeContract});
 		assert.equal(r[0],0,"request wrong data : creator");
@@ -295,7 +294,7 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 	});
 
 	it("addSubtract request from a random guy impossible", async function () {
-		await utils.expectThrow(requestCore.addSubtract(utils.getHashRequest(1), arbitraryAmount10percent, {from:otherguy}));
+		await utils.expectThrow(requestCore.updateExpectedAmount(utils.getHashRequest(1), -arbitraryAmount10percent, {from:otherguy}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -308,7 +307,7 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 	});
 
 	it("addSubtract request from other subcontract impossible", async function () {
-		await utils.expectThrow(requestCore.addSubtract(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract2}));
+		await utils.expectThrow(requestCore.updateExpectedAmount(utils.getHashRequest(1), -arbitraryAmount10percent, {from:fakeContract2}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -320,24 +319,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("new addSubtract _amount==0 OK", async function () {
-		var r = await requestCore.addSubtract(utils.getHashRequest(1), 0, {from:fakeContract});
-		assert.equal(r.logs[0].event,"AddSubtract","Event AddSubtract is missing after addSubtract()");
-		assert.equal(r.logs[0].args.requestId,utils.getHashRequest(1),"Event AddSubtract wrong args requestId");
-		assert.equal(r.logs[0].args.amountSubtracted,0,"Event AddSubtract wrong args amountSubtracted");
-
-		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
-		assert.equal(r[0],creator,"request wrong data : creator");
-		assert.equal(r[1],payee,"request wrong data : payee");
-		assert.equal(r[2],payer,"request wrong data : payer");
-		assert.equal(r[3],arbitraryAmount,"request wrong data : expectedAmount");
-		assert.equal(r[4],fakeContract,"new request wrong data : currencyContract");
-		assert.equal(r[5],0,"new request wrong data : balance");
-		assert.equal(r[6],0,"new request wrong data : state");
-	});
 
 	it("new addSubtract _amount >= 2^256 impossible", async function () {
-		await utils.expectThrow(requestCore.addSubtract(utils.getHashRequest(1), new BigNumber(2).pow(256), {from:fakeContract}));
+		await utils.expectThrow(requestCore.updateExpectedAmount(utils.getHashRequest(1), new BigNumber(-2).pow(256), {from:fakeContract}));
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -349,9 +333,9 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
 
-	it("new subtract after a other subtract", async function () {
-		await requestCore.addSubtract(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
-		await requestCore.addSubtract(utils.getHashRequest(1), arbitraryAmount10percent, {from:fakeContract});
+	it("new updateExpectedAmount with negative amount after a other updateExpectedAmount with negative amount", async function () {
+		await requestCore.updateExpectedAmount(utils.getHashRequest(1), -arbitraryAmount10percent, {from:fakeContract});
+		await requestCore.updateExpectedAmount(utils.getHashRequest(1), -arbitraryAmount10percent, {from:fakeContract});
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -364,10 +348,10 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 	});
 
 	// seems buggy -> issue on truffle
-	// it("new subtract balance - amountSubtract >= 2^255 (overflow) impossible", async function () {
+	// it("new updateExpectedAmount with negative amount balance - amountSubtract >= 2^255 (overflow) impossible", async function () {
 	// 	newRequest = await requestCore.createRequest(creator, payee, payer, 0, 0, "", {from:fakeContract});
-	// 	await requestCore.addSubtract(utils.getHashRequest(2), new BigNumber(2).pow(254), {from:fakeContract});
-	// 	await utils.expectThrow(requestCore.addSubtract(utils.getHashRequest(2), new BigNumber(2).pow(254), {from:fakeContract}));
+	// 	await requestCore.updateExpectedAmount(utils.getHashRequest(2), new BigNumber(-2).pow(254), {from:fakeContract});
+	// 	await utils.expectThrow(requestCore.updateExpectedAmount(utils.getHashRequest(2), new BigNumber(-2).pow(254), {from:fakeContract}));
 
 	// 	var r = await requestCore.requests.call(utils.getHashRequest(2), {from:fakeContract});
 	// 	assert.equal(r[0],creator,"request wrong data : creator");
@@ -380,10 +364,10 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 	// });
 
 
-	it("new subtract expectedAmount - _amount - amountsubtract < 0 OK", async function () {
-		var r = await requestCore.addSubtract(utils.getHashRequest(1), arbitraryAmount60percent, {from:fakeContract});
+	it("new updateExpectedAmount with negative amount expectedAmount - _amount - amountsubtract < 0 OK", async function () {
+		var r = await requestCore.updateExpectedAmount(utils.getHashRequest(1), -arbitraryAmount60percent, {from:fakeContract});
 
-		await requestCore.addSubtract(utils.getHashRequest(1), arbitraryAmount60percent, {from:fakeContract});
+		await requestCore.updateExpectedAmount(utils.getHashRequest(1), -arbitraryAmount60percent, {from:fakeContract});
 
 		var r = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});
 		assert.equal(r[0],creator,"request wrong data : creator");
@@ -394,6 +378,7 @@ contract('RequestCore Additional & Subtract Request', function(accounts) {
 		assert.equal(r[5],0,"new request wrong data : balance");
 		assert.equal(r[6],0,"new request wrong data : state");
 	});
+	
 	// ##################################################################################################
 	// ##################################################################################################
 	// ##################################################################################################

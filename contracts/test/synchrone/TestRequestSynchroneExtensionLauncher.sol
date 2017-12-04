@@ -13,11 +13,10 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
     bool fundOrderReturn;
     bool paymentReturn;
     bool refundReturn;
-    bool addAdditionalReturn;
-    bool addSubtractReturn;
+    bool updateExpectedAmountReturn;
 
 
-    function TestRequestSynchroneExtensionLauncher (uint _id, bool _createRequest,bool _accept,bool _cancel,bool _fundOrder,bool _payment,bool _refund,bool _addAdditional,bool _addSubtract) 
+    function TestRequestSynchroneExtensionLauncher (uint _id, bool _createRequest,bool _accept,bool _cancel,bool _fundOrder,bool _payment,bool _refund, bool _addUpdateExpectedAmount) 
         public
     {
         constant_id = _id;
@@ -28,8 +27,7 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
         fundOrderReturn = _fundOrder;
         paymentReturn = _payment;
         refundReturn = _refund;
-        addAdditionalReturn = _addAdditional;
-        addSubtractReturn = _addSubtract;
+        updateExpectedAmountReturn = _addUpdateExpectedAmount;
     }
 
     // Launcher -------------------------------------------------
@@ -60,18 +58,12 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
         RequestSynchroneInterface currencyContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
         currencyContract.refund(_requestId,_amount);
     } 
-    function launchAddAdditional(bytes32 _requestId, uint _amount)
+    
+    function launchUpdateExpectedAmount(bytes32 _requestId, int _amount)
         public
     {
         RequestSynchroneInterface currencyContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
-        currencyContract.addAdditional(_requestId,_amount);
-    } 
-
-    function launchAddSubtract(bytes32 _requestId, uint _amount)
-        public
-    {
-        RequestSynchroneInterface currencyContract = RequestSynchroneInterface(contractLaunchedAddress[_requestId]);
-        currencyContract.addSubtract(_requestId,_amount);
+        currencyContract.updateExpectedAmount(_requestId,_amount);
     } 
     // --------------------------------------------------------
 
@@ -118,18 +110,11 @@ contract TestRequestSynchroneExtensionLauncher is RequestSynchroneInterface {
         return refundReturn;
     } 
 
-    event LogTestAddAdditional(bytes32 requestId, uint id, uint _amount);
-    function addAdditional(bytes32 _requestId, uint _amount) public returns(bool)
+    event LogTestUpdateExpectedAmount(bytes32 requestId, uint id, int _amount);
+    function updateExpectedAmount(bytes32 _requestId, int _amount) public returns(bool)
     {
-        LogTestAddAdditional(_requestId, constant_id, _amount);
-        return addAdditionalReturn;
-    } 
-
-    event LogTestAddSubtract(bytes32 requestId, uint id, uint _amount);
-    function addSubtract(bytes32 _requestId, uint _amount) public returns(bool)
-    {
-        LogTestAddSubtract(_requestId, constant_id, _amount);
-        return addSubtractReturn;
-    } 
+        LogTestUpdateExpectedAmount(_requestId, constant_id, _amount);
+        return updateExpectedAmountReturn;
+    }  
 }
 

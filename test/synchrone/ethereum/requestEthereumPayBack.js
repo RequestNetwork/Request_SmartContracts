@@ -80,17 +80,17 @@ contract('RequestEthereum PayBack',  function(accounts) {
     	fakeExtentionInterception2 = await TestRequestSynchroneInterfaceInterception.new(12);
     	fakeExtentionInterception3 = await TestRequestSynchroneInterfaceInterception.new(13);
 
-    	fakeExtentionLauncherRefundFalse1 = await TestRequestSynchroneExtensionLauncher.new(21,true,true,true,true,true,false,true,true);
-    	fakeExtentionLauncherFundOrderFalse1 = await TestRequestSynchroneExtensionLauncher.new(22,true,true,true,false,true,true,true,true);
-    	fakeExtentionLauncherFundOrderFalseAndRefundFalse1 = await TestRequestSynchroneExtensionLauncher.new(23,true,true,true,false,true,false,true,true);
+    	fakeExtentionLauncherRefundFalse1 = await TestRequestSynchroneExtensionLauncher.new(21,true,true,true,true,true,false,true);
+    	fakeExtentionLauncherFundOrderFalse1 = await TestRequestSynchroneExtensionLauncher.new(22,true,true,true,false,true,true,true);
+    	fakeExtentionLauncherFundOrderFalseAndRefundFalse1 = await TestRequestSynchroneExtensionLauncher.new(23,true,true,true,false,true,false,true);
 
-    	fakeExtentionLauncherRefundFalse2 = await TestRequestSynchroneExtensionLauncher.new(31,true,true,true,true,true,false,true,true);
-    	fakeExtentionLauncherFundOrderFalse2 = await TestRequestSynchroneExtensionLauncher.new(32,true,true,true,false,true,true,true,true);
-    	fakeExtentionLauncherFundOrderFalseAndRefundFalse2 = await TestRequestSynchroneExtensionLauncher.new(33,true,true,true,false,true,false,true,true);
+    	fakeExtentionLauncherRefundFalse2 = await TestRequestSynchroneExtensionLauncher.new(31,true,true,true,true,true,false,true);
+    	fakeExtentionLauncherFundOrderFalse2 = await TestRequestSynchroneExtensionLauncher.new(32,true,true,true,false,true,true,true);
+    	fakeExtentionLauncherFundOrderFalseAndRefundFalse2 = await TestRequestSynchroneExtensionLauncher.new(33,true,true,true,false,true,false,true);
 
-    	fakeExtentionLauncherRefundFalse3 = await TestRequestSynchroneExtensionLauncher.new(41,true,true,true,true,true,false,true,true);
-    	fakeExtentionLauncherFundOrderFalse3 = await TestRequestSynchroneExtensionLauncher.new(42,true,true,true,false,true,true,true,true);
-    	fakeExtentionLauncherFundOrderFalseAndRefundFalse3 = await TestRequestSynchroneExtensionLauncher.new(43,true,true,true,false,true,false,true,true);
+    	fakeExtentionLauncherRefundFalse3 = await TestRequestSynchroneExtensionLauncher.new(41,true,true,true,true,true,false,true);
+    	fakeExtentionLauncherFundOrderFalse3 = await TestRequestSynchroneExtensionLauncher.new(42,true,true,true,false,true,true,true);
+    	fakeExtentionLauncherFundOrderFalseAndRefundFalse3 = await TestRequestSynchroneExtensionLauncher.new(43,true,true,true,false,true,false,true);
 
 		requestCore = await RequestCore.new({from:admin});
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});

@@ -5,7 +5,7 @@ var config = {
 		"requestAdministrable.js":false,    
 		"requestCoreCreateRequest.js":false,    
 		"requestCoreAcceptCancel.js":false,
-		"requestCoreAdditionalSubtract.js":false,  
+		"requestCoreUpdateExpectedAmount.js":false,  
 		"requestCoreUpdateBalance.js":false,  
 	// },
 	// "synchrone.js": {

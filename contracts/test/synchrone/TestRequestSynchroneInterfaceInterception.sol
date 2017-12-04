@@ -51,17 +51,10 @@ contract TestRequestSynchroneInterfaceInterception is RequestSynchroneInterface{
         return false;
     } 
 
-    event LogTestAddAdditional(bytes32 requestId, uint id, uint _amount);
-    function addAdditional(bytes32 _requestId, uint _amount) public returns(bool)
+    event LogTestUpdateExpectedAmount(bytes32 requestId, uint id, int _amount);
+    function updateExpectedAmount(bytes32 _requestId, int _amount) public returns(bool)
     {
-        LogTestAddAdditional(_requestId, constant_id, _amount);
-        return false;
-    } 
-
-    event LogTestAddSubtract(bytes32 requestId, uint id, uint _amount);
-    function addSubtract(bytes32 _requestId, uint _amount) public returns(bool)
-    {
-        LogTestAddSubtract(_requestId, constant_id, _amount);
+        LogTestUpdateExpectedAmount(_requestId, constant_id, _amount);
         return false;
     } 
 }

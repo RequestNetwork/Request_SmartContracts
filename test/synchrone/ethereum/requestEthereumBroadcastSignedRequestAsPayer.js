@@ -139,9 +139,9 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddAdditional wrong args amount");
+		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after broadcastSignedRequestAsPayer()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after broadcastSignedRequestAsPayer()");
@@ -266,9 +266,9 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
-		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after broadcastSignedRequestAsPayer()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddAdditional wrong args amount");
+		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after broadcastSignedRequestAsPayer()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(l.data[1],arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amount");
 
 		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after broadcastSignedRequestAsPayer()");

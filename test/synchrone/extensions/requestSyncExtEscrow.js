@@ -65,7 +65,7 @@ contract('Request Synchrone extension Escrow',  function(accounts) {
 		requestCore = await RequestCore.new({from:admin});
 		requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 		requestSynchroneExtensionEscrow = await RequestSynchroneExtensionEscrow.new(requestCore.address,{from:admin});
-		testRequestSynchroneCurrencyContractLauncher = await TestRequestSynchroneCurrencyContractLauncher.new(1,requestCore.address,true,true,true,true,true,true,true,true,{from:admin});
+		testRequestSynchroneCurrencyContractLauncher = await TestRequestSynchroneCurrencyContractLauncher.new(1,requestCore.address,true,true,true,true,true,true,true,{from:admin});
 
 		await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});
 		await requestCore.adminAddTrustedCurrencyContract(fakeTrustedContract, {from:admin});

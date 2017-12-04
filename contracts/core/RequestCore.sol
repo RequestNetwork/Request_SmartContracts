@@ -49,9 +49,7 @@ contract RequestCore is Administrable {
     event Accepted(bytes32 requestId);
     event Canceled(bytes32 requestId);
     event UpdateBalance(bytes32 requestId, int256 deltaAmount);
-
-    event AddAdditional(bytes32 requestId, uint256 amountAdded);
-    event AddSubtract(bytes32 requestId, uint256 amountSubtracted);
+    event UpdateExpectedAmount(bytes32 requestId, int256 deltaAmount);
 
     event NewPayee(bytes32 requestId, address payee);
     event NewPayer(bytes32 requestId, address payer);
@@ -124,7 +122,7 @@ contract RequestCore is Administrable {
     /*
      * @dev Function used to update the balance
      * @param _requestId Request id
-     * @param _deltaAmount amount modifier
+     * @param _deltaAmount modifier amount
      */ 
     function updateBalance(bytes32 _requestId, int256 _deltaAmount)
         external
@@ -138,36 +136,21 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Function update the expectedAmount adding additional
+     * @dev Function update the expectedAmount adding additional or subtract
      * @param _requestId Request id
-     * @param _amount additional amount
+     * @param _deltaAmount modifier amount
      */ 
-    function addAdditional(bytes32 _requestId, uint256 _amount)
+    function updateExpectedAmount(bytes32 _requestId, int256 _deltaAmount)
         external
     {   
         Request storage r = requests[_requestId];
         require(r.currencyContract==msg.sender); 
 
-        r.expectedAmount = r.expectedAmount.add(_amount.toInt256Safe());
+        r.expectedAmount = r.expectedAmount.add(_deltaAmount);
 
-        AddAdditional(_requestId, _amount);
+        UpdateExpectedAmount(_requestId, _deltaAmount);
     }
 
-    /*
-     * @dev Function used by Subcontracts to add a Substract amount to the request. A substract lead to a lower payment needed for the request. It can happens for several reasons including credit note, discount, reimbursement.
-     * @param _requestId Request id
-     * @param _amount subtract amount
-     */ 
-    function addSubtract(bytes32 _requestId, uint256 _amount)
-        external
-    {   
-        Request storage r = requests[_requestId];
-        require(r.currencyContract==msg.sender);
-
-        r.expectedAmount = r.expectedAmount.sub(_amount.toInt256Safe());
-
-        AddSubtract(_requestId, _amount);
-    }
 
     /* SETTER */
     /*

@@ -91,9 +91,9 @@ contract('RequestEthereum Discount',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"AddSubtract","Event AddSubtract is missing after discount()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddSubtract wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddSubtract wrong args amount");
+		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after discount()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amount");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -114,9 +114,9 @@ contract('RequestEthereum Discount',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"AddSubtract","Event AddSubtract is missing after discount()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddSubtract wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddSubtract wrong args amount");
+		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after discount()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amount");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -134,9 +134,9 @@ contract('RequestEthereum Discount',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"AddSubtract","Event AddSubtract is missing after discount()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddSubtract wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddSubtract wrong args amount");
+		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after discount()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amount");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -167,9 +167,9 @@ contract('RequestEthereum Discount',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"AddSubtract","Event AddSubtract is missing after discount()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddSubtract wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddSubtract wrong args amount");
+		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after discount()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amount");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -188,14 +188,14 @@ contract('RequestEthereum Discount',  function(accounts) {
 		var r = await requestEthereum.discount(utils.getHashRequest(2), arbitraryAmount10percent, {from:payee});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestAddSubtract","Event LogTestAddSubtract is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestAddSubtract wrong args requestId");
-		assert.equal(l.data[1],1,"Event LogTestAddSubtract wrong args ID");
+		assert.equal(l.name,"LogTestUpdateExpectedAmount","Event LogTestUpdateExpectedAmount is missing after cancel()");
+		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestUpdateExpectedAmount wrong args requestId");
+		assert.equal(l.data[1],1,"Event LogTestUpdateExpectedAmount wrong args ID");
 
-		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"AddSubtract","Event AddSubtract is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event AddSubtract wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount10percent,"Event AddSubtract wrong args amount");
+		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after cancel()");
+		assert.equal(l.data[0],utils.getHashRequest(2),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amount");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -212,10 +212,10 @@ contract('RequestEthereum Discount',  function(accounts) {
 
 		var r = await requestEthereum.discount(utils.getHashRequest(2), arbitraryAmount10percent, {from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestAddSubtract","Event LogTestAddSubtract is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestAddSubtract wrong args requestId");
-		assert.equal(l.data[1],11,"Event LogTestAddSubtract wrong args ID");
+		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionInterception1.abi);
+		assert.equal(l.name,"LogTestUpdateExpectedAmount","Event LogTestUpdateExpectedAmount is missing after cancel()");
+		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestUpdateExpectedAmount wrong args requestId");
+		assert.equal(l.data[1],11,"Event LogTestUpdateExpectedAmount wrong args ID");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -245,9 +245,9 @@ contract('RequestEthereum Discount',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"AddSubtract","Event AddSubtract is missing after discount()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddSubtract wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event AddSubtract wrong args amount");
+		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after discount()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(l.data[1],-arbitraryAmount,"Event UpdateExpectedAmount wrong args amount");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");

@@ -21,35 +21,28 @@ contract RequestSynchroneInterface is Pausable {
     } 
  
     // send fund somewhere
-    function fundOrder(bytes32 _requestId, address _recipient, uint _amount) public returns(bool)
+    function fundOrder(bytes32 _requestId, address _recipient, uint256 _amount) public returns(bool)
     {
         // nothing to do
         return true;
     } 
 
     // declare a payment
-    function payment(bytes32 _requestId, uint _amount) public returns(bool)
+    function payment(bytes32 _requestId, uint256 _amount) public returns(bool)
     {
         // nothing to do
         return true;
     } 
 
     // declare a refund
-    function refund(bytes32 _requestId, uint _amount) public returns(bool)
+    function refund(bytes32 _requestId, uint256 _amount) public returns(bool)
     {
         // nothing to do
         return true;
     } 
 
-    // declare an additional
-    function addAdditional(bytes32 _requestId, uint _amount) public returns(bool)
-    {
-        // nothing to do
-        return true;
-    } 
-
-    // declare a subract
-    function addSubtract(bytes32 _requestId, uint _amount) public returns(bool)
+    // declare a subract or an additional
+    function updateExpectedAmount(bytes32 _requestId, int256 _deltaAmount) public returns(bool)
     {
         // nothing to do
         return true;

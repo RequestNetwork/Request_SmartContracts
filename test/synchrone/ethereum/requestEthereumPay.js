@@ -82,17 +82,17 @@ contract('RequestEthereum Pay', function(accounts) {
     	fakeExtentionInterception2 = await TestRequestSynchroneInterfaceInterception.new(12);
     	fakeExtentionInterception3 = await TestRequestSynchroneInterfaceInterception.new(13);
 
-    	fakeExtentionLauncherPaymentFalse1 = await TestRequestSynchroneExtensionLauncher.new(21,true,true,true,true,false,true,true,true);
-    	fakeExtentionLauncherFundOrderFalse1 = await TestRequestSynchroneExtensionLauncher.new(22,true,true,true,false,true,true,true,true);
-    	fakeExtentionLauncherFundOrderFalseAndPaymentFalse1 = await TestRequestSynchroneExtensionLauncher.new(23,true,true,true,false,false,true,true,true);
+    	fakeExtentionLauncherPaymentFalse1 = await TestRequestSynchroneExtensionLauncher.new(21,true,true,true,true,false,true,true);
+    	fakeExtentionLauncherFundOrderFalse1 = await TestRequestSynchroneExtensionLauncher.new(22,true,true,true,false,true,true,true);
+    	fakeExtentionLauncherFundOrderFalseAndPaymentFalse1 = await TestRequestSynchroneExtensionLauncher.new(23,true,true,true,false,false,true,true);
 
-    	fakeExtentionLauncherPaymentFalse2 = await TestRequestSynchroneExtensionLauncher.new(31,true,true,true,true,false,true,true,true);
-    	fakeExtentionLauncherFundOrderFalse2 = await TestRequestSynchroneExtensionLauncher.new(32,true,true,true,false,true,true,true,true);
-    	fakeExtentionLauncherFundOrderFalseAndPaymentFalse2 = await TestRequestSynchroneExtensionLauncher.new(33,true,true,true,false,false,true,true,true);
+    	fakeExtentionLauncherPaymentFalse2 = await TestRequestSynchroneExtensionLauncher.new(31,true,true,true,true,false,true,true);
+    	fakeExtentionLauncherFundOrderFalse2 = await TestRequestSynchroneExtensionLauncher.new(32,true,true,true,false,true,true,true);
+    	fakeExtentionLauncherFundOrderFalseAndPaymentFalse2 = await TestRequestSynchroneExtensionLauncher.new(33,true,true,true,false,false,true,true);
 
-    	fakeExtentionLauncherPaymentFalse3 = await TestRequestSynchroneExtensionLauncher.new(41,true,true,true,true,false,true,true,true);
-    	fakeExtentionLauncherFundOrderFalse3 = await TestRequestSynchroneExtensionLauncher.new(42,true,true,true,false,true,true,true,true);
-    	fakeExtentionLauncherFundOrderFalseAndPaymentFalse3 = await TestRequestSynchroneExtensionLauncher.new(43,true,true,true,false,false,true,true,true);
+    	fakeExtentionLauncherPaymentFalse3 = await TestRequestSynchroneExtensionLauncher.new(41,true,true,true,true,false,true,true);
+    	fakeExtentionLauncherFundOrderFalse3 = await TestRequestSynchroneExtensionLauncher.new(42,true,true,true,false,true,true,true);
+    	fakeExtentionLauncherFundOrderFalseAndPaymentFalse3 = await TestRequestSynchroneExtensionLauncher.new(43,true,true,true,false,false,true,true);
 
 
 		requestCore = await RequestCore.new({from:admin});
@@ -513,9 +513,9 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after pay()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
-		assert.equal(l.data[1],arbitraryTips,"Event AddAdditional wrong args amountAdditional");
+		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after pay()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(l.data[1],arbitraryTips,"Event UpdateExpectedAmount wrong args amountAdditional");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after pay()");
@@ -590,9 +590,9 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"AddAdditional","Event AddAdditional is missing after pay()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event AddAdditional wrong args requestId");
-		assert.equal(l.data[1],arbitraryTips,"Event AddAdditional wrong args amountAdditional");
+		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after pay()");
+		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
+		assert.equal(l.data[1],arbitraryTips,"Event UpdateExpectedAmount wrong args amountAdditional");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after pay()");
