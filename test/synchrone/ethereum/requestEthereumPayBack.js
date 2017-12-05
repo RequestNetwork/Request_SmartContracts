@@ -118,7 +118,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
-		await requestEthereum.pay(utils.getHashRequest(1), 0, {value:arbitraryAmount, from:payer})
+		await requestEthereum.paymentAction(utils.getHashRequest(1), 0, {value:arbitraryAmount, from:payer})
     });
 
 	// ##################################################################################################
@@ -128,11 +128,11 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		var balancePayerBefore = await web3.eth.getBalance(payer);
 		
 		await requestCore.pause({from:admin});
-		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after payBack()");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
@@ -150,41 +150,41 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	it("payback request Ethereum pause impossible", async function () {
 		await requestEthereum.pause({from:admin});
-		await utils.expectThrow(requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee}));
+		await utils.expectThrow(requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee}));
 	});
 	
 	it("payback request not exist impossible", async function () {
-		await utils.expectThrow(requestEthereum.payback(666, {value:arbitraryAmount, from:payee}));
+		await utils.expectThrow(requestEthereum.refundAction(666, {value:arbitraryAmount, from:payee}));
 	});
 
 
 
 	it("payback request just created Impossible", async function () {
 		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
-		await utils.expectThrow(requestEthereum.payback(utils.getHashRequest(2), {value:arbitraryAmount, from:payee}));
+		await utils.expectThrow(requestEthereum.refundAction(utils.getHashRequest(2), {value:arbitraryAmount, from:payee}));
 	});
 
 	it("payback request canceled impossible", async function () {
 		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
 		await requestEthereum.cancel(utils.getHashRequest(2), {from:payee});
-		await utils.expectThrow(requestEthereum.payback(utils.getHashRequest(2), {value:arbitraryAmount, from:payee}));
+		await utils.expectThrow(requestEthereum.refundAction(utils.getHashRequest(2), {value:arbitraryAmount, from:payee}));
 	});
 
 	it("payback request from payer Impossible", async function () {
-		var r = await utils.expectThrow(requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount, from:payer}));
+		var r = await utils.expectThrow(requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount, from:payer}));
 	});
 
 	it("payback request from a random guy Impossible", async function () {
-		var r = await utils.expectThrow(requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount, from:otherguy}));
+		var r = await utils.expectThrow(requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount, from:otherguy}));
 	});
 
 	it("payback request accepted OK - without extension", async function () {
 		var balancePayerBefore = await web3.eth.getBalance(payer);
-		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after payBack()");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
@@ -205,11 +205,11 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	it("payback request accepted OK - untrusted currencyContract", async function () {
 		var balancePayerBefore = await web3.eth.getBalance(payer);
 		await requestCore.adminRemoveTrustedCurrencyContract(requestEthereum.address, {from:admin});
-		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after payBack()");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
@@ -230,26 +230,26 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	it("payback request accepted OK - with 1 extension, continue: [{true,true}]", async function () {
 		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionContinue1.address, [], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
-		await requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
+		await requestEthereum.paymentAction(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 
 		var balancePayerBefore = await web3.eth.getBalance(payer);
-		var r = await requestEthereum.payback(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestRefund","Event LogTestRefund is missing after payback()");
+		assert.equal(l.name,"LogTestRefund","Event LogTestRefund is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestRefund wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestRefund wrong args ID");
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after payback()");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
 		l = getEventFromReceipt(r.receipt.logs[2], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after payback()");
+		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args ID");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event LogTestFundOrder wrong args recipient");
@@ -272,14 +272,14 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	it("payback request accepted OK - with 1 extension, continue: [{false,true}]", async function () {
 		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncherRefundFalse1.address, [], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
-		await requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
+		await requestEthereum.paymentAction(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 
 		var balancePayerBefore = await web3.eth.getBalance(payer);
-		var r = await requestEthereum.payback(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherRefundFalse1.abi);
-		assert.equal(l.name,"LogTestRefund","Event LogTestRefund is missing after payback()");
+		assert.equal(l.name,"LogTestRefund","Event LogTestRefund is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestRefund wrong args requestId");
 		assert.equal(l.data[1],21,"Event LogTestRefund wrong args ID");
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
@@ -301,25 +301,25 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	it("payback request accepted OK - with 1 extension, continue: [{true,false}]", async function () {
 		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncherFundOrderFalse1.address, [], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
-		await requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
+		await requestEthereum.paymentAction(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 
 		var balancePayerBefore = await web3.eth.getBalance(payer);
-		var r = await requestEthereum.payback(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalse1.abi);
-		assert.equal(l.name,"LogTestRefund","Event LogTestRefund is missing after payback()");
+		assert.equal(l.name,"LogTestRefund","Event LogTestRefund is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestRefund wrong args requestId");
 		assert.equal(l.data[1],22,"Event LogTestRefund wrong args ID");
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
 		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after payback()");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
 		var l = getEventFromReceipt(r.receipt.logs[2], fakeExtentionLauncherFundOrderFalse1.abi);
-		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after payback()");
+		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],22,"Event LogTestFundOrder wrong args ID");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event LogTestFundOrder wrong args recipient");
@@ -342,14 +342,14 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	it("payback request accepted OK - with 1 extension, continue: [{false,false}]", async function () {
 		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionLauncherFundOrderFalseAndRefundFalse1.address, [], "", {from:payee});
 		await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
-		await requestEthereum.pay(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
+		await requestEthereum.paymentAction(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 
 		var balancePayerBefore = await web3.eth.getBalance(payer);
-		var r = await requestEthereum.payback(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
 		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalseAndRefundFalse1.abi);
-		assert.equal(l.name,"LogTestRefund","Event LogTestRefund is missing after payback()");
+		assert.equal(l.name,"LogTestRefund","Event LogTestRefund is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestRefund wrong args requestId");
 		assert.equal(l.data[1],23,"Event LogTestRefund wrong args ID");
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
@@ -373,11 +373,11 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	it("msg.value == 0 OK", async function () {
 		var balancePayerBefore = await web3.eth.getBalance(payer);
-		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:0, from:payee});
+		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:0, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after payBack()");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[1],0,"Event UpdateBalance wrong args amountRefunded");
 
@@ -397,11 +397,11 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	it("3 payback request", async function () {
 		var balancePayerBefore = await web3.eth.getBalance(payer);
-		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount30percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount30percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after payBack()");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[1],-arbitraryAmount30percent,"Event UpdateBalance wrong args amountRefunded");
 
@@ -419,11 +419,11 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),arbitraryAmount30percent,"new request wrong data : amount to withdraw payer");
 
 		// second
-		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount20percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount20percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after payBack()");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[1],-arbitraryAmount20percent,"Event UpdateBalance wrong args amountRefunded");
 
@@ -441,11 +441,11 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),arbitraryAmount20percent+arbitraryAmount30percent,"new request wrong data : amount to withdraw payer");
 
 		// third
-		var r = await requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
-		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after payBack()");
+		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
@@ -465,13 +465,13 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	// turn down the node
 	// it("msg.value >= 2^256 Impossible", async function () {
-	// 	var r = await utils.expectThrow(requestEthereum.payback(utils.getHashRequest(1), {value:new BigNumber(2).pow(256), from:payee}));
+	// 	var r = await utils.expectThrow(requestEthereum.refundAction(utils.getHashRequest(1), {value:new BigNumber(2).pow(256), from:payee}));
 	// });
 
 	it("msg.value > amountAlreadyPaid Impossible", async function () {
 		var balancePayerBefore = await web3.eth.getBalance(payer);
 
-	 	var r = await (requestEthereum.payback(utils.getHashRequest(1), {value:arbitraryAmount+1, from:payee}));
+	 	var r = await (requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount+1, from:payee}));
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");

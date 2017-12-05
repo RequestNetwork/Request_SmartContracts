@@ -174,7 +174,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 
 	it("cancel request amountPaid != 0 Impossible", async function () {
 		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
-		await requestEthereum.pay(utils.getHashRequest(1), 0, {from:payer,value:10});
+		await requestEthereum.paymentAction(utils.getHashRequest(1), 0, {from:payer,value:10});
 		await utils.expectThrow(requestEthereum.cancel(utils.getHashRequest(1), {from:payee}));
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1), {from:fakeContract});

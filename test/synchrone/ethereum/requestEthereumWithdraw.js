@@ -38,7 +38,7 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 	// ### withdraw test unit ###########################################################################
 	// ##################################################################################################
 	it("challenge reentrance 2 rounds", async function () {
-		await requestEthereum.pay(utils.getHashRequest(1), 0, {from:payer,value:arbitraryAmount});
+		await requestEthereum.paymentAction(utils.getHashRequest(1), 0, {from:payer,value:arbitraryAmount});
 		testRequestReentrance = await TestRequestReentrance.new(requestEthereum.address, 2,{from:hacker});
 		
 		var r = await testRequestReentrance.init(hacker,{from:hacker2});
@@ -46,7 +46,7 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 		assert.equal(r.logs[0].args.id,utils.getHashRequest(2),"Event Payment wrong args id");
 
 		await requestEthereum.accept(r.logs[0].args.id, {from:hacker});
-		await requestEthereum.pay(r.logs[0].args.id, 0, {from:hacker,value:arbitraryAmount10percent});
+		await requestEthereum.paymentAction(r.logs[0].args.id, 0, {from:hacker,value:arbitraryAmount10percent});
 		var r = await utils.expectThrow(testRequestReentrance.start({from:hacker}));
 		assert.equal(await web3.eth.getBalance(testRequestReentrance.address), 0, 'Contract hacking balance must remain 0');
 	});

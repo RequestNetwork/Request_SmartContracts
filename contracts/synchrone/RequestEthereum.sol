@@ -241,20 +241,7 @@ contract RequestEthereum is Pausable {
 		// impossible to cancel a Request with a balance != 0
 		require(requestCore.getBalance(_requestId) == 0);
 
-		address extensionAddr = requestCore.getExtension(_requestId);
-
-		bool isOK = true;
-		if(extensionAddr!=0 && extensionAddr!=msg.sender)  
-		{
-			RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
-			isOK = extension.cancel(_requestId);
-		}
-		
-		if(isOK) 
-		{
-		  requestCore.cancel(_requestId);
-		}
-		return isOK;
+		return cancelInternal(_requestId);
 	}
 
 	// ----------------------------------------------------------------------------------------
@@ -269,12 +256,17 @@ contract RequestEthereum is Pausable {
 	 * @param _requestId id of the request
 	 * @param _additionals amount of additionals in wei to declare 
 	 */
-	function pay(bytes32 _requestId, uint256 _additionals)
+	function paymentAction(bytes32 _requestId, uint256 _additionals)
 		external
 		whenNotPaused
 		payable
-		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
+		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
 	{
+		// automatically accept request
+		if(requestCore.getState(_requestId)==RequestCore.State.Created) {
+			acceptInternal(_requestId);
+		}
+
 		if(_additionals > 0) {
 			updateExpectedAmountInternal(_requestId, _additionals.toInt256Safe());
 		}
@@ -290,7 +282,7 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @param _requestId id of the request
 	 */
-	function payback(bytes32 _requestId)
+	function refundAction(bytes32 _requestId)
 		external
 		whenNotPaused
 		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
@@ -301,21 +293,39 @@ contract RequestEthereum is Pausable {
 	}
 
 	/*
-	 * @dev Function to declare a discount
+	 * @dev Function to declare a subtract
 	 *
 	 * @dev msg.sender must be _payee or an extension used by the request
 	 * @dev the request must be accepted or created
 	 *
 	 * @param _requestId id of the request
-	 * @param _amount amount of discount in wei to declare 
+	 * @param _amount amount of subtract in wei to declare 
 	 */
-	function discount(bytes32 _requestId, uint256 _amount)
+	function subtractAction(bytes32 _requestId, uint256 _amount)
 		external
 		whenNotPaused
 		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
 		onlyRequestPayee(_requestId)
 	{
 		updateExpectedAmountInternal(_requestId, -_amount.toInt256Safe());
+	}
+
+	/*
+	 * @dev Function to declare a additional
+	 *
+	 * @dev msg.sender must be _payer or an extension used by the request
+	 * @dev the request must be accepted or created
+	 *
+	 * @param _requestId id of the request
+	 * @param _amount amount of additional in wei to declare 
+	 */
+	function additionalAction(bytes32 _requestId, uint256 _amount)
+		external
+		whenNotPaused
+		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
+		onlyRequestPayer(_requestId)
+	{
+		updateExpectedAmountInternal(_requestId, _amount.toInt256Safe());
 	}
 
 
@@ -483,6 +493,35 @@ contract RequestEthereum is Pausable {
 		}  
 		return isOK;
 	}
+
+
+	/*
+	 * @dev Function internal to manage cancel
+	 *
+	 * @param _requestId id of the request 
+	 *
+	 * @return true if the request is cancel, false otherwise
+	 */
+	function cancelInternal(bytes32 _requestId) 
+		internal
+		returns(bool)
+	{
+		address extensionAddr = requestCore.getExtension(_requestId);
+
+		bool isOK = true;
+		if(extensionAddr!=0 && extensionAddr!=msg.sender)  
+		{
+			RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
+			isOK = extension.cancel(_requestId);
+		}
+		
+		if(isOK) 
+		{
+		  requestCore.cancel(_requestId);
+		}
+		return isOK;
+	}
+
 
 	/*
 	 * @dev Function internal to calculate Keccak-256 hash of a request with specified parameters

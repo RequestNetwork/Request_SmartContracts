@@ -82,7 +82,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 
 		// Escrow Function
 	// escrow can release the payment to the seller
-	function releaseToPayee(bytes32 _requestId)
+	function releaseToPayeeAction(bytes32 _requestId)
 		external
 		whenNotPaused
 		onlyRequestEscrowOrPayer(_requestId)
@@ -100,7 +100,7 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	}
 
 	// escrow can refund the payment to the âyer
-	function refundToPayer(bytes32 _requestId)
+	function releaseToPayerAction(bytes32 _requestId)
 		external
 		whenNotPaused
 		onlyRequestEscrowOrPayee(_requestId)
