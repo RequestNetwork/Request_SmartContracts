@@ -13,7 +13,9 @@ contract RequestBurnManagerSimple is RequestBurnManagerInterface, Pausable {
 	using SafeMath for uint256;
 
 	// fees percentage (per 10 000)
-	uint16 public feesPerTenThousand;
+	uint256 public feesPer10000;
+
+	uint256 public maxFees = 0.002 ether;
 
 	// address of the contract that will burn req token (probably through Kyber)
 	address public reqBurnerContract;
@@ -55,21 +57,35 @@ contract RequestBurnManagerSimple is RequestBurnManagerInterface, Pausable {
 		returns(uint256)
 	{
 		if(_expectedAmount<0) return 0;
-		return uint256(_expectedAmount).mul(uint256(feesPerTenThousand)).div(10000);
+		uint256 computedCollect = uint256(_expectedAmount).mul(feesPer10000).div(10000);
+		return computedCollect < maxFees ? computedCollect : maxFees;
 	}
 
 
 	/*
 	 * @dev computeFees
-	 * @param _requestId Request id
+	 * @param _newRate new rate
 	 * @return 
 	 */  
-	function setFeesPerTenThousand(uint16 _newFees) 
+	function setFeesPerTenThousand(uint256 _newRate) 
 		external
 		onlyOwner
 	{
-		feesPerTenThousand=_newFees;
+		feesPer10000=_newRate;
 	}
+
+	/*
+	 * @dev setMaxCollectable
+	 * @param _newMax new max
+	 * @return 
+	 */  
+	function setMaxCollectable(uint256 _newMax) 
+		external
+		onlyOwner
+	{
+		maxFees=_newMax;
+	}
+
 
 	/*
 	 * @dev setReqBurnerContract

@@ -459,6 +459,32 @@ contract('RequestCore Create Request', function(accounts) {
 
 		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, "", {value:(arbitraryAmount/100)+1,from:fakeContract}));
 	});
+
+
+	it("new request with collect over max", async function () {
+		var balanceContractForBurning = await web3.eth.getBalance(contractForBurning);
+
+		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(contractForBurning); 
+		await requestBurnManagerSimple.setFeesPerTenThousand(20000);// 200% collect
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+
+		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
+		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
+
+		var arbitraryAmount = web3.toWei(1,"ether");
+		var max = web3.toWei(0.002,"ether");
+		await requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, "", {value:max,from:fakeContract});
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : expectedAmount");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : currencyContract");
+
+		assert.equal((await web3.eth.getBalance(contractForBurning)).sub(balanceContractForBurning),max,"amount collected wrong");
+	});
 });
 
 
