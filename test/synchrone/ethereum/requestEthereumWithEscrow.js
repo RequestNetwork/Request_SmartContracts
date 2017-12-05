@@ -6,7 +6,7 @@ if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 var RequestSynchroneExtensionEscrow = artifacts.require("./synchrone/extensions/RequestSynchroneExtensionEscrow.sol");
-
+var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSimple.sol");
 
 // contract for test
 var TestRequestSynchroneInterfaceContinue = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceContinue.sol");
@@ -78,6 +78,9 @@ contract('RequestEthereum with Escrow',  function(accounts) {
 
     beforeEach(async () => {
 		requestCore = await RequestCore.new({from:admin});
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0); 
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+		
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
     	requestSynchroneExtensionEscrow = await RequestSynchroneExtensionEscrow.new(requestCore.address,{from:admin});
 

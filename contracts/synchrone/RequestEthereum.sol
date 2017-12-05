@@ -1,14 +1,14 @@
 pragma solidity 0.4.18;
 
 import '../core/RequestCore.sol';
-import './extensions/RequestSynchroneInterface.sol';
 import '../base/math/SafeMath.sol';
 import '../base/lifecycle/Pausable.sol';
+import './extensions/RequestSynchroneInterface.sol';
 
 /**
  * @title RequestEthereum
  *
- * @dev RequestEthereum is the sub contract managing the request payed in Ethereum
+ * @dev RequestEthereum is the currency contract managing the request payed in Ethereum
  *
  * @dev Requests can be created by the Payee with createRequest() or by the payer from a request signed offchain by the payee with createQuickRequest
  * @dev Requests can have 1 extension. it has to implement RequestSynchroneInterface and declared trusted on the Core
@@ -50,12 +50,13 @@ contract RequestEthereum is Pausable {
 	 */
 	function createRequestAsPayee(address _payer, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, string _data)
 		external
+		payable
 		whenNotPaused
 		returns(bytes32 requestId)
 	{
 		require(_expectedAmount>=0);
 		require(msg.sender != _payer && _payer != 0);
-		requestId= requestCore.createRequest(msg.sender, msg.sender, _payer, _expectedAmount, _extension, _data);
+		requestId= requestCore.createRequest.value(msg.value)(msg.sender, msg.sender, _payer, _expectedAmount, _extension, _data);
 
 		if(_extension!=0) {
 			RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -87,7 +88,8 @@ contract RequestEthereum is Pausable {
 		require(_expectedAmount>=0);
 		require(msg.sender != _payee && _payee != 0);
 
-		requestId= requestCore.createRequest(msg.sender, _payee, msg.sender, _expectedAmount, _extension, _data);
+		uint256 collectAmount = requestCore.getCollectEstimation(_expectedAmount,msg.sender,_extension);
+		requestId= requestCore.createRequest.value(collectAmount)(msg.sender, _payee, msg.sender, _expectedAmount, _extension, _data);
 
 		if(_extension!=0) {
 			RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
@@ -100,8 +102,8 @@ contract RequestEthereum is Pausable {
 		if(_additionals > 0) {
 			updateExpectedAmountInternal(requestId, _additionals.toInt256Safe());
 		}
-		if(msg.value > 0) {
-			paymentInternal(requestId, msg.value);
+		if(msg.value-collectAmount > 0) {
+			paymentInternal(requestId, msg.value-collectAmount);
 		}
 
 		return requestId;
@@ -127,37 +129,38 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @return Returns the id of the request 
 	 */
-   function broadcastSignedRequestAsPayer(address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _additionals, string _data, uint8 v, bytes32 r, bytes32 s)
-		external
-		payable
-		whenNotPaused
-		returns(bytes32 requestId)
-	{
-		require(_expectedAmount>=0);
-		require(msg.sender != _payee && _payee != 0);
+	// function broadcastSignedRequestAsPayer(address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _additionals, string _data, uint8 v, bytes32 r, bytes32 s)
+	// 	external
+	// 	payable
+	// 	whenNotPaused
+	// 	returns(bytes32 requestId)
+	// {
+	// 	require(_expectedAmount>=0);
+	// 	require(msg.sender != _payee && _payee != 0);
 
-		// check the signature
-		require(checkRequestSignature(_payee,_payee,msg.sender,_expectedAmount,_extension,_extensionParams,_data, v, r, s));
+	// 	// check the signature
+	// 	require(checkRequestSignature(_payee,_payee,msg.sender,_expectedAmount,_extension,_extensionParams,_data, v, r, s));
 
-		requestId=requestCore.createRequest(_payee, _payee, msg.sender, _expectedAmount, _extension, _data);
+	// 	uint256 collectAmount = requestCore.getCollectEstimation(_expectedAmount,msg.sender,_extension);
+	// 	requestId=requestCore.createRequest.value(collectAmount)(_payee, _payee, msg.sender, _expectedAmount, _extension, _data).value(collectAmount);
 
-		if(_extension!=0) {
-			RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
-			extension.createRequest(requestId, _extensionParams);
-		}
+	// 	if(_extension!=0) {
+	// 		RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
+	// 		extension.createRequest(requestId, _extensionParams);
+	// 	}
 
-		// accept must succeed
-		require(acceptInternal(requestId));
+	// 	// accept must succeed
+	// 	require(acceptInternal(requestId));
 
-		if(_additionals > 0) {
-			updateExpectedAmountInternal(requestId, _additionals.toInt256Safe());
-		}
-		if(msg.value > 0) {
-			paymentInternal(requestId, msg.value);
-		}
+	// 	if(_additionals > 0) {
+	// 		updateExpectedAmountInternal(requestId, _additionals.toInt256Safe());
+	// 	}
+	// 	if(msg.value-collectAmount > 0) {
+	// 		paymentInternal(requestId, msg.value-collectAmount);
+	// 	}
 
-		return requestId;
-	}
+	// 	return requestId;
+	// }
 
 	// ---- INTERFACE FUNCTIONS ------------------------------------------------------------------------------------
 
@@ -288,7 +291,7 @@ contract RequestEthereum is Pausable {
 		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted)
 		onlyRequestPayee(_requestId)
 		payable
-	{   
+	{
 		refundInternal(_requestId, msg.value);
 	}
 

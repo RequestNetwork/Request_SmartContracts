@@ -76,6 +76,7 @@ contract RequestCore is Administrable {
      * @return Returns the id of the request 
      */   
     function createRequest(address _creator, address _payee, address _payer, int256 _expectedAmount, address _extension, string _data) 
+        payable
         external
         whenNotPaused 
         isTrustedContract(msg.sender)
@@ -87,6 +88,9 @@ contract RequestCore is Administrable {
         requestId = keccak256(numRequests,VERSION);
 
         requests[requestId] = Request(_creator, _payee, _payer, _expectedAmount, msg.sender, 0, State.Created, _extension, _data); 
+
+        // collect the fees
+        require(trustedNewBurnManager.collectForReqBurning.value(msg.value)(_expectedAmount, msg.sender, _extension));
 
         Created(requestId, _payee, _payer);
         return requestId;

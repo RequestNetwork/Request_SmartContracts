@@ -11,6 +11,7 @@ var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 var TestRequestSynchroneInterfaceContinue = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceContinue.sol");
 var TestRequestSynchroneInterfaceInterception = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceInterception.sol");
 var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneExtensionLauncher.sol");
+var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSimple.sol");
 var BigNumber = require('bignumber.js');
 
 var abiUtils = require("web3-eth-abi");
@@ -78,6 +79,8 @@ contract('RequestEthereum Cancel',  function(accounts) {
 
 
 		requestCore = await RequestCore.new({from:admin});
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0); 
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
 		await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});
