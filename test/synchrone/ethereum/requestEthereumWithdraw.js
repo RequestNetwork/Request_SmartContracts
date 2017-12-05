@@ -4,6 +4,8 @@ if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 }
 var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
+var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSimple.sol");
+
 // contract for test
 var TestRequestReentrance = artifacts.require("./test/synchrone/TestRequestReentrance.sol");
 var BigNumber = require('bignumber.js');
@@ -26,6 +28,9 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 
     beforeEach(async () => {
 		requestCore = await RequestCore.new({from:admin});
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0); 
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+		
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
 		await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});

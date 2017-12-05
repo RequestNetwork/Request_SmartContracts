@@ -1,6 +1,7 @@
 pragma solidity 0.4.18;
 
 import '../base/lifecycle/Pausable.sol';
+import '../collect/RequestBurnManagerInterface.sol';
 
 /**
  * @title Administrable
@@ -14,11 +15,15 @@ contract Administrable is Pausable {
 	// mapping of address of trusted extensions
 	mapping(address => uint8) public trustedExtensions;
 
+	// contract managing the fees
+	RequestBurnManagerInterface public trustedNewBurnManager;
+
 	// Events of the system
 	event NewTrustedContract(address newContract);
 	event RemoveTrustedContract(address oldContract);
 	event NewTrustedExtension(address newExtension);
 	event RemoveTrustedExtension(address oldExtension);
+	event NewBurnManager(address newFeesManager);
 
 	/**
 	 * @dev add a trusted currencyContract 
@@ -73,6 +78,36 @@ contract Administrable is Pausable {
 		trustedExtensions[_oldExtension] = 0;
 		RemoveTrustedExtension(_oldExtension);
 	}
+
+	/**
+	 * @dev update the fees manager contract
+	 *
+	 * @param _newBurnManager The address of the new fees manager
+	 */
+	function setBurnManager(address _newBurnManager)
+		external
+		onlyOwner
+	{
+		trustedNewBurnManager = RequestBurnManagerInterface(_newBurnManager);
+		NewBurnManager(_newBurnManager);
+	}
+
+	/**
+	 * @dev get the status of a trusted currencyContract 
+	 *
+	 * @param _expectedAmount Expected amount of the request
+	 * @param _currencyContract The address of the currencyContract
+	 * @param _extension The address of the extension
+	 * @return The status of the currencyContract. If trusted 1, otherwise 0
+	 */
+	function getCollectEstimation(int256 _expectedAmount, address _currencyContract, address _extension)
+		view
+		external
+		returns(uint256) 
+	{
+		return trustedNewBurnManager.collectEstimation(_expectedAmount, _currencyContract, _extension);
+	}
+
 
 	/**
 	 * @dev get the status of a trusted currencyContract 

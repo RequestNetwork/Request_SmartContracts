@@ -17,6 +17,7 @@ var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 // contract for test
 var TestRequestSynchroneInterfaceContinue = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceContinue.sol");
 var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneExtensionLauncher.sol");
+var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSimple.sol");
 
 
 var BigNumber = require('bignumber.js');
@@ -100,6 +101,8 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
     	fakeExtentionLauncherAcceptFalse = await TestRequestSynchroneExtensionLauncher.new(21,true,false,true,true,true,true,true,true);
 
 		requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0); 
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
 		requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
 		await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});

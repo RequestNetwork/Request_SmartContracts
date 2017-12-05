@@ -5,6 +5,7 @@ if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 }
 var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
+var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSimple.sol");
 var BigNumber = require('bignumber.js');
 
 
@@ -18,26 +19,34 @@ contract('RequestCore Create Request', function(accounts) {
 	var fakeExtention1 = accounts[6];
 	var fakeExtention2 = accounts[7];
 	var fakeExtention3 = accounts[8];
-	var fakeExtention4 = accounts[9];
+	var contractForBurning = accounts[9];
 
 	var arbitraryAmount = 100000000;
-
 
 	// requestId start at 1 when Core is created
 	it("Creation Core, requestId start at 0", async function () {
 		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+
 		assert.equal(await requestCore.numRequests.call(),"0","RequestId start by 0");
 	});
 
 	// new request from non trustable sender (contract trusted) impossible
 	it("request from non trustable sender (contract trusted) impossible", async function () {
 		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+
 		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, "", {from:fakeContract}));
 	});
 
 	// impossible to createRequest if Core Paused
 	it("impossible to createRequest if Core Paused", async function () {
 		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+
 		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
 		await requestCore.pause({from:admin});
 
@@ -50,6 +59,9 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request payee==payer OK
 	it("Actors not null and payee!=payer", async function () {
 		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+
 
 		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
 
@@ -150,6 +162,9 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request _expectedAmount > 2^256 impossible
 	it("expectedAmount == 0 and > 2^255", async function () {
 		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+
 
 		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
 
@@ -189,9 +204,12 @@ contract('RequestCore Create Request', function(accounts) {
 		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, new BigNumber(2).pow(256), 0, "", {from:fakeContract}));
 	});
 	// new request _expectedAmount < 0 OK
-	// new request _expectedAmount < -2^256 impossible
-	it("expectedAmount < 0 and < -2^255", async function () {
+	// new request _expectedAmount > -2^256 impossible
+	it("expectedAmount < 0 and > -2^255", async function () {
 		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+
 
 		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
 
@@ -219,6 +237,9 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request without extensions
 	it("new request without extensions", async function () {
 		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+
 		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
 
@@ -282,6 +303,9 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request with data
 	it("new request without extensions", async function () {
 		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+
 		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
 
 		var r = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, "QmSbfaY3FRQQNaFx8Uxm6rRKnqwu8s9oWGpRmqgfTEgxWz", {from:fakeContract});
@@ -307,6 +331,8 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request with 1 extension trusted
 	it("new request with 1 extension valid", async function () {
 		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
 
 		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
 		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
@@ -338,12 +364,101 @@ contract('RequestCore Create Request', function(accounts) {
 	// new request with 1 extension not trusted
 	it("new request with 1 extension not trusted", async function () {
 		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+
 
 		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
 
 		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, fakeExtention1, "", {from:fakeContract}));
 	});
 
+	it("new request with collect 1%", async function () {
+		var balanceContractForBurning = await web3.eth.getBalance(contractForBurning);
+
+		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(contractForBurning); 
+		await requestBurnManagerSimple.setFeesPerTenThousand(100);// 1% collect
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+
+		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
+		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
+
+		var r = await requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, "", {value:arbitraryAmount/100,from:fakeContract});
+		assert.equal(r.logs[0].event,"Created","Event Created is missing after createRequest()");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(1),"Event Created wrong args requestId");
+		assert.equal(r.logs[0].args.payee,payee,"Event Created wrong args payee");
+		assert.equal(r.logs[0].args.payer,payer,"Event Created wrong args payer");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : expectedAmount");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : currencyContract");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+
+
+		assert.equal(newReq[6],0,"new request wrong data : state");
+		assert.equal(newReq[7],0,"new request wrong data : extension");
+		assert.equal(newReq[8],0,"new request wrong data : data");
+
+		var newReqExtension = await requestCore.getExtension.call(utils.getHashRequest(1));
+		assert.equal(newReqExtension,0,"new request wrong data : Extension[0]");
+
+
+		var r = await requestCore.setExtension(utils.getHashRequest(1), fakeExtention1, {from:fakeContract});
+		assert.equal(r.logs[0].event,"NewExtension","Event is missing after setExtension()");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(1),"wrong args requestId");
+		assert.equal(r.logs[0].args.extension,fakeExtention1,"wrong args extension");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : expectedAmount");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : currencyContract");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		assert.equal(newReq[6],0,"new request wrong data : state");
+		assert.equal(newReq[7],fakeExtention1,"new request wrong data : extension");
+		assert.equal(newReq[8],0,"new request wrong data : data");
+
+
+		var r = await requestCore.setData(utils.getHashRequest(1), "hello world!", {from:fakeContract});
+		assert.equal(r.logs[0].event,"NewData","Event is missing after setData()");
+		assert.equal(r.logs[0].args.requestId, utils.getHashRequest(1),"wrong args requestId");
+		assert.equal(r.logs[0].args.data,"hello world!","wrong args data");
+
+		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		assert.equal(newReq[0],creator,"new request wrong data : creator");
+		assert.equal(newReq[1],payee,"new request wrong data : payee");
+		assert.equal(newReq[2],payer,"new request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : expectedAmount");
+		assert.equal(newReq[4],fakeContract,"new request wrong data : currencyContract");
+		assert.equal(newReq[5],0,"new request wrong data : balance");
+		assert.equal(newReq[6],0,"new request wrong data : state");
+		assert.equal(newReq[7],fakeExtention1,"new request wrong data : extension");
+		assert.equal(newReq[8],"hello world!","new request wrong data : data");
+
+		assert.equal((await web3.eth.getBalance(contractForBurning)).sub(balanceContractForBurning),arbitraryAmount/100,"amount collected wrong");
+
+	});
+
+	it("new request with collect 1% not payed or overpayed", async function () {
+		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0); 
+		await requestBurnManagerSimple.setFeesPerTenThousand(100);// 1% collect
+		await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+
+		await requestCore.adminAddTrustedCurrencyContract(fakeContract, {from:admin});
+		await requestCore.adminAddTrustedExtension(fakeExtention1, {from:admin});
+
+		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, "", {from:fakeContract}));
+
+		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, "", {value:1,from:fakeContract}));
+
+		await utils.expectThrow(requestCore.createRequest(creator, payee, payer, arbitraryAmount, 0, "", {value:(arbitraryAmount/100)+1,from:fakeContract}));
+	});
 });
 
 

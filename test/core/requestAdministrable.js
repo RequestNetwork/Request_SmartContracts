@@ -31,6 +31,7 @@ var getEventFromReceipt = function(log, abi) {
 var Administrable = artifacts.require("./core/Administrable.sol");
 var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
+var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSimple.sol");
 
 contract('RequestCore Administrative part', function(accounts) {
 	var admin = accounts[0];
@@ -144,6 +145,27 @@ contract('RequestCore Administrative part', function(accounts) {
 		await utils.expectThrow(requestCore.adminRemoveExtension(requestEthereum.address, {from:otherguy}));
 	});
 
+
+
+
+	// right on setBurnManager 
+	it("setBurnManager can be done only by admin", async function() {
+		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
+
+		await utils.expectThrow(requestCore.setBurnManager(requestBurnManagerSimple.address, {from:otherguy}));
+	});
+	it("setBurnManager", async function() {
+		var requestCore = await RequestCore.new();
+		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
+
+		var r = await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
+		var ev = getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
+		assert.equal(ev.name,"NewBurnManager","Event NewBurnManager is missing after setBurnManager()");
+		assert.equal(ev.data[0].toLowerCase(),requestBurnManagerSimple.address,"Event NewBurnManager wrong args");
+
+		assert.equal(await requestCore.trustedNewBurnManager.call(),requestBurnManagerSimple.address,"trustedNewBurnManager is wrong");
+	});
 });
 
 
