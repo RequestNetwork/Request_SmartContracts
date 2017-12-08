@@ -20,9 +20,9 @@ contract RequestSynchroneExtensionEscrow is RequestSynchroneInterface {
 	}
 	mapping(bytes32 => RequestEscrow) public escrows;
 
-	event EscrowPayment(bytes32 requestId, uint256 amount);
-	event EscrowReleaseRequest(bytes32 requestId);
-	event EscrowRefundRequest(bytes32 requestId);
+	event EscrowPayment(bytes32 indexed requestId, uint256 amount);
+	event EscrowReleaseRequest(bytes32 indexed requestId);
+	event EscrowRefundRequest(bytes32 indexed requestId);
 
 	// address of the contract of the request system
 	RequestCore public requestCore;

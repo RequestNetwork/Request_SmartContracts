@@ -45,17 +45,17 @@ contract RequestCore is Administrable {
     /*
      *  Events 
      */
-    event Created(bytes32 requestId, address payee, address payer);
-    event Accepted(bytes32 requestId);
-    event Canceled(bytes32 requestId);
-    event UpdateBalance(bytes32 requestId, int256 deltaAmount);
-    event UpdateExpectedAmount(bytes32 requestId, int256 deltaAmount);
+    event Created(bytes32 indexed requestId, address indexed payee, address indexed payer);
+    event Accepted(bytes32 indexed requestId);
+    event Canceled(bytes32 indexed requestId);
+    event UpdateBalance(bytes32 indexed requestId, int256 deltaAmount);
+    event UpdateExpectedAmount(bytes32 indexed requestId, int256 deltaAmount);
 
-    event NewPayee(bytes32 requestId, address payee);
-    event NewPayer(bytes32 requestId, address payer);
-    event NewExpectedAmount(bytes32 requestId, int256 expectedAmount);
-    event NewExtension(bytes32 requestId, address extension);
-    event NewData(bytes32 requestId, string data);
+    event NewPayee(bytes32 indexed requestId, address payee);
+    event NewPayer(bytes32 indexed requestId, address payer);
+    event NewExpectedAmount(bytes32 indexed requestId, int256 expectedAmount);
+    event NewExtension(bytes32 indexed requestId, address extension);
+    event NewData(bytes32 indexed requestId, string data);
 
     /*
      *  Constructor 
@@ -89,7 +89,7 @@ contract RequestCore is Administrable {
 
         requests[requestId] = Request(_creator, _payee, _payer, _expectedAmount, msg.sender, 0, State.Created, _extension, _data); 
 
-        // collect the fees
+        // collect
         require(trustedNewBurnManager.collectForReqBurning.value(msg.value)(_expectedAmount, msg.sender, _extension));
 
         Created(requestId, _payee, _payer);

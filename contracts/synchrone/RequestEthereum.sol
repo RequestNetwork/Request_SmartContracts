@@ -25,7 +25,7 @@ contract RequestEthereum is Pausable {
     /*
      *  Events 
      */
-	event EtherAvailableToWithdraw(bytes32 requestId, address recipient, uint256 amount);
+	event EtherAvailableToWithdraw(bytes32 indexed requestId, address recipient, uint256 amount);
 
 	/*
 	 * @dev Constructor
