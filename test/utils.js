@@ -47,3 +47,7 @@ exports.getEventFromReceipt = function(log, abi) {
   }
   return null;
 }
+
+exports.bytes32StrToAddressStr= function(bytes32) {
+  return bytes32.replace('0x000000000000000000000000','0x');
+}

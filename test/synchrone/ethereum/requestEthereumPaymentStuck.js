@@ -12,29 +12,7 @@ var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSi
 
 var BigNumber = require('bignumber.js');
 
-var abiUtils = require("web3-eth-abi");
-var getEventFromReceipt = function(log, abi) {
-	var event = null;
 
-	for (var i = 0; i < abi.length; i++) {
-	  var item = abi[i];
-	  if (item.type != "event") continue;
-	  var signature = item.name + "(" + item.inputs.map(function(input) {return input.type;}).join(",") + ")";
-	  var hash = web3.sha3(signature);
-	  if (hash == log.topics[0]) {
-	    event = item;
-	    break;
-	  }
-	}
-
-	if (event != null) {
-	  var inputs = event.inputs.map(function(input) {return input.type;});
-	  var data = abiUtils.decodeParameters(inputs, log.data.replace("0x", ""));
-	  // Do something with the data. Depends on the log and what you're using the data for.
-	  return {name:event.name , data:data};
-	}
-	return null;
-}
 
 contract('RequestEthereum Payment stuck',  function(accounts) {
 	var admin = accounts[0];
@@ -76,16 +54,16 @@ contract('RequestEthereum Payment stuck',  function(accounts) {
 		var r = await requestEthereum.paymentAction(utils.getHashRequest(1),0, {value:arbitraryAmount, from:payer});
 
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after paymentAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[0],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
 
-		var l = getEventFromReceipt(r.receipt.logs[1], requestEthereum.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[1], requestEthereum.abi);
 		assert.equal(l.name,"EtherAvailableToWithdraw","Event EtherAvailableToWithdraw is missing after paymentAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event EtherAvailableToWithdraw wrong args requestId");
-		assert.equal(l.data[1].toLowerCase(),testRequestPaymentStuckRevert.address,"Event EtherAvailableToWithdraw wrong args recipient");
-		assert.equal(l.data[2],arbitraryAmount,"Event EtherAvailableToWithdraw wrong args amount");
+		assert.equal(r.receipt.logs[1].topics[1],utils.getHashRequest(1),"Event EtherAvailableToWithdraw wrong args requestId");
+		assert.equal(utils.bytes32StrToAddressStr(l.data[0]).toLowerCase(),testRequestPaymentStuckRevert.address,"Event EtherAvailableToWithdraw wrong args recipient");
+		assert.equal(l.data[1],arbitraryAmount,"Event EtherAvailableToWithdraw wrong args amount");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payer,"new request wrong data : creator");
@@ -112,16 +90,16 @@ contract('RequestEthereum Payment stuck',  function(accounts) {
 		var r = await requestEthereum.paymentAction(utils.getHashRequest(1),0, {value:arbitraryAmount, from:payer});
 
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after paymentAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[0],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
 
-		var l = getEventFromReceipt(r.receipt.logs[1], requestEthereum.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[1], requestEthereum.abi);
 		assert.equal(l.name,"EtherAvailableToWithdraw","Event EtherAvailableToWithdraw is missing after paymentAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event EtherAvailableToWithdraw wrong args requestId");
-		assert.equal(l.data[1].toLowerCase(),testRequestPaymentStuckAssert.address,"Event EtherAvailableToWithdraw wrong args recipient");
-		assert.equal(l.data[2],arbitraryAmount,"Event EtherAvailableToWithdraw wrong args amount");
+		assert.equal(r.receipt.logs[1].topics[1],utils.getHashRequest(1),"Event EtherAvailableToWithdraw wrong args requestId");
+		assert.equal(utils.bytes32StrToAddressStr(l.data[0]).toLowerCase(),testRequestPaymentStuckAssert.address,"Event EtherAvailableToWithdraw wrong args recipient");
+		assert.equal(l.data[1],arbitraryAmount,"Event EtherAvailableToWithdraw wrong args amount");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payer,"new request wrong data : creator");
@@ -148,16 +126,16 @@ contract('RequestEthereum Payment stuck',  function(accounts) {
 		var r = await requestEthereum.paymentAction(utils.getHashRequest(1),0, {value:arbitraryAmount, from:payer});
 
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after paymentAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
-		assert.equal(l.data[1],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[0],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
 
-		var l = getEventFromReceipt(r.receipt.logs[1], requestEthereum.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[1], requestEthereum.abi);
 		assert.equal(l.name,"EtherAvailableToWithdraw","Event EtherAvailableToWithdraw is missing after paymentAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event EtherAvailableToWithdraw wrong args requestId");
-		assert.equal(l.data[1].toLowerCase(),testRequestPaymentStuckNonPayable.address,"Event EtherAvailableToWithdraw wrong args recipient");
-		assert.equal(l.data[2],arbitraryAmount,"Event EtherAvailableToWithdraw wrong args amount");
+		assert.equal(r.receipt.logs[1].topics[1],utils.getHashRequest(1),"Event EtherAvailableToWithdraw wrong args requestId");
+		assert.equal(l.data[0].toLowerCase(),testRequestPaymentStuckNonPayable.address,"Event EtherAvailableToWithdraw wrong args recipient");
+		assert.equal(l.data[1],arbitraryAmount,"Event EtherAvailableToWithdraw wrong args amount");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payer,"new request wrong data : creator");

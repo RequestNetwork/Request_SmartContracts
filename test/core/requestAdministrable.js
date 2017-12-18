@@ -4,30 +4,6 @@ if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 	return;
 }
 
-var abiUtils = require("web3-eth-abi");
-var getEventFromReceipt = function(log, abi) {
-	var event = null;
-
-	for (var i = 0; i < abi.length; i++) {
-	  var item = abi[i];
-	  if (item.type != "event") continue;
-	  var signature = item.name + "(" + item.inputs.map(function(input) {return input.type;}).join(",") + ")";
-	  var hash = web3.sha3(signature);
-	  if (hash == log.topics[0]) {
-	    event = item;
-	    break;
-	  }
-	}
-
-	if (event != null) {
-	  var inputs = event.inputs.map(function(input) {return input.type;});
-	  var data = abiUtils.decodeParameters(inputs, log.data.replace("0x", ""));
-	  // Do something with the data. Depends on the log and what you're using the data for.
-	  return {name:event.name , data:data};
-	}
-	return null;
-}
-
 var Administrable = artifacts.require("./core/Administrable.sol");
 var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
@@ -44,12 +20,12 @@ contract('RequestCore Administrative part', function(accounts) {
 		assert.equal(await requestCore.paused.call(),false,"Core must not be paused at the begging");
 
 		var r = await requestCore.pause({from:admin});
-		var ev = getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
+		var ev = utils.getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
 		assert.equal(ev.name,"Pause","Event Pause is missing after pause()");
 		assert.equal(await requestCore.paused.call(),true,"Core must be Paused after pause()");
 
 		var r = await requestCore.unpause({from:admin});
-		var ev = getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
+		var ev = utils.getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
 		assert.equal(ev.name,"Unpause","Event Unpause is missing after unpause()");
 		assert.equal(await requestCore.paused.call(),false,"Core must not be paused after unpause()");
 	});
@@ -73,7 +49,7 @@ contract('RequestCore Administrative part', function(accounts) {
 		var requestEthereum = await RequestEthereum.new();
 
 		var r = await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});
-		var ev = getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
+		var ev = utils.getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
 		assert.equal(ev.name,"NewTrustedContract","Event NewTrustedContract is missing after adminAddTrustedCurrencyContract()");
 		assert.equal(ev.data[0].toLowerCase(),requestEthereum.address,"Event NewTrustedContract wrong args");
 		assert.equal(await requestCore.getStatusContract.call(requestEthereum.address),"1","New contract should be added");
@@ -85,7 +61,7 @@ contract('RequestCore Administrative part', function(accounts) {
 		await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});
 
 		var r = await requestCore.adminRemoveTrustedCurrencyContract(requestEthereum.address, {from:admin});
-		var ev = getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
+		var ev = utils.getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
 		assert.equal(ev.name,"RemoveTrustedContract","Event RemoveTrustedContract is missing after adminAddTrustedCurrencyContract()");
 		assert.equal(ev.data[0].toLowerCase(),requestEthereum.address,"Event RemoveTrustedContract wrong args");
 		assert.equal(await requestCore.getStatusContract.call(requestEthereum.address),"0","New contract should be added");
@@ -97,7 +73,7 @@ contract('RequestCore Administrative part', function(accounts) {
 		var requestEthereum = await RequestEthereum.new();
 
 		var r = await requestCore.adminAddTrustedExtension(requestEthereum.address, {from:admin});
-		var ev = getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
+		var ev = utils.getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
 		assert.equal(ev.name,"NewTrustedExtension","Event NewTrustedExtension is missing after adminAddTrustedExtension()");
 		assert.equal(ev.data[0].toLowerCase(),requestEthereum.address,"Event NewTrustedExtension wrong args");
 		assert.equal(await requestCore.getStatusExtension.call(requestEthereum.address),"1","New extension should be added");
@@ -109,7 +85,7 @@ contract('RequestCore Administrative part', function(accounts) {
 		await requestCore.adminAddTrustedExtension(requestEthereum.address, {from:admin});
 
 		var r = await requestCore.adminRemoveExtension(requestEthereum.address, {from:admin});
-		var ev = getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
+		var ev = utils.getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
 		assert.equal(ev.name,"RemoveTrustedExtension","Event RemoveTrustedExtension is missing after adminRemoveExtension()");
 		assert.equal(ev.data[0].toLowerCase(),requestEthereum.address,"Event RemoveTrustedExtension wrong args");
 		assert.equal(await requestCore.getStatusExtension.call(requestEthereum.address),"0","New extension should be added");
@@ -160,7 +136,7 @@ contract('RequestCore Administrative part', function(accounts) {
 		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0);
 
 		var r = await requestCore.setBurnManager(requestBurnManagerSimple.address, {from:admin});
-		var ev = getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
+		var ev = utils.getEventFromReceipt(r.receipt.logs[0], Administrable.abi);
 		assert.equal(ev.name,"NewBurnManager","Event NewBurnManager is missing after setBurnManager()");
 		assert.equal(ev.data[0].toLowerCase(),requestBurnManagerSimple.address,"Event NewBurnManager wrong args");
 

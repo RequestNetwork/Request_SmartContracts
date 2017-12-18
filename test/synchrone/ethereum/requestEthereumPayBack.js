@@ -12,29 +12,7 @@ var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/
 var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSimple.sol");
 var BigNumber = require('bignumber.js');
 
-var abiUtils = require("web3-eth-abi");
-var getEventFromReceipt = function(log, abi) {
-	var event = null;
 
-	for (var i = 0; i < abi.length; i++) {
-	  var item = abi[i];
-	  if (item.type != "event") continue;
-	  var signature = item.name + "(" + item.inputs.map(function(input) {return input.type;}).join(",") + ")";
-	  var hash = web3.sha3(signature);
-	  if (hash == log.topics[0]) {
-	    event = item;
-	    break;
-	  }
-	}
-
-	if (event != null) {
-	  var inputs = event.inputs.map(function(input) {return input.type;});
-	  var data = abiUtils.decodeParameters(inputs, log.data.replace("0x", ""));
-	  // Do something with the data. Depends on the log and what you're using the data for.
-	  return {name:event.name , data:data};
-	}
-	return null;
-}
 
 contract('RequestEthereum PayBack',  function(accounts) {
 	var admin = accounts[0];
@@ -135,10 +113,10 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
-		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[0],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -187,10 +165,10 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
-		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[0],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -212,10 +190,10 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
-		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[0],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -241,18 +219,18 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestRefund","Event LogTestRefund is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestRefund wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestRefund wrong args ID");
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
-		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		l = utils.getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event UpdateBalance wrong args requestId");
-		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
+		assert.equal(r.receipt.logs[1].topics[1],utils.getHashRequest(2),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[0],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
-		l = getEventFromReceipt(r.receipt.logs[2], fakeExtentionContinue1.abi);
+		l = utils.getEventFromReceipt(r.receipt.logs[2], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestFundOrder wrong args ID");
@@ -282,7 +260,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		var r = await requestEthereum.refundAction(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherRefundFalse1.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherRefundFalse1.abi);
 		assert.equal(l.name,"LogTestRefund","Event LogTestRefund is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestRefund wrong args requestId");
 		assert.equal(l.data[1],21,"Event LogTestRefund wrong args ID");
@@ -311,18 +289,18 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		var r = await requestEthereum.refundAction(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalse1.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalse1.abi);
 		assert.equal(l.name,"LogTestRefund","Event LogTestRefund is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestRefund wrong args requestId");
 		assert.equal(l.data[1],22,"Event LogTestRefund wrong args ID");
 		assert.equal(l.data[2],arbitraryAmount10percent,"Event LogTestRefund wrong args amount");
 
-		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		l = utils.getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event UpdateBalance wrong args requestId");
-		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
+		assert.equal(r.receipt.logs[1].topics[1],utils.getHashRequest(2),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[0],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
-		var l = getEventFromReceipt(r.receipt.logs[2], fakeExtentionLauncherFundOrderFalse1.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[2], fakeExtentionLauncherFundOrderFalse1.abi);
 		assert.equal(l.name,"LogTestFundOrder","Event LogTestFundOrder is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestFundOrder wrong args requestId");
 		assert.equal(l.data[1],22,"Event LogTestFundOrder wrong args ID");
@@ -352,7 +330,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		var r = await requestEthereum.refundAction(utils.getHashRequest(2), {value:arbitraryAmount10percent, from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalseAndRefundFalse1.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], fakeExtentionLauncherFundOrderFalseAndRefundFalse1.abi);
 		assert.equal(l.name,"LogTestRefund","Event LogTestRefund is missing after refundAction()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestRefund wrong args requestId");
 		assert.equal(l.data[1],23,"Event LogTestRefund wrong args ID");
@@ -380,10 +358,10 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:0, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
-		assert.equal(l.data[1],0,"Event UpdateBalance wrong args amountRefunded");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[0],0,"Event UpdateBalance wrong args amountRefunded");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -404,10 +382,10 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount30percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
-		assert.equal(l.data[1],-arbitraryAmount30percent,"Event UpdateBalance wrong args amountRefunded");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[0],-arbitraryAmount30percent,"Event UpdateBalance wrong args amountRefunded");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -426,10 +404,10 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount20percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
-		assert.equal(l.data[1],-arbitraryAmount20percent,"Event UpdateBalance wrong args amountRefunded");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[0],-arbitraryAmount20percent,"Event UpdateBalance wrong args amountRefunded");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -448,10 +426,10 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
-		assert.equal(l.data[1],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(l.data[0],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");

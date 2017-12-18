@@ -22,29 +22,7 @@ var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSi
 
 var BigNumber = require('bignumber.js');
 
-var abiUtils = require("web3-eth-abi");
-var getEventFromReceipt = function(log, abi) {
-	var event = null;
 
-	for (var i = 0; i < abi.length; i++) {
-	  var item = abi[i];
-	  if (item.type != "event") continue;
-	  var signature = item.name + "(" + item.inputs.map(function(input) {return input.type;}).join(",") + ")";
-	  var hash = web3.sha3(signature);
-	  if (hash == log.topics[0]) {
-	    event = item;
-	    break;
-	  }
-	}
-
-	if (event != null) {
-	  var inputs = event.inputs.map(function(input) {return input.type;});
-	  var data = abiUtils.decodeParameters(inputs, log.data.replace("0x", ""));
-	  // Do something with the data. Depends on the log and what you're using the data for.
-	  return {name:event.name , data:data};
-	}
-	return null;
-}
 
 var hashRequest = function(contract, payee, payer, arbitraryAmount, extension, extParams, data) {
 	const requestParts = [
@@ -131,22 +109,22 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,4,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
-		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
-		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
 		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amount");
 
-		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount+1,"Event UpdateBalance wrong args amountPaid");
@@ -258,22 +236,22 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,4,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
-		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
-		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
 		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateExpectedAmount wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amount");
 
-		var l = getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[3], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
@@ -391,17 +369,17 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,3,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
-		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
-		var l = getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[2], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[1],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
@@ -436,13 +414,13 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event Created wrong args requestId");
 		assert.equal(l.data[1].toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(l.data[2].toLowerCase(),payer,"Event Created wrong args payer");
 
-		var l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after broadcastSignedRequestAsPayer()");
 		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 

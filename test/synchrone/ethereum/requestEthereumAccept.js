@@ -13,29 +13,7 @@ var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/
 var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSimple.sol");
 var BigNumber = require('bignumber.js');
 
-var abiUtils = require("web3-eth-abi");
-var getEventFromReceipt = function(log, abi) {
-	var event = null;
 
-	for (var i = 0; i < abi.length; i++) {
-	  var item = abi[i];
-	  if (item.type != "event") continue;
-	  var signature = item.name + "(" + item.inputs.map(function(input) {return input.type;}).join(",") + ")";
-	  var hash = web3.sha3(signature);
-	  if (hash == log.topics[0]) {
-	    event = item;
-	    break;
-	  }
-	}
-
-	if (event != null) {
-	  var inputs = event.inputs.map(function(input) {return input.type;});
-	  var data = abiUtils.decodeParameters(inputs, log.data.replace("0x", ""));
-	  // Do something with the data. Depends on the log and what you're using the data for.
-	  return {name:event.name , data:data};
-	}
-	return null;
-}
 
 contract('RequestEthereum Accept',  function(accounts) {
 	var admin = accounts[0];
@@ -102,9 +80,9 @@ contract('RequestEthereum Accept',  function(accounts) {
 		await requestCore.pause({from:admin});
 		var r = await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -150,9 +128,9 @@ contract('RequestEthereum Accept',  function(accounts) {
 		
 		var r = await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -170,9 +148,9 @@ contract('RequestEthereum Accept',  function(accounts) {
 	it("accept request created OK - without extension", async function () {
 		var r = await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event Accepted wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event Accepted wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -192,14 +170,14 @@ contract('RequestEthereum Accept',  function(accounts) {
 
 		var r = await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestAccept","Event LogTestAccept is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestAccept wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestAccept wrong args ID");
 
-		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		l = utils.getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after createRequestAsPayee()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event Accepted wrong args requestId");
+		assert.equal(r.receipt.logs[1].topics[1],utils.getHashRequest(2),"Event Accepted wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -218,7 +196,7 @@ contract('RequestEthereum Accept',  function(accounts) {
 
 		var r = await requestEthereum.accept(utils.getHashRequest(2), {from:payer});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestAccept","Event LogTestAccept is missing after createRequestAsPayee()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestAccept wrong args requestId");
 		assert.equal(l.data[1],11,"Event LogTestAccept wrong args ID");
@@ -241,9 +219,9 @@ contract('RequestEthereum Accept',  function(accounts) {
 		var r = await fakeExtentionLauncher1.launchAccept(utils.getHashRequest(2));
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after accept()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event Accepted wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(2),"Event Accepted wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -264,9 +242,9 @@ contract('RequestEthereum Accept',  function(accounts) {
 		var r = await fakeExtentionLauncher1.launchAccept(utils.getHashRequest(2));
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after accept()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event Accepted wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(2),"Event Accepted wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -287,9 +265,9 @@ contract('RequestEthereum Accept',  function(accounts) {
 		var r = await fakeExtentionLauncher1.launchAccept(utils.getHashRequest(2));
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Accepted","Event Accepted is missing after accept()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event Accepted wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(2),"Event Accepted wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");

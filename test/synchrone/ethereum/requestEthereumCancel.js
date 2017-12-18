@@ -14,29 +14,7 @@ var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/
 var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSimple.sol");
 var BigNumber = require('bignumber.js');
 
-var abiUtils = require("web3-eth-abi");
-var getEventFromReceipt = function(log, abi) {
-	var event = null;
 
-	for (var i = 0; i < abi.length; i++) {
-	  var item = abi[i];
-	  if (item.type != "event") continue;
-	  var signature = item.name + "(" + item.inputs.map(function(input) {return input.type;}).join(",") + ")";
-	  var hash = web3.sha3(signature);
-	  if (hash == log.topics[0]) {
-	    event = item;
-	    break;
-	  }
-	}
-
-	if (event != null) {
-	  var inputs = event.inputs.map(function(input) {return input.type;});
-	  var data = abiUtils.decodeParameters(inputs, log.data.replace("0x", ""));
-	  // Do something with the data. Depends on the log and what you're using the data for.
-	  return {name:event.name , data:data};
-	}
-	return null;
-}
 
 contract('RequestEthereum Cancel',  function(accounts) {
 	var admin = accounts[0];
@@ -105,9 +83,9 @@ contract('RequestEthereum Cancel',  function(accounts) {
 		await requestCore.pause({from:admin});
 		var r = await requestEthereum.cancel(utils.getHashRequest(1), {from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event Canceled wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event Canceled wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -126,9 +104,9 @@ contract('RequestEthereum Cancel',  function(accounts) {
 
 		var r = await requestEthereum.cancel(utils.getHashRequest(1), {from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event Canceled wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event Canceled wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -195,9 +173,9 @@ contract('RequestEthereum Cancel',  function(accounts) {
 	it("cancel request created OK - without extension", async function () {
 		var r = await requestEthereum.cancel(utils.getHashRequest(1), {from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(1),"Event Canceled wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event Canceled wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -217,14 +195,14 @@ contract('RequestEthereum Cancel',  function(accounts) {
 
 		var r = await requestEthereum.cancel(utils.getHashRequest(2), {from:payee});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestCancel wrong args requestId");
 		assert.equal(l.data[1],1,"Event LogTestCancel wrong args ID");
 
-		l = getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
+		l = utils.getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
 		assert.equal(l.name,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event Canceled wrong args requestId");
+		assert.equal(r.receipt.logs[1].topics[1],utils.getHashRequest(2),"Event Canceled wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -243,7 +221,7 @@ contract('RequestEthereum Cancel',  function(accounts) {
 
 		var r = await requestEthereum.cancel(utils.getHashRequest(2), {from:payee});
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
 		assert.equal(l.name,"LogTestCancel","Event LogTestCancel is missing after cancel()");
 		assert.equal(l.data[0],utils.getHashRequest(2),"Event LogTestCancel wrong args requestId");
 		assert.equal(l.data[1],11,"Event LogTestCancel wrong args ID");
@@ -265,9 +243,9 @@ contract('RequestEthereum Cancel',  function(accounts) {
 
 		var r = await fakeExtentionLauncher1.launchCancel(utils.getHashRequest(2));
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event Canceled wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(2),"Event Canceled wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -287,9 +265,9 @@ contract('RequestEthereum Cancel',  function(accounts) {
 
 		var r = await fakeExtentionLauncher1.launchCancel(utils.getHashRequest(2));
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event Canceled wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(2),"Event Canceled wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
@@ -309,9 +287,9 @@ contract('RequestEthereum Cancel',  function(accounts) {
 
 		var r = await fakeExtentionLauncher1.launchCancel(utils.getHashRequest(2));
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
+		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Canceled","Event Canceled is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event Canceled wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(2),"Event Canceled wrong args requestId");
 
 		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
