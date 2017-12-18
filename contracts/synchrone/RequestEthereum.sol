@@ -308,6 +308,8 @@ contract RequestEthereum is Pausable {
 		external
 		whenNotPaused
 		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
+		// subtract must be equal or lower than amount expected
+		condition(requestCore.getExpectedAmount(_requestId) >= _amount.toInt256Safe())
 		onlyRequestPayee(_requestId)
 	{
 		updateExpectedAmountInternal(_requestId, -_amount.toInt256Safe());
