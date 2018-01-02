@@ -267,6 +267,7 @@ contract RequestEthereum is Pausable {
 		whenNotPaused
 		payable
 		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || (requestCore.getState(_requestId)==RequestCore.State.Created && requestCore.getPayer(_requestId)==msg.sender))
+		condition(_additionals==0 || requestCore.getPayer(_requestId)==msg.sender)
 	{
 		// automatically accept request
 		if(requestCore.getState(_requestId)==RequestCore.State.Created) {
