@@ -14,6 +14,8 @@ import './extensions/RequestSynchroneInterface.sol';
  * @dev Requests can have 1 extension. it has to implement RequestSynchroneInterface and declared trusted on the Core
  */
 contract RequestEthereum is Pausable {
+    uint32 public constant VERSION = 1;
+    
 	using SafeMath for uint256;
 
 	// RequestCore object
@@ -258,7 +260,8 @@ contract RequestEthereum is Pausable {
 	/*
 	 * @dev Function PAYABLE to pay in ether a request
 	 *
-	 * @dev the request must be accepted
+	 * @dev the request must be accepted if msg.sender!=payer
+	 * @dev the request will be automatically accepted if msg.sender==payer
 	 *
 	 * @param _requestId id of the request
 	 * @param _additionals amount of additionals in wei to declare 
@@ -267,7 +270,8 @@ contract RequestEthereum is Pausable {
 		external
 		whenNotPaused
 		payable
-		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
+		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || (requestCore.getState(_requestId)==RequestCore.State.Created && requestCore.getPayer(_requestId)==msg.sender))
+		condition(_additionals==0 || requestCore.getPayer(_requestId)==msg.sender)
 	{
 		// automatically accept request
 		if(requestCore.getState(_requestId)==RequestCore.State.Created) {

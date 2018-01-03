@@ -148,10 +148,10 @@ contract('RequestEthereum Pay', function(accounts) {
 		await utils.expectThrow(requestEthereum.paymentAction(666,0, {value:arbitraryAmount, from:payer}));
 	});
 
-	it("pay request just created => accept auto", async function () {
+	it("pay request by payer just created => accept auto", async function () {
 		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
 
-		var r = await requestEthereum.paymentAction(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payee});
+		var r = await requestEthereum.paymentAction(utils.getHashRequest(2),0, {value:arbitraryAmount, from:payer});
 
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 
@@ -173,6 +173,12 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal(newReq[5],arbitraryAmount,"new request wrong data : balance");
 		assert.equal(newReq[6],1,"new request wrong data : state");
 	});
+	it("pay request by otherguy just created => impossible", async function () {
+		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
+
+		await utils.expectThrow(requestEthereum.paymentAction(utils.getHashRequest(2),0, {value:arbitraryAmount, from:otherguy}));
+	});
+
 
 	it("pay request canceled impossible", async function () {
 		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
@@ -508,7 +514,11 @@ contract('RequestEthereum Pay', function(accounts) {
 		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),arbitraryAmount3+arbitraryAmount2+arbitraryAmount,"new request wrong data : amount to withdraw payee");
 	});
 
-	it("pay with tips OK", async function () {
+	it("pay by otherguy with tips Impossible", async function () {
+		await utils.expectThrow(requestEthereum.paymentAction(utils.getHashRequest(1),arbitraryTips, {value:arbitraryAmount, from:otherguy}));
+	});
+
+	it("pay by payer with tips OK", async function () {
 		var balancePayeeBefore = await web3.eth.getBalance(payee);
 		var r = await requestEthereum.paymentAction(utils.getHashRequest(1),arbitraryTips, {value:arbitraryAmount, from:payer});
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
