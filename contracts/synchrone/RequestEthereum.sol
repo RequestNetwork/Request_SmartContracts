@@ -39,12 +39,13 @@ contract RequestEthereum is Pausable {
 	/*
 	 * @dev Function to create a request as payee
 	 *
-	 * @dev msg.sender must be _payee
+	 * @dev msg.sender will be the payee
 	 *
 	 * @param _payer Entity supposed to pay
-	 * @param _expectedAmount Expected amount to be received. This amount can't be changed.
+	 * @param _expectedAmount Expected amount to be received.
 	 * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
 	 * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32.
+	 * @param _data Hash linking to additional data on the Request stored on IPFS
 	 *
 	 * @return Returns the id of the request 
 	 */
@@ -70,12 +71,14 @@ contract RequestEthereum is Pausable {
 	/*
 	 * @dev Function to create a request as payer
 	 *
-	 * @dev msg.sender must be _payee or _payer
+	 * @dev msg.sender will be the payer
 	 *
 	 * @param _payee Entity which will receive the payment
-	 * @param _expectedAmount Expected amount to be received. This amount can't be changed.
-	 * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
+	 * @param _expectedAmount Expected amount to be received
+	 * @param _extension An extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
 	 * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32.
+	 * @param _additionals Will increase the ExpectedAmount of the request right after its creation by adding additionals
+	 * @param _data Hash linking to additional data on the Request stored on IPFS
 	 *
 	 * @return Returns the id of the request 
 	 */
@@ -168,6 +171,7 @@ contract RequestEthereum is Pausable {
 	 * @dev Function to accept a request
 	 *
 	 * @dev msg.sender must be _payer or an extension used by the request
+	 * @dev A request can also be accepted by using directly the payment function on a request in the Created status
 	 *
 	 * @param _requestId id of the request 
 	 *
@@ -207,7 +211,7 @@ contract RequestEthereum is Pausable {
 	 * @dev msg.sender must be an extension used by the request
 	 *
 	 * @param _requestId id of the request 
-	 * @param _recipient adress where the wei has to me send to
+	 * @param _recipient address where the wei has to me send to
 	 * @param _amount amount in wei to send
 	 *
 	 * @return true if the fund mouvement is done, false otherwise
@@ -224,12 +228,12 @@ contract RequestEthereum is Pausable {
 	/*
 	 * @dev Function to cancel a request
 	 *
-	 * @dev msg.sender must be the extension used by the request or the _payer (if request is created) or the _payee (if request is not canceled)
+	 * @dev msg.sender must be the extension used by the request, the _payer or the _payee.
 	 * @dev only request with balance equals to zero can be cancel
 	 *
 	 * @param _requestId id of the request 
 	 *
-	 * @return true if the request is canceled, false otherwise
+	 * @return true if the request is canceled
 	 */
 	function cancel(bytes32 _requestId)
 		external
@@ -316,7 +320,7 @@ contract RequestEthereum is Pausable {
 	}
 
 	/*
-	 * @dev Function to declare a additional
+	 * @dev Function to declare an additional
 	 *
 	 * @dev msg.sender must be _payer or an extension used by the request
 	 * @dev the request must be accepted or created

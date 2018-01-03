@@ -97,7 +97,7 @@ contract RequestCore is Administrable {
     }
 
     /*
-     * @dev Function used by Subcontracts to accept a request in the Core. A request accepted is recognized by the payer as legit
+     * @dev Function used by Subcontracts to accept a request in the Core.
      * @param _requestId Request id
      */ 
     function accept(bytes32 _requestId) 
