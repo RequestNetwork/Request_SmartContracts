@@ -48,7 +48,7 @@ msg.sender will be the payee
 
 
 ### Create a new request as the payer
-` function createRequestAsPayer(address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _additionals, string ` _data)
+` function createRequestAsPayer(address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _additionals, string  _data) `
 
 msg.sender will be the payer
  
