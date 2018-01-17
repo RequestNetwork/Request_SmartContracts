@@ -3,7 +3,6 @@ pragma solidity 0.4.18;
 import '../core/RequestCore.sol';
 import '../base/math/SafeMath.sol';
 import '../base/lifecycle/Pausable.sol';
-import './extensions/RequestSynchroneInterface.sol';
 
 /**
  * @title RequestEthereum
@@ -11,7 +10,7 @@ import './extensions/RequestSynchroneInterface.sol';
  * @dev RequestEthereum is the currency contract managing the request payed in Ethereum
  *
  * @dev Requests can be created by the Payee with createRequest() or by the payer from a request signed offchain by the payee with createQuickRequest
- * @dev Requests can have 1 extension. it has to implement RequestSynchroneInterface and declared trusted on the Core
+ * @dev Requests don't have extension for now
  */
 contract RequestEthereum is Pausable {
     uint32 public constant VERSION = 1;
@@ -45,8 +44,8 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @param _payer Entity supposed to pay
 	 * @param _expectedAmount Expected amount to be received.
-	 * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
-	 * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32.
+	 * @param _extension NOT USED (will be use later)
+	 * @param _extensionParams NOT USED (will be use later)
 	 * @param _data Hash linking to additional data on the Request stored on IPFS
 	 *
 	 * @return Returns the id of the request 
@@ -59,12 +58,7 @@ contract RequestEthereum is Pausable {
 	{
 		require(_expectedAmount>=0);
 		require(msg.sender != _payer && _payer != 0);
-		requestId= requestCore.createRequest.value(msg.value)(msg.sender, msg.sender, _payer, _expectedAmount, _extension, _data);
-
-		if(_extension!=0) {
-			RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
-			extension.createRequest(requestId, _extensionParams);
-		}
+		requestId= requestCore.createRequest.value(msg.value)(msg.sender, msg.sender, _payer, _expectedAmount, 0, _data);
 
 		return requestId;
 	}
@@ -77,8 +71,8 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @param _payee Entity which will receive the payment
 	 * @param _expectedAmount Expected amount to be received
-	 * @param _extension An extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
-	 * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32.
+	 * @param _extension NOT USED (will be use later)
+	 * @param _extensionParams NOT USED (will be use later)
 	 * @param _additionals Will increase the ExpectedAmount of the request right after its creation by adding additionals
 	 * @param _data Hash linking to additional data on the Request stored on IPFS
 	 *
@@ -93,19 +87,13 @@ contract RequestEthereum is Pausable {
 		require(_expectedAmount>=0);
 		require(msg.sender != _payee && _payee != 0);
 
-		uint256 collectAmount = requestCore.getCollectEstimation(_expectedAmount,msg.sender,_extension);
-		requestId= requestCore.createRequest.value(collectAmount)(msg.sender, _payee, msg.sender, _expectedAmount, _extension, _data);
+		uint256 collectAmount = requestCore.getCollectEstimation(_expectedAmount,msg.sender,0);
+		requestId= requestCore.createRequest.value(collectAmount)(msg.sender, _payee, msg.sender, _expectedAmount, 0, _data);
 
-		if(_extension!=0) {
-			RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
-			extension.createRequest(requestId, _extensionParams);
-		}
-
-		// accept must succeed
-		require(acceptInternal(requestId));
+		requestCore.accept(requestId);
 
 		if(_additionals > 0) {
-			updateExpectedAmountInternal(requestId, _additionals.toInt256Safe());
+			requestCore.updateExpectedAmount(requestId, _additionals.toInt256Safe());
 		}
 		if(msg.value-collectAmount > 0) {
 			paymentInternal(requestId, msg.value-collectAmount);
@@ -115,64 +103,12 @@ contract RequestEthereum is Pausable {
 	}
 
 
-
-	/*
-	 * @dev Function to broadcast and accept an offchain signed request (can be paid and additionals also)
-	 *
-	 * @dev msg.sender must be _payer
-	 * @dev the _payer can additionals 
-	 *
-	 * @param _payee Entity which will receive the payment
-	 * @param _payer Entity supposed to pay
-	 * @param _expectedAmount Expected amount to be received. This amount can't be changed.
-	 * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
-	 * @param _extensionParams Parameters for the extension. It is an array of 9 bytes32
-	 * @param _additionals amount of additionals the payer want to declare
-	 * @param v ECDSA signature parameter v.
-	 * @param r ECDSA signature parameters r.
-	 * @param s ECDSA signature parameters s.
-	 *
-	 * @return Returns the id of the request 
-	 */
-	// function broadcastSignedRequestAsPayer(address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _additionals, string _data, uint8 v, bytes32 r, bytes32 s)
-	// 	external
-	// 	payable
-	// 	whenNotPaused
-	// 	returns(bytes32 requestId)
-	// {
-	// 	require(_expectedAmount>=0);
-	// 	require(msg.sender != _payee && _payee != 0);
-
-	// 	// check the signature
-	// 	require(checkRequestSignature(_payee,_payee,msg.sender,_expectedAmount,_extension,_extensionParams,_data, v, r, s));
-
-	// 	uint256 collectAmount = requestCore.getCollectEstimation(_expectedAmount,msg.sender,_extension);
-	// 	requestId=requestCore.createRequest.value(collectAmount)(_payee, _payee, msg.sender, _expectedAmount, _extension, _data).value(collectAmount);
-
-	// 	if(_extension!=0) {
-	// 		RequestSynchroneInterface extension = RequestSynchroneInterface(_extension);
-	// 		extension.createRequest(requestId, _extensionParams);
-	// 	}
-
-	// 	// accept must succeed
-	// 	require(acceptInternal(requestId));
-
-	// 	if(_additionals > 0) {
-	// 		updateExpectedAmountInternal(requestId, _additionals.toInt256Safe());
-	// 	}
-	// 	if(msg.value-collectAmount > 0) {
-	// 		paymentInternal(requestId, msg.value-collectAmount);
-	// 	}
-
-	// 	return requestId;
-	// }
-
 	// ---- INTERFACE FUNCTIONS ------------------------------------------------------------------------------------
 
 	/*
 	 * @dev Function to accept a request
 	 *
-	 * @dev msg.sender must be _payer or an extension used by the request
+	 * @dev msg.sender must be _payer
 	 * @dev A request can also be accepted by using directly the payment function on a request in the Created status
 	 *
 	 * @param _requestId id of the request 
@@ -182,55 +118,15 @@ contract RequestEthereum is Pausable {
 	function accept(bytes32 _requestId) 
 		external
 		whenNotPaused
-		condition(isOnlyRequestExtension(_requestId) || (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created))
-		returns(bool)
+		condition(requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created)
 	{
-		return acceptInternal(_requestId);
-	}
-
-	/*
-	 * @dev Function to declare a payment a request
-	 *
-	 * @dev msg.sender must be an extension used by the request
-	 *
-	 * @param _requestId id of the request 
-	 * @param _amount amount of the payment to declare
-	 *
-	 * @return true if the payment is declared, false otherwise
-	 */
-	function payment(bytes32 _requestId, uint256 _amount)
-		external
-		whenNotPaused
-		onlyRequestExtensions(_requestId)
-		returns(bool)
-	{
-		return paymentInternal(_requestId, _amount);
-	}
-
-	/*
-	 * @dev Function to order a fund mouvment 
-	 *
-	 * @dev msg.sender must be an extension used by the request
-	 *
-	 * @param _requestId id of the request 
-	 * @param _recipient address where the wei has to me send to
-	 * @param _amount amount in wei to send
-	 *
-	 * @return true if the fund mouvement is done, false otherwise
-	 */
-	function fundOrder(bytes32 _requestId, address _recipient, uint256 _amount)
-		external
-		whenNotPaused
-		onlyRequestExtensions(_requestId)
-		returns(bool)
-	{
-		return fundOrderInternal(_requestId, _recipient, _amount);
+		requestCore.accept(_requestId);
 	}
 
 	/*
 	 * @dev Function to cancel a request
 	 *
-	 * @dev msg.sender must be the extension used by the request, the _payer or the _payee.
+	 * @dev msg.sender must be the _payer or the _payee.
 	 * @dev only request with balance equals to zero can be cancel
 	 *
 	 * @param _requestId id of the request 
@@ -240,17 +136,14 @@ contract RequestEthereum is Pausable {
 	function cancel(bytes32 _requestId)
 		external
 		whenNotPaused
-		returns(bool)
 	{
-		require(isOnlyRequestExtension(_requestId) 
-				|| (requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created)
-				|| (requestCore.getPayee(_requestId)==msg.sender && requestCore.getState(_requestId)!=RequestCore.State.Canceled)
-		);
+		require((requestCore.getPayer(_requestId)==msg.sender && requestCore.getState(_requestId)==RequestCore.State.Created)
+				|| (requestCore.getPayee(_requestId)==msg.sender && requestCore.getState(_requestId)!=RequestCore.State.Canceled));
 
 		// impossible to cancel a Request with a balance != 0
 		require(requestCore.getBalance(_requestId) == 0);
 
-		return cancelInternal(_requestId);
+		requestCore.cancel(_requestId);
 	}
 
 	// ----------------------------------------------------------------------------------------
@@ -275,11 +168,11 @@ contract RequestEthereum is Pausable {
 	{
 		// automatically accept request
 		if(requestCore.getState(_requestId)==RequestCore.State.Created) {
-			acceptInternal(_requestId);
+			requestCore.accept(_requestId);
 		}
 
 		if(_additionals > 0) {
-			updateExpectedAmountInternal(_requestId, _additionals.toInt256Safe());
+			requestCore.updateExpectedAmount(_requestId, _additionals.toInt256Safe());
 		}
 		paymentInternal(_requestId, msg.value);
 	}
@@ -306,7 +199,7 @@ contract RequestEthereum is Pausable {
 	/*
 	 * @dev Function to declare a subtract
 	 *
-	 * @dev msg.sender must be _payee or an extension used by the request
+	 * @dev msg.sender must be _payee
 	 * @dev the request must be accepted or created
 	 *
 	 * @param _requestId id of the request
@@ -320,13 +213,13 @@ contract RequestEthereum is Pausable {
 		condition(requestCore.getExpectedAmount(_requestId) >= _amount.toInt256Safe())
 		onlyRequestPayee(_requestId)
 	{
-		updateExpectedAmountInternal(_requestId, -_amount.toInt256Safe());
+		requestCore.updateExpectedAmount(_requestId, -_amount.toInt256Safe());
 	}
 
 	/*
 	 * @dev Function to declare an additional
 	 *
-	 * @dev msg.sender must be _payer or an extension used by the request
+	 * @dev msg.sender must be _payer
 	 * @dev the request must be accepted or created
 	 *
 	 * @param _requestId id of the request
@@ -338,7 +231,7 @@ contract RequestEthereum is Pausable {
 		condition(requestCore.getState(_requestId)==RequestCore.State.Accepted || requestCore.getState(_requestId)==RequestCore.State.Created)
 		onlyRequestPayer(_requestId)
 	{
-		updateExpectedAmountInternal(_requestId, _amount.toInt256Safe());
+		requestCore.updateExpectedAmount(_requestId, _amount.toInt256Safe());
 	}
 
 
@@ -366,24 +259,10 @@ contract RequestEthereum is Pausable {
 	 */
 	function paymentInternal(bytes32 _requestId, uint256 _amount) 
 		internal
-		returns(bool)
 	{
-		address extensionAddr = requestCore.getExtension(_requestId);
-
-		bool isOK = true;
-		if(extensionAddr!=0 && extensionAddr!=msg.sender) 
-		{
-			RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
-			isOK = extension.payment(_requestId, _amount);
-		}
-
-		if(isOK) 
-		{
-			requestCore.updateBalance(_requestId, _amount.toInt256Safe());
-			// payment done, the money is ready to withdraw by the payee
-			fundOrderInternal(_requestId, requestCore.getPayee(_requestId), _amount);
-		}
-		return isOK;
+		requestCore.updateBalance(_requestId, _amount.toInt256Safe());
+		// payment done, the money is ready to withdraw by the payee
+		fundOrderInternal(_requestId, requestCore.getPayee(_requestId), _amount);
 	}
 
 	/*
@@ -396,52 +275,10 @@ contract RequestEthereum is Pausable {
 	 */
 	function refundInternal(bytes32 _requestId, uint256 _amount) 
 		internal
-		returns(bool)
 	{
-		address extensionAddr = requestCore.getExtension(_requestId);
-
-		bool isOK = true;
-		if(extensionAddr!=0 && extensionAddr!=msg.sender) 
-		{
-			RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
-			isOK = extension.refund(_requestId, _amount);
-		}
-
-		if(isOK) 
-		{
-			requestCore.updateBalance(_requestId, -_amount.toInt256Safe());
-			// payment done, the money is ready to withdraw by the payee
-			fundOrderInternal(_requestId, requestCore.getPayer(_requestId), _amount);
-		}
-		return isOK;
-	}
-
-	/*
-	 * @dev Function internal to manage additionals & subtracts declaration
-	 *
-	 * @param _requestId id of the request
-	 * @param _amount amount of additionals or subtracts in wei to declare 
-	 *
-	 * @return true if the additionals or subtracts is declared, false otherwise
-	 */
-	function  updateExpectedAmountInternal(bytes32 _requestId, int256 _amount) 
-		internal
-		returns(bool)
-	{
-		address extensionAddr = requestCore.getExtension(_requestId);
-
-		bool isOK = true;
-		if(extensionAddr!=0 && extensionAddr!=msg.sender)  
-		{
-			RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
-			isOK = extension.updateExpectedAmount(_requestId, _amount);
-		}
-
-		if(isOK) 
-		{
-			requestCore.updateExpectedAmount(_requestId, _amount);
-		}
-		return isOK;
+		requestCore.updateBalance(_requestId, -_amount.toInt256Safe());
+		// payment done, the money is ready to withdraw by the payee
+		fundOrderInternal(_requestId, requestCore.getPayer(_requestId), _amount);
 	}
 
 	/*
@@ -455,95 +292,24 @@ contract RequestEthereum is Pausable {
 	 */
 	function fundOrderInternal(bytes32 _requestId, address _recipient, uint256 _amount) 
 		internal
-		returns(bool)
 	{
-		address extensionAddr = requestCore.getExtension(_requestId);
-
-		bool isOK = true;
-		if(extensionAddr!=0 && extensionAddr!=msg.sender)  
-		{
-			RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
-			isOK = extension.fundOrder(_requestId,_recipient,_amount);
+		// try to send the fund 
+		if(!_recipient.send(_amount)) {
+			// if sendding fail, the funds are availbale to withdraw
+			ethToWithdraw[_recipient] = ethToWithdraw[_recipient].add(_amount);
+			// spread the word that the money is not sent but available to withdraw
+			EtherAvailableToWithdraw(_requestId, _recipient, _amount);
 		}
-
-		if(isOK) 
-		{
-			// try to send the fund 
-			if(!_recipient.send(_amount)) {
-				// if sendding fail, the funds are availbale to withdraw
-				ethToWithdraw[_recipient] = ethToWithdraw[_recipient].add(_amount);
-				// spread the word that the money is not sent but available to withdraw
-				EtherAvailableToWithdraw(_requestId, _recipient, _amount);
-			}
-
-		}   
-		return isOK;
 	}
-
-	/*
-	 * @dev Function internal to manage acceptance
-	 *
-	 * @param _requestId id of the request 
-	 *
-	 * @return true if the request is accept, false otherwise
-	 */
-	function acceptInternal(bytes32 _requestId) 
-		internal
-		returns(bool)
-	{
-		address extensionAddr = requestCore.getExtension(_requestId);
-
-		bool isOK = true;
-		if(extensionAddr!=0 && extensionAddr!=msg.sender)  
-		{
-			RequestSynchroneInterface extension = RequestSynchroneInterface(requestCore.getExtension(_requestId));
-			isOK = extension.accept(_requestId);
-		}
-
-		if(isOK) 
-		{
-			requestCore.accept(_requestId);
-		}  
-		return isOK;
-	}
-
-
-	/*
-	 * @dev Function internal to manage cancel
-	 *
-	 * @param _requestId id of the request 
-	 *
-	 * @return true if the request is cancel, false otherwise
-	 */
-	function cancelInternal(bytes32 _requestId) 
-		internal
-		returns(bool)
-	{
-		address extensionAddr = requestCore.getExtension(_requestId);
-
-		bool isOK = true;
-		if(extensionAddr!=0 && extensionAddr!=msg.sender)  
-		{
-			RequestSynchroneInterface extension = RequestSynchroneInterface(extensionAddr);
-			isOK = extension.cancel(_requestId);
-		}
-		
-		if(isOK) 
-		{
-		  requestCore.cancel(_requestId);
-		}
-		return isOK;
-	}
-
 
 	/*
 	 * @dev Function internal to calculate Keccak-256 hash of a request with specified parameters
 	 *
-	 * @param _payee Entity which will receive the payment
-	 * @param _payer Entity supposed to pay
+	 * @param _payee Entity which will receive the payment.
+	 * @param _payer Entity supposed to pay.
 	 * @param _expectedAmount Expected amount to be received. This amount can't be changed.
-	 * @param _extensions Up to 3 extensions can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core
-	 * @param _extensionParams Parameters for the extensions. It is an array of 9 bytes32, the 3 first element are for the first extension, the 3 next for the second extension and the last 3 for the third extension.
+	 * @param _extension extension of the request.
+	 * @param _extensionParams Parameters for the extension.
 	 *
 	 * @return Keccak-256 hash of a request
 	 */
@@ -601,21 +367,6 @@ contract RequestEthereum is Pausable {
 		return isValidSignature(signer, hash, v, r, s);
 	}
 
-	/*
-	 * @dev Function internal to check if the msg.sender is an extension of the request
-	 *
-	 * @param _requestId id of the request 
-	 *
-	 * @return true if msg.sender is an extension of the request
-	 */
-	function isOnlyRequestExtension(bytes32 _requestId) 
-		internal 
-		view
-		returns(bool)
-	{
-		return msg.sender==requestCore.getExtension(_requestId);
-	}
-
 	//modifier
 	modifier condition(bool c) 
 	{
@@ -665,17 +416,6 @@ contract RequestEthereum is Pausable {
 	modifier onlyRequestState(bytes32 _requestId, RequestCore.State _state) 
 	{
 		require(requestCore.getState(_requestId)==_state);
-		_;
-	}
-
-	/*
-	 * @dev Modifier to check if the msg.sender is an extension of the request
-	 * @dev Revert if msg.sender is not an extension of the request
-	 * @param _requestId id of the request
-	 */
-	modifier onlyRequestExtensions(bytes32 _requestId) 
-	{
-		require(isOnlyRequestExtension(_requestId));
 		_;
 	}
 }

@@ -15,14 +15,7 @@ var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
 var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSimple.sol");
 
-// contract for test
-var TestRequestSynchroneInterfaceContinue = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceContinue.sol");
-var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneExtensionLauncher.sol");
-
-
 var BigNumber = require('bignumber.js');
-
-
 
 contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 	var admin = accounts[0];
@@ -31,13 +24,6 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 	var payer = accounts[3];
 	var payee = accounts[4];
 
-	// var creator = accounts[5];
-	var fakeExtention1;
-	var fakeExtention2;
-	var fakeExtention3;
-	var fakeExtention4Untrusted = accounts[9];
-	var fakeExtentionLauncherAcceptFalse;
-
 	var requestCore;
 	var requestEthereum;
 
@@ -45,11 +31,6 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 	var arbitraryAmount10percent = 100;
 
     beforeEach(async () => {
-    	fakeExtention1 = await TestRequestSynchroneInterfaceContinue.new(1);
-    	fakeExtention2 = await TestRequestSynchroneInterfaceContinue.new(2);
-    	fakeExtention3 = await TestRequestSynchroneInterfaceContinue.new(3);
-    	fakeExtentionLauncherAcceptFalse = await TestRequestSynchroneExtensionLauncher.new(21,true,false,true,true,true,true,true,true);
-
 		requestCore = await RequestCore.new();
 		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0); 
 		await requestBurnManagerSimple.setFeesPerTenThousand(100);// 1% collect
@@ -58,11 +39,6 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
 		await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});
-
-		await requestCore.adminAddTrustedExtension(fakeExtention1.address, {from:admin});
-		await requestCore.adminAddTrustedExtension(fakeExtention2.address, {from:admin});
-		await requestCore.adminAddTrustedExtension(fakeExtention3.address, {from:admin});
-		await requestCore.adminAddTrustedExtension(fakeExtentionLauncherAcceptFalse.address, {from:admin});
     });
 
 	it("new request more than expectedAmount (with tips that make the new requestment under expected) OK", async function () {
@@ -336,31 +312,10 @@ contract('RequestEthereum createRequestAsPayer',  function(accounts) {
 		assert.equal((await web3.eth.getBalance(payee)).sub(balancePayeeBefore),0,"new request wrong data : amount to withdraw payee");
 	});
 
-	// #####################################################################################
-	// Extensions
-	// #####################################################################################
-// new request with 3 trustable extensions with parameters
-
-	it("new request with 1 extension intercepting accept impossible", async function () {
-		var extension = fakeExtentionLauncherAcceptFalse.address;
-		var listParamsExtensions = [];
-
-		await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 
-													extension,
-													listParamsExtensions, 
-													0, "", 
-													{from:payer, value:arbitraryAmount+arbitraryAmount/100}));
-	});
-
-	// #####################################################################################
-	// #####################################################################################
-	// #####################################################################################
-
 	it("new request when currencyContract not trusted Impossible", async function () {
 		var requestEthereum2 = await RequestEthereum.new(requestCore.address,{from:admin});
 		await utils.expectThrow(requestEthereum2.createRequestAsPayer(payee, arbitraryAmount, 0, [], 0, "", {from:payer, value:arbitraryAmount+arbitraryAmount/100}));
 	});
-
 
 	it("new request with collect not payed or underpayed", async function () {
 		await utils.expectThrow(requestEthereum.createRequestAsPayer(payee, arbitraryAmount, 0, [], 0, "", {from:payer, value:1}));

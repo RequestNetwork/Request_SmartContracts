@@ -5,10 +5,6 @@ if(!config['all'] && !config[__filename.split('\\').slice(-1)[0]]) {
 
 var RequestCore = artifacts.require("./core/RequestCore.sol");
 var RequestEthereum = artifacts.require("./synchrone/RequestEthereum.sol");
-
-var TestRequestSynchroneInterfaceContinue = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceContinue.sol");
-var TestRequestSynchroneInterfaceInterception = artifacts.require("./test/synchrone/TestRequestSynchroneInterfaceInterception.sol");
-var TestRequestSynchroneExtensionLauncher = artifacts.require("./test/synchrone/TestRequestSynchroneExtensionLauncher.sol");
 var RequestBurnManagerSimple = artifacts.require("./collect/RequestBurnManagerSimple.sol");
 var BigNumber = require('bignumber.js');
 
@@ -26,14 +22,6 @@ contract('RequestEthereum SubtractAction',  function(accounts) {
 	var arbitraryAmount = 1000;
 	var arbitraryAmount10percent = 100;
 
-	var fakeExtentionContinue1;
-    var	fakeExtentionContinue2;
-    var	fakeExtentionContinue3;
-
-    var	fakeExtentionInterception1;
-    var	fakeExtentionInterception2;
-    var	fakeExtentionInterception3;
-
     beforeEach(async () => {
 		requestCore = await RequestCore.new({from:admin});
 		var requestBurnManagerSimple = await RequestBurnManagerSimple.new(0); 
@@ -41,22 +29,7 @@ contract('RequestEthereum SubtractAction',  function(accounts) {
 		
     	requestEthereum = await RequestEthereum.new(requestCore.address,{from:admin});
 
-    	fakeExtentionContinue1 = await TestRequestSynchroneInterfaceContinue.new(1);
-    	fakeExtentionContinue2 = await TestRequestSynchroneInterfaceContinue.new(2);
-    	fakeExtentionContinue3 = await TestRequestSynchroneInterfaceContinue.new(3);
-
-    	fakeExtentionInterception1 = await TestRequestSynchroneInterfaceInterception.new(11);
-    	fakeExtentionInterception2 = await TestRequestSynchroneInterfaceInterception.new(12);
-    	fakeExtentionInterception3 = await TestRequestSynchroneInterfaceInterception.new(13);
-
 		await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});
-
-		await requestCore.adminAddTrustedExtension(fakeExtentionContinue1.address, {from:admin});
-		await requestCore.adminAddTrustedExtension(fakeExtentionContinue2.address, {from:admin});
-		await requestCore.adminAddTrustedExtension(fakeExtentionContinue3.address, {from:admin});
-		await requestCore.adminAddTrustedExtension(fakeExtentionInterception1.address, {from:admin});
-		await requestCore.adminAddTrustedExtension(fakeExtentionInterception2.address, {from:admin});
-		await requestCore.adminAddTrustedExtension(fakeExtentionInterception3.address, {from:admin});
 
 		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
 		
@@ -89,7 +62,7 @@ contract('RequestEthereum SubtractAction',  function(accounts) {
 		await utils.expectThrow(requestEthereum.subtractAction(666, arbitraryAmount10percent, {from:payee}));
 	});
 
-	it("discount request just created OK - without extension", async function () {
+	it("discount request just created OK", async function () {
 		var r = await requestEthereum.subtractAction(utils.getHashRequest(1),arbitraryAmount10percent, {from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
@@ -141,7 +114,7 @@ contract('RequestEthereum SubtractAction',  function(accounts) {
 		await utils.expectThrow(requestEthereum.subtractAction(utils.getHashRequest(1), arbitraryAmount10percent, {from:payer}));
 	});
 
-	it("discount request accepted OK - without extension", async function () {
+	it("discount request accepted OK", async function () {
 		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
 		var r = await requestEthereum.subtractAction(utils.getHashRequest(1),arbitraryAmount10percent, {from:payee});
 
@@ -159,52 +132,6 @@ contract('RequestEthereum SubtractAction',  function(accounts) {
 		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : currencyContract");
 		assert.equal(newReq[5],0,"new request wrong data : balance");
 		assert.equal(newReq[6],1,"new request wrong data : state");
-	});
-
-
-	it("discount request created OK - with 1 extension, continue: [true]", async function () {
-		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionContinue1.address, [], "", {from:payee});
-
-		var r = await requestEthereum.subtractAction(utils.getHashRequest(2), arbitraryAmount10percent, {from:payee});
-		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
-		var l = utils.getEventFromReceipt(r.receipt.logs[0], fakeExtentionContinue1.abi);
-		assert.equal(l.name,"LogTestUpdateExpectedAmount","Event LogTestUpdateExpectedAmount is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event UpdateExpectedAmount wrong args requestId");
-		assert.equal(l.data[1],1,"Event LogTestUpdateExpectedAmount wrong args ID");
-
-		var l = utils.getEventFromReceipt(r.receipt.logs[1], requestCore.abi);
-		assert.equal(l.name,"UpdateExpectedAmount","Event UpdateExpectedAmount is missing after cancel()");
-		assert.equal(r.receipt.logs[1].topics[1],utils.getHashRequest(2),"Event UpdateExpectedAmount wrong args requestId");
-		assert.equal(l.data[0],-arbitraryAmount10percent,"Event UpdateExpectedAmount wrong args amount");
-
-		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount-arbitraryAmount10percent,"new request wrong data : expectedAmount");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : currencyContract");
-		assert.equal(newReq[5],0,"new request wrong data : balance");
-		assert.equal(newReq[6],0,"new request wrong data : state");
-	});
-
-	it("discount request created OK - with 1 extension, continue: [false]", async function () {
-		newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, fakeExtentionInterception1.address, [], "", {from:payee});
-
-		var r = await requestEthereum.subtractAction(utils.getHashRequest(2), arbitraryAmount10percent, {from:payee});
-		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
-		var l = utils.getEventFromReceipt(r.receipt.logs[0], fakeExtentionInterception1.abi);
-		assert.equal(l.name,"LogTestUpdateExpectedAmount","Event LogTestUpdateExpectedAmount is missing after cancel()");
-		assert.equal(l.data[0],utils.getHashRequest(2),"Event UpdateExpectedAmount wrong args requestId");
-		assert.equal(l.data[1],11,"Event LogTestUpdateExpectedAmount wrong args ID");
-
-		var newReq = await requestCore.requests.call(utils.getHashRequest(2));
-		assert.equal(newReq[0],payee,"new request wrong data : creator");
-		assert.equal(newReq[1],payee,"new request wrong data : payee");
-		assert.equal(newReq[2],payer,"new request wrong data : payer");
-		assert.equal(newReq[3],arbitraryAmount,"new request wrong data : expectedAmount");
-		assert.equal(newReq[4],requestEthereum.address,"new request wrong data : currencyContract");
-		assert.equal(newReq[5],0,"new request wrong data : balance");
-		assert.equal(newReq[6],0,"new request wrong data : state");
 	});
 
 	it("discount request with amount > expectedAmount Impossible", async function () {

@@ -23,10 +23,6 @@ var config = {
 				"requestEthereumPay.js":false, 
 				"requestEthereumPayBack.js":false, 
 				"requestEthereumPaymentStuck.js":false,
-				"requestEthereumWithEscrow.js":false,
-	//		},
-	//		"extensions.js": {
-				"requestSyncExtEscrow.js":false
 	//		}
 	// },
 };
