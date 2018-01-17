@@ -13,8 +13,6 @@ import '../base/lifecycle/Pausable.sol';
  * @dev Requests don't have extension for now
  */
 contract RequestEthereum is Pausable {
-    uint32 public constant VERSION = 1;
-    
 	using SafeMath for uint256;
 
 	// RequestCore object

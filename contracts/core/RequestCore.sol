@@ -3,6 +3,7 @@ pragma solidity 0.4.18;
 import './Administrable.sol';
 import '../base/math/SafeMath.sol';
 import '../base/math/SafeMathInt.sol';
+import '../base/math/SafeMathUint96.sol';
 
 /**
  * @title RequestCore
@@ -16,10 +17,8 @@ import '../base/math/SafeMathInt.sol';
  * @dev Request Network will develop one subcontracts per currency and anyone can creates its own subcontracts.
  */
 contract RequestCore is Administrable {
-    // current version of the core
-    uint32 public constant VERSION = 1;
-
     using SafeMath for uint256;
+    using SafeMathUint96 for uint96;
     using SafeMathInt for int256;
 
     enum State { Created, Accepted, Canceled }
@@ -37,7 +36,7 @@ contract RequestCore is Administrable {
     }
 
     // index of the Request in the mapping
-    uint256 public numRequests; 
+    uint96 public numRequests; 
     
     // mapping of all the Requests
     mapping(bytes32 => Request) public requests;
@@ -85,7 +84,7 @@ contract RequestCore is Administrable {
         returns (bytes32 requestId) 
     {
         numRequests = numRequests.add(1);
-        requestId = keccak256(numRequests,VERSION);
+        requestId = bytes32((uint256(this) << 96).add(numRequests));
 
         requests[requestId] = Request(_creator, _payee, _payer, _expectedAmount, msg.sender, 0, State.Created, _extension, _data); 
 
