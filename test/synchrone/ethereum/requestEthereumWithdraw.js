@@ -36,19 +36,19 @@ contract('RequestEthereum Withdraw',  function(accounts) {
 		await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});
 
 		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
-		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
+		await requestEthereum.accept(utils.getRequestId(requestCore.address, 1), {from:payer});
     });
 
 	// ##################################################################################################
 	// ### withdraw test unit ###########################################################################
 	// ##################################################################################################
 	it("challenge reentrance 2 rounds", async function () {
-		await requestEthereum.paymentAction(utils.getHashRequest(1), 0, {from:payer,value:arbitraryAmount});
+		await requestEthereum.paymentAction(utils.getRequestId(requestCore.address, 1), 0, {from:payer,value:arbitraryAmount});
 		testRequestReentrance = await TestRequestReentrance.new(requestEthereum.address, 2,{from:hacker});
 		
 		var r = await testRequestReentrance.init(hacker,{from:hacker2});
 		assert.equal(r.logs[0].event,"Log","Event Log is missing");
-		assert.equal(r.logs[0].args.id,utils.getHashRequest(2),"Event Payment wrong args id");
+		assert.equal(r.logs[0].args.id,utils.getRequestId(requestCore.address, 2),"Event Payment wrong args id");
 
 		await requestEthereum.accept(r.logs[0].args.id, {from:hacker});
 		await requestEthereum.paymentAction(r.logs[0].args.id, 0, {from:hacker,value:arbitraryAmount10percent});

@@ -36,8 +36,8 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		await requestCore.adminAddTrustedCurrencyContract(requestEthereum.address, {from:admin});
 
 		var newRequest = await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
-		await requestEthereum.accept(utils.getHashRequest(1), {from:payer});
-		await requestEthereum.paymentAction(utils.getHashRequest(1), 0, {value:arbitraryAmount, from:payer})
+		await requestEthereum.accept(utils.getRequestId(requestCore.address, 1), {from:payer});
+		await requestEthereum.paymentAction(utils.getRequestId(requestCore.address, 1), 0, {value:arbitraryAmount, from:payer})
     });
 
 	// ##################################################################################################
@@ -47,15 +47,15 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		var balancePayerBefore = await web3.eth.getBalance(payer);
 		
 		await requestCore.pause({from:admin});
-		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getRequestId(requestCore.address, 1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getRequestId(requestCore.address, 1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[0],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
-		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		var newReq = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -69,7 +69,7 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	it("payback request Ethereum pause impossible", async function () {
 		await requestEthereum.pause({from:admin});
-		await utils.expectThrow(requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee}));
+		await utils.expectThrow(requestEthereum.refundAction(utils.getRequestId(requestCore.address, 1), {value:arbitraryAmount10percent, from:payee}));
 	});
 	
 	it("payback request not exist impossible", async function () {
@@ -80,34 +80,34 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	it("payback request just created Impossible", async function () {
 		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
-		await utils.expectThrow(requestEthereum.refundAction(utils.getHashRequest(2), {value:arbitraryAmount, from:payee}));
+		await utils.expectThrow(requestEthereum.refundAction(utils.getRequestId(requestCore.address, 2), {value:arbitraryAmount, from:payee}));
 	});
 
 	it("payback request canceled impossible", async function () {
 		await requestEthereum.createRequestAsPayee(payer, arbitraryAmount, 0, [], "", {from:payee});
-		await requestEthereum.cancel(utils.getHashRequest(2), {from:payee});
-		await utils.expectThrow(requestEthereum.refundAction(utils.getHashRequest(2), {value:arbitraryAmount, from:payee}));
+		await requestEthereum.cancel(utils.getRequestId(requestCore.address, 2), {from:payee});
+		await utils.expectThrow(requestEthereum.refundAction(utils.getRequestId(requestCore.address, 2), {value:arbitraryAmount, from:payee}));
 	});
 
 	it("payback request from payer Impossible", async function () {
-		var r = await utils.expectThrow(requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount, from:payer}));
+		var r = await utils.expectThrow(requestEthereum.refundAction(utils.getRequestId(requestCore.address, 1), {value:arbitraryAmount, from:payer}));
 	});
 
 	it("payback request from a random guy Impossible", async function () {
-		var r = await utils.expectThrow(requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount, from:otherguy}));
+		var r = await utils.expectThrow(requestEthereum.refundAction(utils.getRequestId(requestCore.address, 1), {value:arbitraryAmount, from:otherguy}));
 	});
 
 	it("payback request accepted OK", async function () {
 		var balancePayerBefore = await web3.eth.getBalance(payer);
-		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getRequestId(requestCore.address, 1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getRequestId(requestCore.address, 1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[0],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
-		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		var newReq = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -124,15 +124,15 @@ contract('RequestEthereum PayBack',  function(accounts) {
 	it("payback request accepted OK - untrusted currencyContract", async function () {
 		var balancePayerBefore = await web3.eth.getBalance(payer);
 		await requestCore.adminRemoveTrustedCurrencyContract(requestEthereum.address, {from:admin});
-		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getRequestId(requestCore.address, 1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getRequestId(requestCore.address, 1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[0],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
-		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		var newReq = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -151,15 +151,15 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	it("msg.value == 0 OK", async function () {
 		var balancePayerBefore = await web3.eth.getBalance(payer);
-		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:0, from:payee});
+		var r = await requestEthereum.refundAction(utils.getRequestId(requestCore.address, 1), {value:0, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getRequestId(requestCore.address, 1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[0],0,"Event UpdateBalance wrong args amountRefunded");
 
-		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		var newReq = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -175,15 +175,15 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	it("3 payback request", async function () {
 		var balancePayerBefore = await web3.eth.getBalance(payer);
-		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount30percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getRequestId(requestCore.address, 1), {value:arbitraryAmount30percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getRequestId(requestCore.address, 1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[0],-arbitraryAmount30percent,"Event UpdateBalance wrong args amountRefunded");
 
-		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		var newReq = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -197,15 +197,15 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),arbitraryAmount30percent,"new request wrong data : amount to withdraw payer");
 
 		// second
-		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount20percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getRequestId(requestCore.address, 1), {value:arbitraryAmount20percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getRequestId(requestCore.address, 1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[0],-arbitraryAmount20percent,"Event UpdateBalance wrong args amountRefunded");
 
-		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		var newReq = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -219,15 +219,15 @@ contract('RequestEthereum PayBack',  function(accounts) {
 		assert.equal((await web3.eth.getBalance(payer)).sub(balancePayerBefore),arbitraryAmount20percent+arbitraryAmount30percent,"new request wrong data : amount to withdraw payer");
 
 		// third
-		var r = await requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount10percent, from:payee});
+		var r = await requestEthereum.refundAction(utils.getRequestId(requestCore.address, 1), {value:arbitraryAmount10percent, from:payee});
 
 		assert.equal(r.receipt.logs.length,1,"Wrong number of events");
 		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after refundAction()");
-		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getRequestId(requestCore.address, 1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[0],-arbitraryAmount10percent,"Event UpdateBalance wrong args amountRefunded");
 
-		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		var newReq = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -243,15 +243,15 @@ contract('RequestEthereum PayBack',  function(accounts) {
 
 	// turn down the node
 	// it("msg.value >= 2^256 Impossible", async function () {
-	// 	var r = await utils.expectThrow(requestEthereum.refundAction(utils.getHashRequest(1), {value:new BigNumber(2).pow(256), from:payee}));
+	// 	var r = await utils.expectThrow(requestEthereum.refundAction(utils.getRequestId(requestCore.address, 1), {value:new BigNumber(2).pow(256), from:payee}));
 	// });
 
 	it("msg.value > amountAlreadyPaid Impossible", async function () {
 		var balancePayerBefore = await web3.eth.getBalance(payer);
 
-	 	var r = await (requestEthereum.refundAction(utils.getHashRequest(1), {value:arbitraryAmount+1, from:payee}));
+	 	var r = await (requestEthereum.refundAction(utils.getRequestId(requestCore.address, 1), {value:arbitraryAmount+1, from:payee}));
 
-		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		var newReq = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(newReq[0],payee,"new request wrong data : creator");
 		assert.equal(newReq[1],payee,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");

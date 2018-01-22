@@ -1,6 +1,4 @@
 var config = {
-	"VERSION_CORE": 1,
-	"VERSION_ETHEREUM": 1,
 	"all":true,
 	// "core.js": {
 		"requestAdministrable.js":false,    

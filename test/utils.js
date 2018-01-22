@@ -1,10 +1,11 @@
-var ethABI = require('ethereumjs-abi');
 var ethUtil = require('ethereumjs-util');
 var abiUtils = require("web3-eth-abi");
 var config = require("./config.js");
 
-exports.getHashRequest = function(num) {
-	return ethUtil.bufferToHex(ethABI.soliditySHA3(["uint256","uint32"], [num,config.VERSION_CORE]));
+exports.getRequestId = function(addressCore,num) {
+  let hex = num.toString(16);
+  for(i=0; i < 24 - hex.length; i++) addressCore+='0';
+  return addressCore + hex;
 }
 
 exports.expectThrow = async function(promise) {

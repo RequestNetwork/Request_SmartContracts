@@ -56,11 +56,11 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 
 		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"Created","Event Created is missing after createRequestAsPayee()");
-		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event Created wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getRequestId(requestCore.address, 1),"Event Created wrong args requestId");
 		assert.equal(utils.bytes32StrToAddressStr(r.receipt.logs[0].topics[2]).toLowerCase(),payee,"Event Created wrong args payee");
 		assert.equal(utils.bytes32StrToAddressStr(r.receipt.logs[0].topics[3]).toLowerCase(),payer,"Event Created wrong args payer");
 
-		var r = await requestCore.requests.call(utils.getHashRequest(1));
+		var r = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(r[0],payee,"request wrong data : creator");
 		assert.equal(r[1],payee,"request wrong data : payee");
 		assert.equal(r[2],payer,"request wrong data : payer");
@@ -71,7 +71,7 @@ contract('RequestEthereum createRequestAsPayee',  function(accounts) {
 		
 		assert.equal(r[6],0,"new request wrong data : state");
 
-		var e = await requestCore.getExtension.call(utils.getHashRequest(1));
+		var e = await requestCore.getExtension.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(e,0,"new request wrong data : extension1");
 	});
 

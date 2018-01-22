@@ -51,21 +51,21 @@ contract('RequestEthereum Payment stuck',  function(accounts) {
 										0,
 										'', 
 										{from:payer});
-		var r = await requestEthereum.paymentAction(utils.getHashRequest(1),0, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.paymentAction(utils.getRequestId(requestCore.address, 1),0, {value:arbitraryAmount, from:payer});
 
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after paymentAction()");
-		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getRequestId(requestCore.address, 1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[0],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
 
 		var l = utils.getEventFromReceipt(r.receipt.logs[1], requestEthereum.abi);
 		assert.equal(l.name,"EtherAvailableToWithdraw","Event EtherAvailableToWithdraw is missing after paymentAction()");
-		assert.equal(r.receipt.logs[1].topics[1],utils.getHashRequest(1),"Event EtherAvailableToWithdraw wrong args requestId");
+		assert.equal(r.receipt.logs[1].topics[1],utils.getRequestId(requestCore.address, 1),"Event EtherAvailableToWithdraw wrong args requestId");
 		assert.equal(utils.bytes32StrToAddressStr(l.data[0]).toLowerCase(),testRequestPaymentStuckRevert.address,"Event EtherAvailableToWithdraw wrong args recipient");
 		assert.equal(l.data[1],arbitraryAmount,"Event EtherAvailableToWithdraw wrong args amount");
 
-		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		var newReq = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(newReq[0],payer,"new request wrong data : creator");
 		assert.equal(newReq[1],testRequestPaymentStuckRevert.address,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -87,21 +87,21 @@ contract('RequestEthereum Payment stuck',  function(accounts) {
 										0,
 										'', 
 										{from:payer});
-		var r = await requestEthereum.paymentAction(utils.getHashRequest(1),0, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.paymentAction(utils.getRequestId(requestCore.address, 1),0, {value:arbitraryAmount, from:payer});
 
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after paymentAction()");
-		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getRequestId(requestCore.address, 1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[0],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
 
 		var l = utils.getEventFromReceipt(r.receipt.logs[1], requestEthereum.abi);
 		assert.equal(l.name,"EtherAvailableToWithdraw","Event EtherAvailableToWithdraw is missing after paymentAction()");
-		assert.equal(r.receipt.logs[1].topics[1],utils.getHashRequest(1),"Event EtherAvailableToWithdraw wrong args requestId");
+		assert.equal(r.receipt.logs[1].topics[1],utils.getRequestId(requestCore.address, 1),"Event EtherAvailableToWithdraw wrong args requestId");
 		assert.equal(utils.bytes32StrToAddressStr(l.data[0]).toLowerCase(),testRequestPaymentStuckAssert.address,"Event EtherAvailableToWithdraw wrong args recipient");
 		assert.equal(l.data[1],arbitraryAmount,"Event EtherAvailableToWithdraw wrong args amount");
 
-		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		var newReq = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(newReq[0],payer,"new request wrong data : creator");
 		assert.equal(newReq[1],testRequestPaymentStuckAssert.address,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
@@ -123,21 +123,21 @@ contract('RequestEthereum Payment stuck',  function(accounts) {
 										0,
 										'', 
 										{from:payer});
-		var r = await requestEthereum.paymentAction(utils.getHashRequest(1),0, {value:arbitraryAmount, from:payer});
+		var r = await requestEthereum.paymentAction(utils.getRequestId(requestCore.address, 1),0, {value:arbitraryAmount, from:payer});
 
 		assert.equal(r.receipt.logs.length,2,"Wrong number of events");
 		var l = utils.getEventFromReceipt(r.receipt.logs[0], requestCore.abi);
 		assert.equal(l.name,"UpdateBalance","Event UpdateBalance is missing after paymentAction()");
-		assert.equal(r.receipt.logs[0].topics[1],utils.getHashRequest(1),"Event UpdateBalance wrong args requestId");
+		assert.equal(r.receipt.logs[0].topics[1],utils.getRequestId(requestCore.address, 1),"Event UpdateBalance wrong args requestId");
 		assert.equal(l.data[0],arbitraryAmount,"Event UpdateBalance wrong args amountPaid");
 
 		var l = utils.getEventFromReceipt(r.receipt.logs[1], requestEthereum.abi);
 		assert.equal(l.name,"EtherAvailableToWithdraw","Event EtherAvailableToWithdraw is missing after paymentAction()");
-		assert.equal(r.receipt.logs[1].topics[1],utils.getHashRequest(1),"Event EtherAvailableToWithdraw wrong args requestId");
+		assert.equal(r.receipt.logs[1].topics[1],utils.getRequestId(requestCore.address, 1),"Event EtherAvailableToWithdraw wrong args requestId");
 		assert.equal(l.data[0].toLowerCase(),testRequestPaymentStuckNonPayable.address,"Event EtherAvailableToWithdraw wrong args recipient");
 		assert.equal(l.data[1],arbitraryAmount,"Event EtherAvailableToWithdraw wrong args amount");
 
-		var newReq = await requestCore.requests.call(utils.getHashRequest(1));
+		var newReq = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
 		assert.equal(newReq[0],payer,"new request wrong data : creator");
 		assert.equal(newReq[1],testRequestPaymentStuckNonPayable.address,"new request wrong data : payee");
 		assert.equal(newReq[2],payer,"new request wrong data : payer");
