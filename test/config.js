@@ -11,7 +11,7 @@ var config = {
 	//	 	"ethereum.js": {
 				"requestEthereumCreateRequestAsPayee.js":false,
 				"requestEthereumCreateRequestAsPayer.js":false,
-				// "requestEthereumBroadcastSignedRequestAsPayer.js":false,
+				"requestEthereumBroadcastSignedRequestAsPayer.js":false,
 				"requestEthereumAccept.js":false, 
 				"requestEthereumCancelByPayer.js":false, 
 				"requestEthereumCancel.js":false, 

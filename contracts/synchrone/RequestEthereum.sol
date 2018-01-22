@@ -82,11 +82,67 @@ contract RequestEthereum is Pausable {
 		whenNotPaused
 		returns(bytes32 requestId)
 	{
+		return createAcceptAndPay(msg.sender, _payee, _expectedAmount, _extension, _extensionParams, _additionals, _data);
+	}
+
+
+	/*
+	 * @dev Function to broadcast and accept an offchain signed request (can be paid and additionals also)
+	 *
+	 * @dev msg.sender must be _payer
+	 * @dev the _payer can additionals 
+	 *
+	 * @param _payee Entity which will receive the payment
+	 * @param _payer Entity supposed to pay
+	 * @param _expectedAmount Expected amount to be received. This amount can't be changed.
+	 * @param _extension an extension can be linked to a request and allows advanced payments conditions such as escrow. Extensions have to be whitelisted in Core NOT USED (will be use later)
+	 * @param _extensionParams Parameters for the extension. It is an array of 9 bytes32 NOT USED (will be use later)
+	 * @param _additionals amount of additionals the payer want to declare
+	 * @param v ECDSA signature parameter v.
+	 * @param r ECDSA signature parameters r.
+	 * @param s ECDSA signature parameters s.
+	 *
+	 * @return Returns the id of the request 
+	 */
+	function broadcastSignedRequestAsPayer(address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _additionals, string _data, uint8 v, bytes32 r, bytes32 s)
+		external
+		payable
+		whenNotPaused
+		returns(bytes32)
+	{
+		// check the signature
+		require(checkRequestSignature(_payee, _payee, msg.sender, _expectedAmount,_extension,_extensionParams, _data, v, r, s));
+
+		return createAcceptAndPay(_payee, _payee, _expectedAmount, _extension, _extensionParams, _additionals, _data);
+	}
+
+
+
+	/*
+	 * @dev Internal function to create,accept and pay a request as Payer
+	 *
+	 * @dev msg.sender will be the payer
+	 *
+	 * @param _creator Entity which create the request
+	 * @param _payee Entity which will receive the payment
+	 * @param _expectedAmount Expected amount to be received
+	 * @param _extension NOT USED (will be use later)
+	 * @param _extensionParams NOT USED (will be use later)
+	 * @param _additionals Will increase the ExpectedAmount of the request right after its creation by adding additionals
+	 * @param _data Hash linking to additional data on the Request stored on IPFS
+	 *
+	 * @return Returns the id of the request 
+	 */
+	function createAcceptAndPay(address _creator, address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _additionals, string _data)
+		internal
+		returns(bytes32 requestId)
+	{
 		require(_expectedAmount>=0);
 		require(msg.sender != _payee && _payee != 0);
 
-		uint256 collectAmount = requestCore.getCollectEstimation(_expectedAmount,msg.sender,0);
-		requestId= requestCore.createRequest.value(collectAmount)(msg.sender, _payee, msg.sender, _expectedAmount, 0, _data);
+		uint256 collectAmount = requestCore.getCollectEstimation(_expectedAmount, this, _extension);
+
+		requestId = requestCore.createRequest.value(collectAmount)(_creator, _payee, msg.sender, _expectedAmount, _extension, _data);
 
 		requestCore.accept(requestId);
 
@@ -99,7 +155,6 @@ contract RequestEthereum is Pausable {
 
 		return requestId;
 	}
-
 
 	// ---- INTERFACE FUNCTIONS ------------------------------------------------------------------------------------
 
