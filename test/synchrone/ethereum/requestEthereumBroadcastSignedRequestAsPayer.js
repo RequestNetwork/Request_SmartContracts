@@ -84,7 +84,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 		var balancePayeeBefore = await web3.eth.getBalance(payee);
@@ -135,7 +135,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
@@ -162,7 +162,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
@@ -189,7 +189,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
@@ -215,7 +215,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
@@ -265,7 +265,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 	it("new quick request payee==payer impossible", async function () {
 		var extension = 0;
 		var listParamsExtensions = [];
-		var hash = hashRequest(requestEthereum.address, payee, payee, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
@@ -282,7 +282,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 	it("new quick request payee==0 impossible", async function () {
 		var extension = 0;
 		var listParamsExtensions = [];
-		var hash = hashRequest(requestEthereum.address, 0, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);;
+		var hash = hashRequest(requestEthereum.address, 0, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);;
 		
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
@@ -300,7 +300,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 	it("new quick request msg.sender==payee impossible", async function () {
 		var extension = 0;
 		var listParamsExtensions = [];
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
@@ -314,21 +314,30 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 									{from:payee, value:arbitraryAmount}));
 	});
 
-	it("new quick request msg.sender==otherguy impossible", async function () {
+	it("new quick request msg.sender==otherguy OK", async function () {
 		var extension = 0;
 		var listParamsExtensions = [];
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
-		var r = await utils.expectThrow(requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
+		var r = await requestEthereum.broadcastSignedRequestAsPayer(payee, arbitraryAmount, 
 									extension,
 									listParamsExtensions, 
 									0, "", 
 									timeExpiration, 
 									sig.v, ethUtil.bufferToHex(sig.r), ethUtil.bufferToHex(sig.s),
-									{from:otherguy, value:arbitraryAmount}));
+									{from:otherguy, value:arbitraryAmount});
+		
+		var newReq = await requestCore.requests.call(utils.getRequestId(requestCore.address, 1));
+		assert.equal(newReq[0],payee,"new quick request wrong data : creator");
+		assert.equal(newReq[1],payee,"new quick request wrong data : payee");
+		assert.equal(newReq[2],otherguy,"new quick request wrong data : payer");
+		assert.equal(newReq[3],arbitraryAmount,"new quick request wrong data : expectedAmount");
+		assert.equal(newReq[4],requestEthereum.address,"new quick request wrong data : currencyContract");
+		assert.equal(newReq[5],arbitraryAmount,"new quick request wrong data : amountPaid");
+		assert.equal(newReq[6],1,"new quick request wrong data : state");
 	});
 
 	it("impossible to createQuickquick request if Core Paused", async function () {
@@ -336,7 +345,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 
 		var extension = 0;
 		var listParamsExtensions = [];
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
@@ -354,7 +363,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
@@ -400,7 +409,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
@@ -440,7 +449,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 	it("new quick request signed by payer Impossible", async function () {
 		var extension = 0;
 		var listParamsExtensions = [];
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		
 		var ecprivkey = Buffer.from(privateKeyPayer, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
@@ -457,7 +466,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 	it("new quick request signed by otherguy Impossible", async function () {
 		var extension = 0;
 		var listParamsExtensions = [];
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		
 		var ecprivkey = Buffer.from(privateKeyOtherGuy, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
@@ -474,7 +483,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 	it("new quick request signature doest match data impossible", async function () {
 		var extension = 0;
 		var listParamsExtensions = [];
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
@@ -494,7 +503,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var hash = hashRequest(requestEthereum2.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum2.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 
@@ -512,7 +521,7 @@ contract('RequestEthereum broadcastSignedRequestAsPayer',  function(accounts) {
 		var extension = 0;
 		var listParamsExtensions = [];
 
-		var hash = hashRequest(requestEthereum.address, payee, payer, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
+		var hash = hashRequest(requestEthereum.address, payee, 0, arbitraryAmount, extension, listParamsExtensions, "", timeExpiration);
 		var ecprivkey = Buffer.from(privateKeyPayee, 'hex');
 		var sig = signHashRequest(hash,ecprivkey);
 

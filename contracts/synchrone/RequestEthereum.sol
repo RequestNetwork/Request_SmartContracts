@@ -114,7 +114,7 @@ contract RequestEthereum is Pausable {
 		require(_expirationDate >= block.timestamp);
 
 		// check the signature
-		require(checkRequestSignature(_payee, _payee, msg.sender, _expectedAmount,_extension,_extensionParams, _data, _expirationDate, v, r, s));
+		require(checkRequestSignature(_payee, _payee, 0, _expectedAmount,_extension,_extensionParams, _data, _expirationDate, v, r, s));
 
 		return createAcceptAndPay(_payee, _payee, _expectedAmount, _extension, _extensionParams, _additionals, _data);
 	}
