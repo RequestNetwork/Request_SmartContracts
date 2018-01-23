@@ -104,14 +104,17 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @return Returns the id of the request 
 	 */
-	function broadcastSignedRequestAsPayer(address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _additionals, string _data, uint8 v, bytes32 r, bytes32 s)
+	function broadcastSignedRequestAsPayer(address _payee, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, uint256 _additionals, string _data, uint256 _expirationDate, uint8 v, bytes32 r, bytes32 s)
 		external
 		payable
 		whenNotPaused
 		returns(bytes32)
 	{
+		// check expiration date
+		require(_expirationDate >= block.timestamp);
+
 		// check the signature
-		require(checkRequestSignature(_payee, _payee, msg.sender, _expectedAmount,_extension,_extensionParams, _data, v, r, s));
+		require(checkRequestSignature(_payee, _payee, msg.sender, _expectedAmount,_extension,_extensionParams, _data, _expirationDate, v, r, s));
 
 		return createAcceptAndPay(_payee, _payee, _expectedAmount, _extension, _extensionParams, _additionals, _data);
 	}
@@ -366,12 +369,12 @@ contract RequestEthereum is Pausable {
 	 *
 	 * @return Keccak-256 hash of a request
 	 */
-	function getRequestHash(address _payee, address _payer, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, string _data)
+	function getRequestHash(address _payee, address _payer, int256 _expectedAmount, address _extension, bytes32[9] _extensionParams, string _data, uint256 _expirationDate)
 		internal
 		view
 		returns(bytes32)
 	{
-		return keccak256(this,_payee,_payer,_expectedAmount,_extension,_extensionParams,_data);
+		return keccak256(this,_payee,_payer,_expectedAmount,_extension,_extensionParams,_data,_expirationDate);
 	}
 
 	/*
@@ -409,6 +412,7 @@ contract RequestEthereum is Pausable {
 		address extension,
 		bytes32[9] extensionParams,
 		string data,
+		uint256 expirationDate,
 		uint8 v,
 		bytes32 r,
 		bytes32 s)
@@ -416,7 +420,7 @@ contract RequestEthereum is Pausable {
 		view
 		returns (bool)
 	{
-		bytes32 hash = getRequestHash(payee,payer,expectedAmount,extension,extensionParams,data);
+		bytes32 hash = getRequestHash(payee,payer,expectedAmount,extension,extensionParams,data,expirationDate);
 		return isValidSignature(signer, hash, v, r, s);
 	}
 
