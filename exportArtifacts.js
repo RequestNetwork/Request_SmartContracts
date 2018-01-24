@@ -37,17 +37,19 @@ artifacts.forEach(function(name) {
 		}
 	};
 	
-	fs.writeFile(EXPORT_DIR+'test/'+name+'.json', JSON.stringify(artifactForTestExported, null, 2), function(err) {
+	const nameTest = EXPORT_DIR+'test/'+name+'-'+PACKAGE.version+'-test.json';
+	fs.writeFile(nameTest, JSON.stringify(artifactForTestExported, null, 2), function(err) {
 		if(err) {
 			return console.log(err);
 		}
-		console.log(EXPORT_DIR+'test/'+name+'.json saved!');
+		console.log(nameTest+' saved!');
 	}); 
 	
-	fs.writeFile(EXPORT_DIR+'prod/'+name+'.json', JSON.stringify(artifactForProdExported, null, 2), function(err) {
+	const nameProd = EXPORT_DIR+'prod/'+name+'-'+PACKAGE.version+'-prod.json';
+	fs.writeFile(nameProd, JSON.stringify(artifactForProdExported, null, 2), function(err) {
 		if(err) {
 			return console.log(err);
 		}
-		console.log(EXPORT_DIR+'prod/'+name+'.json saved!');
+		console.log(nameProd+' saved!');
 	}); 
 });
