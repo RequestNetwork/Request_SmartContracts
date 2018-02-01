@@ -2,49 +2,60 @@ var RequestCore = artifacts.require("./RequestCore.sol");
 var RequestEthereum = artifacts.require("./RequestEthereum.sol");
 var RequestBurnManagerSimple = artifacts.require("./RequestBurnManagerSimple.sol");
 
-// Copy & Paste this
-Date.prototype.getUnixTime = function() { return this.getTime()/1000|0 };
-if(!Date.now) Date.now = function() { return new Date(); }
-Date.time = function() { return Date.now().getUnixTime(); }
-
-
 var addressContractBurner = 0;
 var feesPerTenThousand = 10; // 0.1 %
 
 
-var requestCoreContract;
+var requestCore;
 var requestEthereum;
 var requestBurnManagerSimple;
 
 module.exports = function(deployer) {
-	return RequestCore.new().then(function(result){
-		requestCoreContract = result;
-		console.log("requestCore: "+requestCoreContract.address);
-		RequestEthereum.new(requestCoreContract.address).then(function(result){
-			requestEthereum=result;
-			console.log("requestEthereum: "+result.address);
-
-			RequestBurnManagerSimple.new(addressContractBurner).then(function(result){
-				requestBurnManagerSimple=result;
-				console.log("requestBurnManagerSimple: "+result.address);
-
-				requestBurnManagerSimple.setFeesPerTenThousand(feesPerTenThousand).then(function(result){
-					requestCoreContract.setBurnManager(requestBurnManagerSimple.address).then(function(result){
-						requestCoreContract.adminAddTrustedCurrencyContract(requestEthereum.address).then(function(r) {
-							requestCoreContract.getStatusContract(requestEthereum.address).then(function(d) {
-								console.log("getStatusContract: " + requestEthereum.address + " => " + d)
-							})
-							requestBurnManagerSimple.feesPer10000().then(function(d) {
-								console.log("trustedNewBurnManager %% => " + d);
-							})	
-							requestCoreContract.trustedNewBurnManager().then(function(d) {
-								console.log("trustedNewBurnManager manager => " + d);
-							})
-						});
-					});
-				});
-			});
-		});
-	});
+    deployer.deploy(RequestCore).then(function() {
+        return deployer.deploy(RequestEthereum, RequestCore.address).then(function() {
+            return deployer.deploy(RequestBurnManagerSimple, addressContractBurner).then(function() {
+                createInstances().then(function() {
+                    setupContracts().then(function() {
+                        checks()
+                    });
+                });
+            });
+        });
+    });
 };
 
+var createInstances = function() {
+    return RequestCore.deployed().then(function(instance) {
+        requestCore = instance;
+        return RequestEthereum.deployed().then(function(instance) {
+            requestEthereum = instance;
+            return RequestBurnManagerSimple.deployed().then(function(instance) {
+                requestBurnManagerSimple = instance;
+                console.log("Instances set.")
+            });
+        });
+    });
+}
+
+var setupContracts = function() {
+    return requestBurnManagerSimple.setFeesPerTenThousand(feesPerTenThousand).then(function() {
+        return requestCore.setBurnManager(requestBurnManagerSimple.address).then(function() {
+            return requestCore.adminAddTrustedCurrencyContract(requestEthereum.address).then(function() {
+                console.log("Contracts set up.")
+            });
+        });
+    });
+}
+
+var checks = function() {
+  requestCore.getStatusContract(requestEthereum.address).then(function(d) {
+    console.log("getStatusContract: " + requestEthereum.address + " => " + d)
+  });
+  requestBurnManagerSimple.feesPer10000().then(function(d) {
+    console.log("trustedNewBurnManager %% => " + d);
+  });
+  requestCore.trustedNewBurnManager().then(function(d) {
+    console.log("trustedNewBurnManager manager => " + d);
+    console.log("Checks complete")
+  });
+}
