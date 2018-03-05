@@ -1,3 +1,9 @@
+# DEPRECATED : please see [https://github.com/RequestNetwork/requestNetwork](https://github.com/RequestNetwork/requestNetwork) 
+
+-------------------------------------------------
+-------------------------------------------------
+-------------------------------------------------
+
 # Request Smart Contracts Documentation 
 ## Introduction
 Welcome to the Request Network Smart Contracts documentation. 
